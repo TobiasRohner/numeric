@@ -1,0 +1,14 @@
+#ifndef NUMERIC_CONFIG_HPP_
+#define NUMERIC_CONFIG_HPP_
+
+#include <string_view>
+
+
+namespace numeric {
+
+static constexpr std::string_view DATA_DIR = "@DATA_DIR@";
+
+}
+
+
+#endif
