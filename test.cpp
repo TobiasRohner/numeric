@@ -2,6 +2,8 @@
 #include <hip/hip_runtime_api.h>
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <iterator>
 #include <vector>
 #include <numeric/hip/safe_call.hpp>
 #include <numeric/hip/device.hpp>
@@ -9,46 +11,61 @@
 #include <numeric/hip/kernel.hpp>
 #include <numeric/memory/memory_type.hpp>
 #include <numeric/memory/allocator.hpp>
+#include <numeric/memory/layout.hpp>
+#include <numeric/memory/array.hpp>
+
+
+std::string read_file(std::string_view path) {
+  std::ifstream f(path.data());
+  const std::string src(std::istreambuf_iterator<char>(f), {});
+  return src;
+}
 
 
 static constexpr char kernel_src[] = R"(
+  #include <numeric/config.hpp>
+  #include <numeric/memory/layout.hpp>
+  #include <numeric/memory/array_view.hpp>
+
   template<typename Scalar>
-  __global__ void gpu_kernel(Scalar *a, size_t N) {
-    const size_t i = hipBlockDim_x * hipBlockIdx_x + hipThreadIdx_x;
-    if (i >= N) {
+  __global__ void gpu_kernel(numeric::memory::ArrayView<Scalar, 2> a) {
+    const size_t i = hipBlockDim_y * hipBlockIdx_y + hipThreadIdx_y;
+    const size_t j = hipBlockDim_x * hipBlockIdx_x + hipThreadIdx_x;
+    if (i >= a.shape(0)) {
       return;
     }
-    a[i] = hipThreadIdx_x;
+    if (j >= a.shape(1)) {
+      return;
+    }
+    a(i, j) = 100 * (1+hipThreadIdx_x) + (1+hipThreadIdx_y);
   }
 )";
 
 
 int main() {
-  static constexpr size_t N = 1000;
+  static constexpr size_t N = 16;
 
   numeric::hip::Device device;
 
   numeric::hip::Program program(kernel_src);
-  program.add_compile_option("-I/usr/local/cuda-11.7/targets/x86_64-linux/include");
+  program.add_compile_option("--std=c++17");
   program.instantiate_kernel<double>("gpu_kernel");
   auto kernel = program.get_kernel<double>("gpu_kernel");
 
-  numeric::memory::Allocator<double> alloc_host(numeric::memory::MemoryType::HOST);
-  numeric::memory::Allocator<double> alloc_device(numeric::memory::MemoryType::DEVICE);
-  double *a_host = alloc_host.allocate(N);
-  double *a_device = alloc_device.allocate(N);
-
-  kernel(N/10, 1, 1, 10, 1, 1, 0, numeric::hip::Stream(device), a_device, N);
+  numeric::memory::Layout<2> a_layout(N, N);
+  numeric::memory::Array<double, 2> a_host(a_layout, numeric::memory::MemoryType::HOST);
+  numeric::memory::Array<double, 2> a_device(a_layout, numeric::memory::MemoryType::DEVICE);
+  kernel(N/8, N/8, 1, 8, 8, 1, 0, numeric::hip::Stream(device), a_device.view());
   device.sync();
 
-  hipMemcpy(a_host, a_device, N*sizeof(double), hipMemcpyDeviceToHost);
+  hipMemcpy(a_host.raw(), a_device.raw(), a_layout.size()*sizeof(double), hipMemcpyDeviceToHost);
   for (size_t i = 0 ; i < N ; ++i) {
-    std::cout << a_host[i] << ' ';
+    for (size_t j = 0 ; j < N ; ++j) {
+      std::cout << a_host(i,j) << ' ';
+    }
+    std::cout << std::endl;
   }
   std::cout << std::endl;
-
-  alloc_host.deallocate(a_host, N);
-  alloc_device.deallocate(a_device, N);
 
   return 0;
 }

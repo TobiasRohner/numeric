@@ -9,6 +9,14 @@
 
 namespace numeric::hip {
 
+std::vector<std::string_view> Program::numeric_headers_ = {
+  "numeric/config.hpp",
+  "numeric/memory/array_const_view.hpp",
+  "numeric/memory/array_view.hpp",
+  "numeric/memory/layout.hpp",
+  "numeric/memory/memory_type.hpp"
+};
+
 Program::Header::Header(std::string_view name_, std::string_view src_) : name(name_), src(src_) { }
 
 Program::Program(std::string src) : src_(src) { }
@@ -40,13 +48,34 @@ Kernel Program::get_kernel(const std::string &name) {
   return get_kernel_extern_c(lowered);
 }
 
-void Program::compile() {
+std::string Program::read_file(std::string_view path) {
+  std::ifstream f(path.data());
+  std::string src(std::istreambuf_iterator<char>(f), {});
+  return src;
+}
+
+void Program::add_compatibility_headers() {
   const std::string path = std::string(DATA_DIR) + "/hip/include/api_compat.hpp";
-  std::ifstream f(path);
-  const std::string src(std::istreambuf_iterator<char>(f), {});
+  const std::string src = read_file(path);
   add_header("api_compat.hpp", src);
-  src_ = "#include <api_compat.hpp>\n\n" + src_;
   add_compile_option("-I" + std::string(DATA_DIR) + "/hip/include");
+}
+
+void Program::add_numeric_headers() {
+  for (std::string_view header : numeric_headers_) {
+    const std::string path = std::string(NUMERIC_INCLUDE_DIR) + "/" + header.data();
+    const std::string src = read_file(path);
+    add_header(header, src);
+  }
+  add_compile_option("-I" + std::string(NUMERIC_INCLUDE_DIR) + "/numeric/memory");
+}
+
+void Program::compile() {
+  add_compatibility_headers();
+  add_numeric_headers();
+  src_ = "#include <api_compat.hpp>\n\n" + src_;
+  add_compile_option("-D__HIP_DEVICE_COMPILE__");
+  add_compile_option("-DNUMERIC_ENABLE_HIP=1");
 
   std::vector<const char *> header_sources;
   std::vector<const char *> header_names;

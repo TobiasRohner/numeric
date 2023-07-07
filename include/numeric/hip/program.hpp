@@ -58,7 +58,11 @@ private:
   std::vector<std::string> instantiate_names_;
   std::map<std::string, std::string> lowered_names_;
   std::shared_ptr<Module> module_;
+  static std::vector<std::string_view> numeric_headers_;
 
+  static std::string read_file(std::string_view path);
+  void add_compatibility_headers();
+  void add_numeric_headers();
   void compile();
 
   template<typename... Types>
