@@ -3,7 +3,10 @@ project(numeric VERSION 0.1 LANGUAGES CXX)
 
 
 option(NUMERIC_ENABLE_HIP "Enable GPU support using HIP" ON)
+option(NUMERIC_BUILD_TESTS "Build Tests for the Library" ON)
 
+
+include(FetchContent)
 
 
 add_library(numeric)
@@ -25,6 +28,13 @@ set(DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data CACHE STRING "Location of the \"da
 configure_file(${NUMERIC_INCLUDE_DIR}/numeric/config.hpp.in ${NUMERIC_INCLUDE_DIR}/numeric/config.hpp @ONLY)
 
 
-add_executable(test test.cpp)
-set_target_properties(test PROPERTIES CXX_STANDARD 20)
-target_link_libraries(test PUBLIC numeric)
+if(NUMERIC_BUILD_TESTS)
+  FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.13.0
+  )
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(googletest)
+  add_subdirectory(test)
+endif()

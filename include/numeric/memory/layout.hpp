@@ -11,8 +11,8 @@ class Layout {
 public:
   NUMERIC_HOST_DEVICE Layout() {
     for (dim_t i = 0 ; i < N ; ++i) {
-      shape_[i] = 1;
-      stride_[i] = 1;
+      shape_[i] = 0;
+      stride_[i] = 0;
     }
   }
   template<typename... Ints>

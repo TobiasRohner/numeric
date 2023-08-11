@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <numeric/memory/memory_resource.hpp>
 #include <numeric/hip/safe_call.hpp>
+#include <numeric/hip/device.hpp>
 #include <hip/hip_runtime_api.h>
 
 namespace numeric::memory {

@@ -16,8 +16,10 @@ public:
   using scalar_t = Scalar;
   static constexpr dim_t dim = N;
 
+  Array(): super(nullptr, {}, MemoryType::UNKNOWN), alloc_(nullptr) {}
+
   Array(const Layout<dim> &layout, Allocator<scalar_t> alloc)
-    : super(alloc.allocate(layout.size()), layout),
+    : super(alloc.allocate(layout.size()), layout, alloc.memory_type()),
     alloc_(alloc) {
   }
   explicit Array(const Layout<dim> &layout, MemoryType mem_type = MemoryType::HOST)
@@ -25,7 +27,7 @@ public:
   }
   Array(const Array &) = delete;
   Array &operator=(const Array &) = delete;
-  Array(Array &&other) : super(other.data_, other.layout_), alloc_(std::move(other.alloc_)) {
+  Array(Array &&other) : super(other.data_, other.layout_, other.memory_type_), alloc_(std::move(other.alloc_)) {
     other.data_ = nullptr;
   }
   Array &operator=(Array &&other) {
@@ -41,8 +43,9 @@ public:
     }
   }
 
-  ArrayView<Scalar, N> view() noexcept { return *this; }
+  [[nodiscard]] ArrayView<Scalar, N> view() noexcept { return *this; }
 
+  using super::memory_type;
   using super::const_view;
   using super::operator();
   using super::raw;
@@ -55,6 +58,7 @@ protected:
   Allocator<scalar_t> alloc_;
   using super::data_;
   using super::layout_;
+  using super::memory_type_;
 
   using super::memory_index;
 };
