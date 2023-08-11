@@ -102,3 +102,33 @@ TEST(numeric_array, movable) {
   ASSERT_EQ(dst.raw(), mem);
   ASSERT_EQ(src.raw(), nullptr);
 }
+
+TEST(numeric_array, broadcast) {
+  numeric::memory::Layout<4> shape(1, 3, 1, 6);
+  numeric::memory::Array<double, 4> arr(shape);
+  numeric::memory::Layout<4> shape_strided = shape;
+  shape_strided.stride(3) = 2;
+  numeric::memory::ArrayView<double, 4> strided_view(arr.raw(), shape_strided,
+                                                     arr.memory_type());
+  for (numeric::dim_t i = 0; i < arr.size(); ++i) {
+    arr.raw()[i] = i;
+  }
+  numeric::memory::Layout<6> broadcasted_shape(2, 3, 4, 3, 2, 3);
+  numeric::memory::ArrayView<double, 6> broadcasted_view =
+      strided_view.broadcast(broadcasted_shape);
+  for (numeric::dim_t i = 0; i < broadcasted_shape.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < broadcasted_shape.shape(1); ++j) {
+      for (numeric::dim_t k = 0; k < broadcasted_shape.shape(2); ++k) {
+        for (numeric::dim_t l = 0; l < broadcasted_shape.shape(3); ++l) {
+          for (numeric::dim_t m = 0; m < broadcasted_shape.shape(4); ++m) {
+            for (numeric::dim_t n = 0; n < broadcasted_shape.shape(5); ++n) {
+              const double val_orig = strided_view(0, l, 0, n);
+              const double val_brd = broadcasted_view(i, j, k, l, m, n);
+              ASSERT_EQ(val_brd, val_orig);
+            }
+          }
+        }
+      }
+    }
+  }
+}

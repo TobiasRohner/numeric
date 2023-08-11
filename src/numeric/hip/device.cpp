@@ -1,8 +1,7 @@
-#include <numeric/hip/device.hpp>
-#include <hip/hiprtc.h>
 #include <hip/hip_runtime_api.h>
+#include <hip/hiprtc.h>
+#include <numeric/hip/device.hpp>
 #include <numeric/hip/safe_call.hpp>
-
 
 namespace numeric::hip {
 
@@ -26,18 +25,12 @@ int Device::count() {
   return c;
 }
 
-void Device::activate() const {
-  NUMERIC_CHECK_HIP(hipSetDevice(id_));
-}
+void Device::activate() const { NUMERIC_CHECK_HIP(hipSetDevice(id_)); }
 
 void Device::sync() const {
-  do_while_active([&]() {
-    NUMERIC_CHECK_HIP(hipDeviceSynchronize());
-  });
+  do_while_active([&]() { NUMERIC_CHECK_HIP(hipDeviceSynchronize()); });
 }
 
-int Device::id() const {
-  return id_;
-}
+int Device::id() const { return id_; }
 
-}
+} // namespace numeric::hip

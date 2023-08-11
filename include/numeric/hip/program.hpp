@@ -1,25 +1,23 @@
 #ifndef NUMERIC_HIP_PROGRAM_HPP_
 #define NUMERIC_HIP_PROGRAM_HPP_
 
-#include <numeric/hip/module.hpp>
-#include <numeric/hip/kernel.hpp>
-#include <numeric/utils/type_name.hpp>
-#include <memory>
-#include <string_view>
-#include <string>
-#include <vector>
-#include <map>
 #include <hip/hiprtc.h>
-
+#include <map>
+#include <memory>
+#include <numeric/hip/kernel.hpp>
+#include <numeric/hip/module.hpp>
+#include <numeric/utils/type_name.hpp>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace numeric::hip {
 
 namespace detail {
 
-template<typename... Ts>
-struct ConvertTemplatePackDummy {};
+template <typename... Ts> struct ConvertTemplatePackDummy {};
 
-}
+} // namespace detail
 
 class Program {
   struct Header {
@@ -39,15 +37,19 @@ public:
   void add_compile_option(std::string_view option);
 
   void instantiate_kernel(const std::string &name);
-  template<typename... Types> void instantiate_kernel(const std::string &name) {
-    const std::string name_with_type = name + std::string(types_to_template_pack<Types...>());
+  template <typename... Types>
+  void instantiate_kernel(const std::string &name) {
+    const std::string name_with_type =
+        name + std::string(types_to_template_pack<Types...>());
     instantiate_kernel(name_with_type);
   }
 
   [[nodiscard]] Kernel get_kernel_extern_c(std::string_view name);
   [[nodiscard]] Kernel get_kernel(const std::string &name);
-  template<typename... Types> [[nodiscard]] Kernel get_kernel(const std::string &name) {
-    const std::string name_with_type = name + std::string(types_to_template_pack<Types...>());
+  template <typename... Types>
+  [[nodiscard]] Kernel get_kernel(const std::string &name) {
+    const std::string name_with_type =
+        name + std::string(types_to_template_pack<Types...>());
     return get_kernel(name_with_type);
   }
 
@@ -65,7 +67,7 @@ private:
   void add_numeric_headers();
   void compile();
 
-  template<typename... Types>
+  template <typename... Types>
   static constexpr std::string_view types_to_template_pack() {
     using pack = detail::ConvertTemplatePackDummy<Types...>;
     const std::string_view name = utils::type_name<pack>();
@@ -74,7 +76,6 @@ private:
   }
 };
 
-}
-
+} // namespace numeric::hip
 
 #endif

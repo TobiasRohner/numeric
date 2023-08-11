@@ -17,4 +17,4 @@ std::string_view to_string(MemoryType t) noexcept {
   }
 }
 
-}
+} // namespace numeric::memory

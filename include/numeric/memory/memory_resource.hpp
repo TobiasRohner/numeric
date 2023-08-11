@@ -31,6 +31,6 @@ private:
   MemoryType mem_type_;
 };
 
-}
+} // namespace numeric::memory
 
 #endif

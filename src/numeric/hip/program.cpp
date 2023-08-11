@@ -1,25 +1,22 @@
+#include <array>
+#include <fstream>
+#include <iostream>
+#include <iterator>
 #include <numeric/config.hpp>
 #include <numeric/hip/program.hpp>
 #include <numeric/hip/safe_call.hpp>
-#include <array>
-#include <iostream>
-#include <fstream>
-#include <iterator>
-
 
 namespace numeric::hip {
 
 std::vector<std::string_view> Program::numeric_headers_ = {
-  "numeric/config.hpp",
-  "numeric/memory/array_const_view.hpp",
-  "numeric/memory/array_view.hpp",
-  "numeric/memory/layout.hpp",
-  "numeric/memory/memory_type.hpp"
-};
+    "numeric/config.hpp", "numeric/memory/array_const_view.hpp",
+    "numeric/memory/array_view.hpp", "numeric/memory/layout.hpp",
+    "numeric/memory/memory_type.hpp"};
 
-Program::Header::Header(std::string_view name_, std::string_view src_) : name(name_), src(src_) { }
+Program::Header::Header(std::string_view name_, std::string_view src_)
+    : name(name_), src(src_) {}
 
-Program::Program(std::string src) : src_(src) { }
+Program::Program(std::string src) : src_(src) {}
 
 void Program::add_header(std::string_view name, std::string_view src) {
   headers_.emplace_back(name, src);
@@ -55,7 +52,8 @@ std::string Program::read_file(std::string_view path) {
 }
 
 void Program::add_compatibility_headers() {
-  const std::string path = std::string(DATA_DIR) + "/hip/include/api_compat.hpp";
+  const std::string path =
+      std::string(DATA_DIR) + "/hip/include/api_compat.hpp";
   const std::string src = read_file(path);
   add_header("api_compat.hpp", src);
   add_compile_option("-I" + std::string(DATA_DIR) + "/hip/include");
@@ -63,11 +61,13 @@ void Program::add_compatibility_headers() {
 
 void Program::add_numeric_headers() {
   for (std::string_view header : numeric_headers_) {
-    const std::string path = std::string(NUMERIC_INCLUDE_DIR) + "/" + header.data();
+    const std::string path =
+        std::string(NUMERIC_INCLUDE_DIR) + "/" + header.data();
     const std::string src = read_file(path);
     add_header(header, src);
   }
-  add_compile_option("-I" + std::string(NUMERIC_INCLUDE_DIR) + "/numeric/memory");
+  add_compile_option("-I" + std::string(NUMERIC_INCLUDE_DIR) +
+                     "/numeric/memory");
 }
 
 void Program::compile() {
@@ -84,14 +84,9 @@ void Program::compile() {
     header_names.push_back(name.data());
   }
   hiprtcProgram program;
-  NUMERIC_CHECK_HIP(hiprtcCreateProgram(
-      &program,
-      src_.c_str(),
-      "kernel.cu",
-      headers_.size(),
-      header_sources.data(),
-      header_names.data()
-  ));
+  NUMERIC_CHECK_HIP(hiprtcCreateProgram(&program, src_.c_str(), "kernel.cu",
+                                        headers_.size(), header_sources.data(),
+                                        header_names.data()));
   for (const std::string &name : instantiate_names_) {
     NUMERIC_CHECK_HIP(hiprtcAddNameExpression(program, name.c_str()));
   }
@@ -99,7 +94,9 @@ void Program::compile() {
   for (const auto &option : compile_options_) {
     options.push_back(option.c_str());
   }
-  if (const hiprtcResult status = hiprtcCompileProgram(program, options.size(), options.data()); status != HIPRTC_SUCCESS) {
+  if (const hiprtcResult status =
+          hiprtcCompileProgram(program, options.size(), options.data());
+      status != HIPRTC_SUCCESS) {
     size_t log_size;
     NUMERIC_CHECK_HIP(hiprtcGetProgramLogSize(program, &log_size));
     std::string log(log_size, '\0');
@@ -120,4 +117,4 @@ void Program::compile() {
   module_ = std::make_shared<Module>(binary);
 }
 
-}
+} // namespace numeric::hip

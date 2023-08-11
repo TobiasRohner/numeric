@@ -2,9 +2,9 @@
 #define NUMERIC_MEMORY_ALLOCATOR_HPP_
 
 #include <memory>
-#include <numeric/memory/memory_type.hpp>
 #include <numeric/memory/memory_resource.hpp>
 #include <numeric/memory/memory_resource_factory.hpp>
+#include <numeric/memory/memory_type.hpp>
 
 namespace numeric::memory {
 
@@ -17,7 +17,8 @@ public:
   using size_type = typename resource_t::size_type;
   template <typename U> using rebind = Allocator<U>;
 
-  explicit Allocator(MemoryType mem_type) : Allocator(make_memory_resource<T>(mem_type)) { }
+  explicit Allocator(MemoryType mem_type)
+      : Allocator(make_memory_resource<T>(mem_type)) {}
   explicit Allocator(const std::shared_ptr<resource_t> &resource)
       : resource_(resource) {}
   Allocator(const Allocator &) = default;
@@ -36,12 +37,14 @@ public:
   [[nodiscard]] pointer allocate(size_type n) { return resource_->allocate(n); }
   void deallocate(pointer p, size_type n) { resource_->deallocate(p, n); }
 
-  [[nodiscard]] MemoryType memory_type() const noexcept { return resource_->memory_type(); }
+  [[nodiscard]] MemoryType memory_type() const noexcept {
+    return resource_->memory_type();
+  }
 
 private:
   std::shared_ptr<resource_t> resource_;
 };
 
-}
+} // namespace numeric::memory
 
 #endif

@@ -2,10 +2,10 @@
 #define NUMERIC_MEMORY_DEVICE_MEMORY_RESOURCE_HPP_
 
 #include <cstdlib>
-#include <numeric/hip/device.hpp>
-#include <numeric/memory/memory_resource.hpp>
-#include <numeric/hip/safe_call.hpp>
 #include <hip/hip_runtime_api.h>
+#include <numeric/hip/device.hpp>
+#include <numeric/hip/safe_call.hpp>
+#include <numeric/memory/memory_resource.hpp>
 
 namespace numeric::memory {
 
@@ -18,7 +18,8 @@ public:
   using pointer = typename super::pointer;
 
   DeviceMemoryResource() : DeviceMemoryResource(hip::Device()) {}
-  DeviceMemoryResource(const hip::Device &device) : super(MemoryType::DEVICE), device_(device) {}
+  DeviceMemoryResource(const hip::Device &device)
+      : super(MemoryType::DEVICE), device_(device) {}
   DeviceMemoryResource(const DeviceMemoryResource &) = default;
   DeviceMemoryResource(DeviceMemoryResource &&) = default;
   DeviceMemoryResource &operator=(const DeviceMemoryResource &) = default;
@@ -30,21 +31,18 @@ public:
 protected:
   virtual pointer do_allocate(size_type n) override {
     pointer ptr;
-    device_.do_while_active([&]() {
-      NUMERIC_CHECK_HIP(hipMalloc(&ptr, n * sizeof(T)));
-    });
+    device_.do_while_active(
+        [&]() { NUMERIC_CHECK_HIP(hipMalloc(&ptr, n * sizeof(T))); });
     return ptr;
   }
   virtual void do_deallocate(pointer p, size_type /*n*/) override {
-    device_.do_while_active([&]() {
-      NUMERIC_CHECK_HIP(hipFree(p));
-    });
+    device_.do_while_active([&]() { NUMERIC_CHECK_HIP(hipFree(p)); });
   }
 
 private:
   hip::Device device_;
 };
 
-}
+} // namespace numeric::memory
 
 #endif

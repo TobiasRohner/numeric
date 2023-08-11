@@ -30,6 +30,6 @@ protected:
   virtual void do_deallocate(pointer p, size_type /*n*/) override { free(p); }
 };
 
-}
+} // namespace numeric::memory
 
 #endif

@@ -4,7 +4,6 @@
 #include <hip/hip_runtime_api.h>
 #include <vector>
 
-
 namespace numeric::hip {
 
 struct Module {
@@ -19,7 +18,6 @@ struct Module {
   ~Module();
 };
 
-}
-
+} // namespace numeric::hip
 
 #endif

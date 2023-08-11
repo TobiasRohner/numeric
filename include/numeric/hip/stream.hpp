@@ -1,10 +1,9 @@
 #ifndef NUMERIC_HIP_STREAM_HPP_
 #define NUMERIC_HIP_STREAM_HPP_
 
+#include <hip/hip_runtime_api.h>
 #include <memory>
 #include <numeric/hip/device.hpp>
-#include <hip/hip_runtime_api.h>
-
 
 namespace numeric::hip {
 
@@ -29,7 +28,6 @@ private:
   std::shared_ptr<hipStream_t> id_;
 };
 
-}
-
+} // namespace numeric::hip
 
 #endif

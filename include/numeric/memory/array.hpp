@@ -2,32 +2,31 @@
 #define NUMERIC_MEMORY_ARRAY_HPP_
 
 #include <numeric/config.hpp>
-#include <numeric/memory/array_view.hpp>
 #include <numeric/memory/allocator.hpp>
-
+#include <numeric/memory/array_view.hpp>
 
 namespace numeric::memory {
 
-template<typename Scalar, dim_t N>
-class Array : public ArrayView<Scalar, N> {
+template <typename Scalar, dim_t N> class Array : public ArrayView<Scalar, N> {
   using super = ArrayView<Scalar, N>;
 
 public:
   using scalar_t = Scalar;
   static constexpr dim_t dim = N;
 
-  Array(): super(nullptr, {}, MemoryType::UNKNOWN), alloc_(nullptr) {}
+  Array() : super(nullptr, {}, MemoryType::UNKNOWN), alloc_(nullptr) {}
 
   Array(const Layout<dim> &layout, Allocator<scalar_t> alloc)
-    : super(alloc.allocate(layout.size()), layout, alloc.memory_type()),
-    alloc_(alloc) {
-  }
-  explicit Array(const Layout<dim> &layout, MemoryType mem_type = MemoryType::HOST)
-    : Array(layout, Allocator<scalar_t>(mem_type)) {
-  }
+      : super(alloc.allocate(layout.size()), layout, alloc.memory_type()),
+        alloc_(alloc) {}
+  explicit Array(const Layout<dim> &layout,
+                 MemoryType mem_type = MemoryType::HOST)
+      : Array(layout, Allocator<scalar_t>(mem_type)) {}
   Array(const Array &) = delete;
   Array &operator=(const Array &) = delete;
-  Array(Array &&other) : super(other.data_, other.layout_, other.memory_type_), alloc_(std::move(other.alloc_)) {
+  Array(Array &&other)
+      : super(other.data_, other.layout_, other.memory_type_),
+        alloc_(std::move(other.alloc_)) {
     other.data_ = nullptr;
   }
   Array &operator=(Array &&other) {
@@ -45,14 +44,15 @@ public:
 
   [[nodiscard]] ArrayView<Scalar, N> view() noexcept { return *this; }
 
-  using super::memory_type;
   using super::const_view;
+  using super::memory_type;
   using super::operator();
-  using super::raw;
+  using super::broadcast;
   using super::layout;
+  using super::raw;
   using super::shape;
-  using super::stride;
   using super::size;
+  using super::stride;
 
 protected:
   Allocator<scalar_t> alloc_;
@@ -63,7 +63,6 @@ protected:
   using super::memory_index;
 };
 
-}
-
+} // namespace numeric::memory
 
 #endif

@@ -1,7 +1,6 @@
 #ifndef NUMERIC_HIP_DEVICE_HPP_
 #define NUMERIC_HIP_DEVICE_HPP_
 
-
 namespace numeric::hip {
 
 class Device {
@@ -18,8 +17,7 @@ public:
 
   int id() const;
 
-  template<typename Func>
-  void do_while_active(const Func &func) const {
+  template <typename Func> void do_while_active(const Func &func) const {
     Device current;
     activate();
     func();
@@ -30,7 +28,6 @@ private:
   int id_;
 };
 
-}
-
+} // namespace numeric::hip
 
 #endif
