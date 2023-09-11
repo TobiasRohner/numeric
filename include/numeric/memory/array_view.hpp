@@ -24,15 +24,19 @@ public:
   NUMERIC_HOST_DEVICE ArrayView &operator=(ArrayView &&) = default;
 
   template <typename... Idxs>
-  NUMERIC_HOST_DEVICE [[nodiscard]] scalar_t &
+  NUMERIC_HOST_DEVICE [[nodiscard]] decltype(auto)
   operator()(Idxs... idxs) noexcept {
-    return raw()[memory_index(idxs...)];
+    if constexpr ((!meta::is_same_v<Idxs, Slice> && ...)) {
+      return raw()[memory_index(idxs...)];
+    } else {
+      return sub_view(*this, 0, idxs...);
+    }
   }
 
   template <dim_t M>
   NUMERIC_HOST_DEVICE [[nodiscard]] ArrayView<scalar_t, M>
   broadcast(const Layout<M> &layout) noexcept {
-    const Layout<M> new_layout = broadcasted_shape(layout);
+    const Layout<M> new_layout = broadcasted_layout(layout_, layout);
     return ArrayView<scalar_t, M>(raw(), new_layout, memory_type());
   }
 
@@ -58,8 +62,46 @@ protected:
   using super::layout_;
   using super::memory_type_;
 
-  using super::broadcasted_shape;
+  using super::broadcasted_layout;
   using super::memory_index;
+
+  template <dim_t M, typename Idx, typename... Idxs>
+  static NUMERIC_HOST_DEVICE [[nodiscard]] decltype(auto)
+  sub_view(ArrayView<scalar_t, M> view, dim_t d, Idx idx,
+           Idxs... idxs) noexcept {
+    if constexpr (meta::is_same_v<Idx, Slice>) {
+      if (idx.stop < 0) {
+        idx.stop += view.shape(d) + 1;
+      }
+      scalar_t *new_data = view.raw() + idx.start * view.stride(d);
+      Layout<M> new_layout;
+      for (dim_t i = 0; i < M; ++i) {
+        new_layout.shape(i) = view.shape(i);
+        new_layout.stride(i) = view.stride(i);
+      }
+      new_layout.shape(d) = (idx.stop - idx.start) / idx.step;
+      new_layout.stride(d) = view.stride(d) * idx.step;
+      return sub_view(
+          ArrayView<scalar_t, M>(new_data, new_layout, view.memory_type()),
+          d + 1, idxs...);
+    } else {
+      scalar_t *new_data = view.raw() + idx * view.stride(d);
+      Layout<M - 1> new_layout;
+      for (dim_t i = 0; i < M - 1; ++i) {
+        new_layout.shape(i) = view.shape(i + (i < d ? 0 : 1));
+        new_layout.stride(i) = view.stride(i + (i < d ? 0 : 1));
+      }
+      return sub_view(
+          ArrayView<scalar_t, M - 1>(new_data, new_layout, view.memory_type()),
+          d, idxs...);
+    }
+  }
+
+  template <dim_t M>
+  static NUMERIC_HOST_DEVICE [[nodiscard]] ArrayView<scalar_t, M>
+  sub_view(ArrayView<scalar_t, M> view, dim_t) noexcept {
+    return view;
+  }
 };
 
 } // namespace numeric::memory

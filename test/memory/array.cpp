@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 #include <numeric/memory/array.hpp>
+#include <numeric/memory/slice.hpp>
 
-TEST(numeric_array, row_major) {
+TEST(array, row_major) {
   numeric::memory::Layout<3> shape(2, 3, 4);
   numeric::memory::Array<int, 3> array(shape);
   for (size_t i = 0; i < array.size(); ++i) {
@@ -18,7 +19,7 @@ TEST(numeric_array, row_major) {
   }
 }
 
-TEST(numeric_array, decay_to_view) {
+TEST(array, decay_to_view) {
   numeric::memory::Layout<3> shape(2, 3, 4);
   numeric::memory::Array<int, 3> array(shape);
   for (size_t i = 0; i < array.size(); ++i) {
@@ -38,7 +39,7 @@ TEST(numeric_array, decay_to_view) {
   check(array);
 }
 
-TEST(numeric_array, decay_to_const_view) {
+TEST(array, decay_to_const_view) {
   numeric::memory::Layout<3> shape(2, 3, 4);
   numeric::memory::Array<int, 3> array(shape);
   for (size_t i = 0; i < array.size(); ++i) {
@@ -58,7 +59,7 @@ TEST(numeric_array, decay_to_const_view) {
   check(array);
 }
 
-TEST(numeric_array, default_construct) {
+TEST(array, default_construct) {
   numeric::memory::Array<double, 3> arr;
   ASSERT_EQ(arr.memory_type(), numeric::memory::MemoryType::UNKNOWN);
   ASSERT_EQ(arr.shape(0), 0);
@@ -67,7 +68,7 @@ TEST(numeric_array, default_construct) {
   ASSERT_EQ(arr.raw(), nullptr);
 }
 
-TEST(numeric_array, default_construct_view) {
+TEST(array, default_construct_view) {
   numeric::memory::ArrayView<double, 3> arr;
   ASSERT_EQ(arr.memory_type(), numeric::memory::MemoryType::UNKNOWN);
   ASSERT_EQ(arr.shape(0), 0);
@@ -76,7 +77,7 @@ TEST(numeric_array, default_construct_view) {
   ASSERT_EQ(arr.raw(), nullptr);
 }
 
-TEST(numeric_array, default_construct_const_view) {
+TEST(array, default_construct_const_view) {
   numeric::memory::ArrayConstView<double, 3> arr;
   ASSERT_EQ(arr.memory_type(), numeric::memory::MemoryType::UNKNOWN);
   ASSERT_EQ(arr.shape(0), 0);
@@ -85,7 +86,7 @@ TEST(numeric_array, default_construct_const_view) {
   ASSERT_EQ(arr.raw(), nullptr);
 }
 
-TEST(numeric_array, movable) {
+TEST(array, movable) {
   numeric::memory::Layout<3> shape(3, 4, 5);
   numeric::memory::Array<double, 3> dst;
   numeric::memory::Array<double, 3> src(shape);
@@ -103,7 +104,7 @@ TEST(numeric_array, movable) {
   ASSERT_EQ(src.raw(), nullptr);
 }
 
-TEST(numeric_array, broadcast) {
+TEST(array, broadcast) {
   numeric::memory::Layout<4> shape(1, 3, 1, 6);
   numeric::memory::Array<double, 4> arr(shape);
   numeric::memory::Layout<4> shape_strided = shape;
@@ -128,6 +129,212 @@ TEST(numeric_array, broadcast) {
             }
           }
         }
+      }
+    }
+  }
+}
+
+TEST(array, slice_all) {
+  numeric::memory::Layout<3> shape(5, 6, 20);
+  numeric::memory::Array<double, 3> arr(shape);
+  for (numeric::dim_t i = 0; i < arr.size(); ++i) {
+    arr.raw()[i] = i;
+  }
+  const auto slice_0 =
+      arr(1, numeric::memory::Slice(), numeric::memory::Slice());
+  ASSERT_EQ(slice_0.dim, 2);
+  ASSERT_EQ(slice_0.shape(0), shape.shape(1));
+  ASSERT_EQ(slice_0.shape(1), shape.shape(2));
+  for (numeric::dim_t i = 0; i < slice_0.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < slice_0.shape(1); ++j) {
+      const double val_orig = arr(1, i, j);
+      const double val_slic = slice_0(i, j);
+      ASSERT_EQ(val_slic, val_orig);
+    }
+  }
+  const auto slice_1 =
+      arr(numeric::memory::Slice(), 2, numeric::memory::Slice());
+  ASSERT_EQ(slice_1.dim, 2);
+  ASSERT_EQ(slice_1.shape(0), shape.shape(0));
+  ASSERT_EQ(slice_1.shape(1), shape.shape(2));
+  for (numeric::dim_t i = 0; i < slice_1.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < slice_1.shape(1); ++j) {
+      const double val_orig = arr(i, 2, j);
+      const double val_slic = slice_1(i, j);
+      ASSERT_EQ(val_slic, val_orig);
+    }
+  }
+  const auto slice_2 =
+      arr(numeric::memory::Slice(), numeric::memory::Slice(), 3);
+  ASSERT_EQ(slice_2.dim, 2);
+  ASSERT_EQ(slice_2.shape(0), shape.shape(0));
+  ASSERT_EQ(slice_2.shape(1), shape.shape(1));
+  for (numeric::dim_t i = 0; i < slice_2.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < slice_2.shape(1); ++j) {
+      const double val_orig = arr(i, j, 3);
+      const double val_slic = slice_2(i, j);
+      ASSERT_EQ(val_slic, val_orig);
+    }
+  }
+}
+
+TEST(array, slice_front) {
+  numeric::memory::Layout<3> shape(5, 6, 20);
+  numeric::memory::Array<double, 3> arr(shape);
+  for (numeric::dim_t i = 0; i < arr.size(); ++i) {
+    arr.raw()[i] = i;
+  }
+  const auto slice_0 = arr(numeric::memory::Slice(0, 3),
+                           numeric::memory::Slice(), numeric::memory::Slice());
+  ASSERT_EQ(slice_0.dim, 3);
+  ASSERT_EQ(slice_0.shape(0), 3);
+  ASSERT_EQ(slice_0.shape(1), shape.shape(1));
+  ASSERT_EQ(slice_0.shape(2), shape.shape(2));
+  for (numeric::dim_t i = 0; i < slice_0.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < slice_0.shape(1); ++j) {
+      for (numeric::dim_t k = 0; k < slice_0.shape(2); ++k) {
+        const double val_orig = arr(i, j, k);
+        const double val_slic = slice_0(i, j, k);
+        ASSERT_EQ(val_slic, val_orig);
+      }
+    }
+  }
+  const auto slice_1 =
+      arr(numeric::memory::Slice(), numeric::memory::Slice(0, 3),
+          numeric::memory::Slice());
+  ASSERT_EQ(slice_1.dim, 3);
+  ASSERT_EQ(slice_1.shape(0), shape.shape(0));
+  ASSERT_EQ(slice_1.shape(1), 3);
+  ASSERT_EQ(slice_1.shape(2), shape.shape(2));
+  for (numeric::dim_t i = 0; i < slice_1.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < slice_1.shape(1); ++j) {
+      for (numeric::dim_t k = 0; k < slice_1.shape(2); ++k) {
+        const double val_orig = arr(i, j, k);
+        const double val_slic = slice_1(i, j, k);
+        ASSERT_EQ(val_slic, val_orig);
+      }
+    }
+  }
+  const auto slice_2 = arr(numeric::memory::Slice(), numeric::memory::Slice(),
+                           numeric::memory::Slice(0, 3));
+  ASSERT_EQ(slice_2.dim, 3);
+  ASSERT_EQ(slice_2.shape(0), shape.shape(0));
+  ASSERT_EQ(slice_2.shape(1), shape.shape(1));
+  ASSERT_EQ(slice_2.shape(2), 3);
+  for (numeric::dim_t i = 0; i < slice_2.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < slice_2.shape(1); ++j) {
+      for (numeric::dim_t k = 0; k < slice_2.shape(2); ++k) {
+        const double val_orig = arr(i, j, k);
+        const double val_slic = slice_2(i, j, k);
+        ASSERT_EQ(val_slic, val_orig);
+      }
+    }
+  }
+}
+
+TEST(array, slice_back) {
+  numeric::memory::Layout<3> shape(5, 6, 20);
+  numeric::memory::Array<double, 3> arr(shape);
+  for (numeric::dim_t i = 0; i < arr.size(); ++i) {
+    arr.raw()[i] = i;
+  }
+  const auto slice_0 = arr(numeric::memory::Slice(2, -1),
+                           numeric::memory::Slice(), numeric::memory::Slice());
+  ASSERT_EQ(slice_0.dim, 3);
+  ASSERT_EQ(slice_0.shape(0), 3);
+  ASSERT_EQ(slice_0.shape(1), shape.shape(1));
+  ASSERT_EQ(slice_0.shape(2), shape.shape(2));
+  for (numeric::dim_t i = 0; i < slice_0.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < slice_0.shape(1); ++j) {
+      for (numeric::dim_t k = 0; k < slice_0.shape(2); ++k) {
+        const double val_orig = arr(i + 2, j, k);
+        const double val_slic = slice_0(i, j, k);
+        ASSERT_EQ(val_slic, val_orig);
+      }
+    }
+  }
+  const auto slice_1 =
+      arr(numeric::memory::Slice(), numeric::memory::Slice(3, -1),
+          numeric::memory::Slice());
+  ASSERT_EQ(slice_1.dim, 3);
+  ASSERT_EQ(slice_1.shape(0), shape.shape(0));
+  ASSERT_EQ(slice_1.shape(1), 3);
+  ASSERT_EQ(slice_1.shape(2), shape.shape(2));
+  for (numeric::dim_t i = 0; i < slice_1.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < slice_1.shape(1); ++j) {
+      for (numeric::dim_t k = 0; k < slice_1.shape(2); ++k) {
+        const double val_orig = arr(i, j + 3, k);
+        const double val_slic = slice_1(i, j, k);
+        ASSERT_EQ(val_slic, val_orig);
+      }
+    }
+  }
+  const auto slice_2 = arr(numeric::memory::Slice(), numeric::memory::Slice(),
+                           numeric::memory::Slice(17, -1));
+  ASSERT_EQ(slice_2.dim, 3);
+  ASSERT_EQ(slice_2.shape(0), shape.shape(0));
+  ASSERT_EQ(slice_2.shape(1), shape.shape(1));
+  ASSERT_EQ(slice_2.shape(2), 3);
+  for (numeric::dim_t i = 0; i < slice_2.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < slice_2.shape(1); ++j) {
+      for (numeric::dim_t k = 0; k < slice_2.shape(2); ++k) {
+        const double val_orig = arr(i, j, k + 17);
+        const double val_slic = slice_2(i, j, k);
+        ASSERT_EQ(val_slic, val_orig);
+      }
+    }
+  }
+}
+
+TEST(array, stride) {
+  numeric::memory::Layout<3> shape(5, 6, 20);
+  numeric::memory::Array<double, 3> arr(shape);
+  for (numeric::dim_t i = 0; i < arr.size(); ++i) {
+    arr.raw()[i] = i;
+  }
+  const auto slice_0 = arr(numeric::memory::Slice(0, -1, 2),
+                           numeric::memory::Slice(), numeric::memory::Slice());
+  ASSERT_EQ(slice_0.dim, 3);
+  ASSERT_EQ(slice_0.shape(0), 2);
+  ASSERT_EQ(slice_0.shape(1), shape.shape(1));
+  ASSERT_EQ(slice_0.shape(2), shape.shape(2));
+  for (numeric::dim_t i = 0; i < slice_0.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < slice_0.shape(1); ++j) {
+      for (numeric::dim_t k = 0; k < slice_0.shape(2); ++k) {
+        const double val_orig = arr(2 * i, j, k);
+        const double val_slic = slice_0(i, j, k);
+        ASSERT_EQ(val_slic, val_orig);
+      }
+    }
+  }
+  const auto slice_1 =
+      arr(numeric::memory::Slice(), numeric::memory::Slice(0, -1, 2),
+          numeric::memory::Slice());
+  ASSERT_EQ(slice_1.dim, 3);
+  ASSERT_EQ(slice_1.shape(0), shape.shape(0));
+  ASSERT_EQ(slice_1.shape(1), 3);
+  ASSERT_EQ(slice_1.shape(2), shape.shape(2));
+  for (numeric::dim_t i = 0; i < slice_1.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < slice_1.shape(1); ++j) {
+      for (numeric::dim_t k = 0; k < slice_1.shape(2); ++k) {
+        const double val_orig = arr(i, 2 * j, k);
+        const double val_slic = slice_1(i, j, k);
+        ASSERT_EQ(val_slic, val_orig);
+      }
+    }
+  }
+  const auto slice_2 = arr(numeric::memory::Slice(), numeric::memory::Slice(),
+                           numeric::memory::Slice(0, -1, 2));
+  ASSERT_EQ(slice_2.dim, 3);
+  ASSERT_EQ(slice_2.shape(0), shape.shape(0));
+  ASSERT_EQ(slice_2.shape(1), shape.shape(1));
+  ASSERT_EQ(slice_2.shape(2), 10);
+  for (numeric::dim_t i = 0; i < slice_2.shape(0); ++i) {
+    for (numeric::dim_t j = 0; j < slice_2.shape(1); ++j) {
+      for (numeric::dim_t k = 0; k < slice_2.shape(2); ++k) {
+        const double val_orig = arr(i, j, 2 * k);
+        const double val_slic = slice_2(i, j, k);
+        ASSERT_EQ(val_slic, val_orig);
       }
     }
   }

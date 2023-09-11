@@ -1,6 +1,7 @@
 #ifndef NUMERIC_MEMORY_LAYOUT_HPP_
 #define NUMERIC_MEMORY_LAYOUT_HPP_
 
+#include <iostream>
 #include <numeric/config.hpp>
 
 namespace numeric::memory {
@@ -54,6 +55,16 @@ private:
   dim_t shape_[N];
   dim_t stride_[N];
 };
+
+template <dim_t N>
+std::ostream &operator<<(std::ostream &os, const Layout<N> &layout) {
+  os << "[(" << layout.shape(0) << ", " << layout.stride(0) << ')';
+  for (size_t d = 1; d < N; ++d) {
+    os << ", (" << layout.shape(d) << ", " << layout.stride(d) << ')';
+  }
+  os << ']';
+  return os;
+}
 
 } // namespace numeric::memory
 
