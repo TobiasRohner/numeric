@@ -4,7 +4,45 @@
 
 namespace numeric {
 
-using dim_t = long long;
+/*
+ * Detect the compiler
+ */
+
+#define NUMERIC_CLANG_COMPILER 0
+#define NUMERIC_GCC_COMPILER 0
+#define NUMERIC_MSC_COMPILER 0
+#define NUMERIC_NVCC_COMPILER 0
+
+#if defined(__clang__)
+#undef NUMERIC_CLANG_COMPILER
+#define NUMERIC_CLANG_COMPILER 1
+#elif defined(__GNUC__) || defined(__GNUG__)
+#undef NUMERIC_GCC_COMPILER
+#define NUMERIC_GCC_COMPILER 1
+#elif defined(_MSC_VER)
+#undef NUMERIC_MSC_COMPILER
+#define NUMERIC_MSC_COMPILER 1
+#endif
+#if defined(__NVCC__)
+#undef NUMERIC_NVCC_COMPILER
+#define NUMERIC_NVCC_COMPILER 1
+#endif
+
+/*
+ * Macros to access pretty function names
+ */
+
+#if defined(__GNUC__)
+#define NUMERIC_PRETTY_FUNCTION __PRETTY_FUNCTION__
+#elif defined(_MSC_VER)
+#define NUMERIC_PRETTY_FUNCTION __FUNCSIG__
+#else
+#define NUMERIC_PRETTY_FUNCTION __func__
+#endif
+
+/*
+ * CUDA Macros
+ */
 
 #if NUMERIC_ENABLE_HIP
 #ifndef __host__
@@ -21,6 +59,12 @@ using dim_t = long long;
 #define NUMERIC_DEVICE
 #define NUMERIC_HOST_DEVICE
 #endif
+
+/*
+ * General Config Data
+ */
+
+using dim_t = long long;
 
 #ifndef __HIP_DEVICE_COMPILE__
 static constexpr char *DATA_DIR = "@DATA_DIR@";

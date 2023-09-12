@@ -82,7 +82,9 @@ protected:
   NUMERIC_HOST_DEVICE [[nodiscard]] size_t
   memory_index(Idxs... idxs) const noexcept {
     size_t stride_idx = 0;
-    return (... + (idxs * stride(stride_idx++)));
+    dim_t idx = 0;
+    (..., (idx += idxs * stride(stride_idx++)));
+    return idx;
   }
 
   template <dim_t M, typename Idx, typename... Idxs>

@@ -68,16 +68,7 @@ public:
       meta::declval<memory::Layout<dim>>()));
 
   NUMERIC_HOST_DEVICE ArrayBinaryOp(const Op op, const Lhs &lhs, const Rhs &rhs)
-      : op_(op), lhs_(), rhs_() {
-    memory::Layout<dim> shape;
-    for (dim_t cd = 0; cd < dim; ++cd) {
-      const dim_t ls = cd >= Lhs::dim ? 1 : lhs.shape(Lhs::dim - cd - 1);
-      const dim_t rs = cd >= Rhs::dim ? 1 : rhs.shape(Rhs::dim - cd - 1);
-      shape.shape(dim - cd - 1) = ls > rs ? ls : rs;
-    }
-    lhs_ = lhs.broadcast(shape);
-    rhs_ = rhs.broadcast(shape);
-  }
+      : op_(op), lhs_(lhs), rhs_(rhs) {}
   NUMERIC_HOST_DEVICE ArrayBinaryOp(const ArrayBinaryOp &) = default;
   NUMERIC_HOST_DEVICE ArrayBinaryOp &operator=(const ArrayBinaryOp &) = default;
 
@@ -91,6 +82,15 @@ public:
     const dim_t shape_lhs = lhs_.shape(idx);
     const dim_t shape_rhs = rhs_.shape(idx);
     return shape_lhs > shape_rhs ? shape_lhs : shape_rhs;
+  }
+
+  template <dim_t M>
+  NUMERIC_HOST_DEVICE [[nodiscard]] auto
+  broadcast(const memory::Layout<M> &layout) const noexcept {
+    auto brd_lhs = lhs_.broadcast(layout);
+    auto brd_rhs = rhs_.broadcast(layout);
+    return ArrayBinaryOp<Op, decltype(brd_lhs), decltype(brd_rhs)>(op_, brd_lhs,
+                                                                   brd_rhs);
   }
 
 protected:
