@@ -22,16 +22,28 @@ public:
   explicit Array(const Layout<dim> &layout,
                  MemoryType mem_type = MemoryType::HOST)
       : Array(layout, Allocator<scalar_t>(mem_type)) {}
-  Array(const Array &) = delete;
-  Array &operator=(const Array &) = delete;
+  Array(const Array &other)
+      : super(nullptr, other.layout_, other.memory_type_) {
+    *this = other;
+  }
+
+  template <typename Arg> Array &operator=(const ArrayBase<Arg> &other) {
+    super::operator=(other);
+    return *this;
+  }
+
+  Array &operator=(const Array &other) { return *this = other.const_view(); }
+
   Array(Array &&other)
       : super(other.data_, other.layout_, other.memory_type_),
         alloc_(std::move(other.alloc_)) {
     other.data_ = nullptr;
   }
   Array &operator=(Array &&other) {
-    super::operator=(std::move(other));
     alloc_ = other.alloc_;
+    data_ = other.data_;
+    layout_ = other.layout_;
+    memory_type_ = other.memory_type_;
     other.data_ = nullptr;
     return *this;
   }

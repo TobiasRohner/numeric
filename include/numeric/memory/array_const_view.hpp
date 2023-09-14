@@ -27,8 +27,8 @@ public:
   NUMERIC_HOST_DEVICE ArrayConstView(const ArrayConstView &) = default;
   NUMERIC_HOST_DEVICE ArrayConstView(ArrayConstView &&) = default;
   NUMERIC_HOST_DEVICE ArrayConstView &
-  operator=(const ArrayConstView &) = default;
-  NUMERIC_HOST_DEVICE ArrayConstView &operator=(ArrayConstView &&) = default;
+  operator=(const ArrayConstView &) = delete;
+  NUMERIC_HOST_DEVICE ArrayConstView &operator=(ArrayConstView &&) = delete;
 
   NUMERIC_HOST_DEVICE [[nodiscard]] MemoryType memory_type() const noexcept {
     return memory_type_;

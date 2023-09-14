@@ -2,9 +2,12 @@
 #define NUMERIC_MEMORY_COPY_HPP_
 
 #include <numeric/config.hpp>
-#include <numeric/memory/array_view.hpp>
+#include <numeric/utils/error.hpp>
 
 namespace numeric::memory {
+
+template <typename Derived> class ArrayBase;
+template <typename Scalar, dim_t N> class ArrayView;
 
 namespace internal {
 
@@ -32,6 +35,11 @@ void copy_naive_host(ArrayView<Scalar, N> &dst, const Src &src) {
 template <typename Scalar, dim_t N, typename Src>
 void copy_host(ArrayView<Scalar, N> dst, const ArrayBase<Src> &src) {
   internal::copy_naive_host(dst, src.derived());
+}
+
+template <typename Scalar, dim_t N, typename Src>
+void copy(ArrayView<Scalar, N> dst, const ArrayBase<Src> &src) {
+  copy_host(dst, src.derived());
 }
 
 } // namespace numeric::memory

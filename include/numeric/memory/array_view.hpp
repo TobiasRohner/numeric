@@ -3,6 +3,7 @@
 
 #include <numeric/config.hpp>
 #include <numeric/memory/array_const_view.hpp>
+#include <numeric/memory/copy.hpp>
 
 namespace numeric::memory {
 
@@ -20,8 +21,12 @@ public:
       : super(data, layout, memory_type) {}
   NUMERIC_HOST_DEVICE ArrayView(const ArrayView &) = default;
   NUMERIC_HOST_DEVICE ArrayView(ArrayView &&) = default;
-  NUMERIC_HOST_DEVICE ArrayView &operator=(const ArrayView &) = default;
-  NUMERIC_HOST_DEVICE ArrayView &operator=(ArrayView &&) = default;
+
+  template <typename Arg>
+  NUMERIC_HOST_DEVICE ArrayView &operator=(const ArrayBase<Arg> &other) {
+    copy(*this, other);
+    return *this;
+  }
 
   template <typename... Idxs>
   NUMERIC_HOST_DEVICE [[nodiscard]] decltype(auto)

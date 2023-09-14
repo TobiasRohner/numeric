@@ -11,7 +11,7 @@ TEST(copy, array_to_array) {
   for (size_t i = 0; i < a.size(); ++i) {
     a.raw()[i] = i;
   }
-  numeric::memory::copy_host(b, a);
+  b = a;
   for (size_t i = 0; i < b.shape(0); ++i) {
     for (size_t j = 0; j < b.shape(1); ++j) {
       for (size_t k = 0; k < b.shape(2); ++k) {
@@ -31,7 +31,7 @@ TEST(copy, array_to_array_broadcast) {
   for (size_t i = 0; i < a.size(); ++i) {
     a.raw()[i] = i;
   }
-  numeric::memory::copy_host(b, a);
+  b = a;
   for (size_t i = 0; i < b.shape(0); ++i) {
     for (size_t j = 0; j < b.shape(1); ++j) {
       for (size_t k = 0; k < b.shape(2); ++k) {
@@ -54,10 +54,8 @@ TEST(copy, array_to_slice) {
   for (size_t i = 0; i < b.size(); ++i) {
     b.raw()[i] = 0;
   }
-  numeric::memory::copy_host(
-      b(numeric::memory::Slice(0, 3), numeric::memory::Slice(),
-        numeric::memory::Slice(), numeric::memory::Slice()),
-      a);
+  using sl = numeric::memory::Slice;
+  b(sl(0, 3), sl(), sl(), sl()) = a;
   for (size_t i = 0; i < b.shape(0); ++i) {
     for (size_t j = 0; j < b.shape(1); ++j) {
       for (size_t k = 0; k < b.shape(2); ++k) {
@@ -79,15 +77,15 @@ TEST(copy, expr_to_array) {
   numeric::memory::Array<int, 3> b(shape_b);
   numeric::memory::Array<int, 3> c(shape_c);
   for (size_t i = 0; i < a.size(); ++i) {
-    a.raw()[i] = i;
+    a.raw()[i] = 0;
   }
   for (size_t i = 0; i < b.size(); ++i) {
-    b.raw()[i] = 0;
+    b.raw()[i] = i;
   }
   for (size_t i = 0; i < c.size(); ++i) {
-    c.raw()[i] = 0;
+    c.raw()[i] = i;
   }
-  numeric::memory::copy_host(a, b + c);
+  a = b + c;
   for (size_t i = 0; i < a.shape(0); ++i) {
     for (size_t j = 0; j < a.shape(1); ++j) {
       for (size_t k = 0; k < a.shape(2); ++k) {
