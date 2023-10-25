@@ -22,6 +22,10 @@ public:
   NUMERIC_HOST_DEVICE ArrayUnaryOp(const ArrayUnaryOp &) = default;
   NUMERIC_HOST_DEVICE ArrayUnaryOp &operator=(const ArrayUnaryOp &) = default;
 
+  NUMERIC_HOST_DEVICE [[nodiscard]] memory::MemoryType memory_type() const {
+    return arg_.memory_type();
+  }
+
   template <typename... Idxs>
   NUMERIC_HOST_DEVICE [[nodiscard]] const scalar_t
   operator()(Idxs... idxs) const noexcept {
@@ -71,6 +75,22 @@ public:
       : op_(op), lhs_(lhs), rhs_(rhs) {}
   NUMERIC_HOST_DEVICE ArrayBinaryOp(const ArrayBinaryOp &) = default;
   NUMERIC_HOST_DEVICE ArrayBinaryOp &operator=(const ArrayBinaryOp &) = default;
+
+  NUMERIC_HOST_DEVICE [[nodiscard]] memory::MemoryType memory_type() const {
+    const memory::MemoryType mtl = lhs_.memory_type();
+    const memory::MemoryType mtr = rhs_.memory_type();
+    if (mtl == mtr) {
+      return mtl;
+    } else if (is_host_accessible(mtl) && is_host_accessible(mtr)) {
+      return memory::MemoryType::HOST;
+#if NUMERIC_ENABLE_HIP
+    } else if (is_device_accessible(mtl) && is_device_accessible(mtr)) {
+      return memory::MemoryType::DEVICE;
+#endif
+    } else {
+      return memory::MemoryType::UNKNOWN;
+    }
+  }
 
   template <typename... Idxs>
   NUMERIC_HOST_DEVICE [[nodiscard]] const scalar_t

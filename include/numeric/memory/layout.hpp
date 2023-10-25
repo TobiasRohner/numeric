@@ -1,8 +1,10 @@
 #ifndef NUMERIC_MEMORY_LAYOUT_HPP_
 #define NUMERIC_MEMORY_LAYOUT_HPP_
 
-#include <iostream>
 #include <numeric/config.hpp>
+#ifndef __HIP_DEVICE_COMPILE__
+#include <iostream>
+#endif
 
 namespace numeric::memory {
 
@@ -56,6 +58,7 @@ private:
   dim_t stride_[N];
 };
 
+#ifndef __HIP_DEVICE_COMPILE__
 template <dim_t N>
 std::ostream &operator<<(std::ostream &os, const Layout<N> &layout) {
   os << "[(" << layout.shape(0) << ", " << layout.stride(0) << ')';
@@ -65,6 +68,7 @@ std::ostream &operator<<(std::ostream &os, const Layout<N> &layout) {
   os << ']';
   return os;
 }
+#endif
 
 } // namespace numeric::memory
 

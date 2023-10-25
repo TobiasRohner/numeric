@@ -27,13 +27,6 @@ public:
     *this = other;
   }
 
-  template <typename Arg> Array &operator=(const ArrayBase<Arg> &other) {
-    super::operator=(other);
-    return *this;
-  }
-
-  Array &operator=(const Array &other) { return *this = other.const_view(); }
-
   Array(Array &&other)
       : super(other.data_, other.layout_, other.memory_type_),
         alloc_(std::move(other.alloc_)) {
@@ -45,6 +38,14 @@ public:
     layout_ = other.layout_;
     memory_type_ = other.memory_type_;
     other.data_ = nullptr;
+    return *this;
+  }
+  Array &operator=(const Array &other) {
+    super::operator=(other);
+    return *this;
+  }
+  template <typename Src> Array &operator=(const ArrayBase<Src> &src) {
+    super::operator=(src);
     return *this;
   }
 

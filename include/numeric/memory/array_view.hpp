@@ -1,113 +1,127 @@
 #ifndef NUMERIC_MEMORY_ARRAY_VIEW_HPP_
 #define NUMERIC_MEMORY_ARRAY_VIEW_HPP_
 
-#include <numeric/config.hpp>
-#include <numeric/memory/array_const_view.hpp>
+#include <numeric/memory/array_view_decl.hpp>
+#include <numeric/memory/slice.hpp>
+#include <numeric/meta/meta.hpp>
+#ifdef __HIP_DEVICE_COMPILE__
+#include <numeric/memory/copy_kernels.hpp>
+#else
 #include <numeric/memory/copy.hpp>
+#endif
 
 namespace numeric::memory {
 
 template <typename Scalar, dim_t N>
-class ArrayView : public ArrayConstView<Scalar, N> {
-  using super = ArrayConstView<Scalar, N>;
+NUMERIC_HOST_DEVICE ArrayView<Scalar, N>::ArrayView()
+    : super(nullptr, {}, MemoryType::UNKNOWN) {}
 
-public:
-  using scalar_t = Scalar;
-  static constexpr dim_t dim = N;
+template <typename Scalar, dim_t N>
+NUMERIC_HOST_DEVICE ArrayView<Scalar, N>::ArrayView(Scalar *data,
+                                                    const Layout<dim> &layout,
+                                                    MemoryType memory_type)
+    : super(data, layout, memory_type) {}
 
-  NUMERIC_HOST_DEVICE ArrayView() : super(nullptr, {}, MemoryType::UNKNOWN) {}
-  NUMERIC_HOST_DEVICE ArrayView(scalar_t *data, const Layout<dim> &layout,
-                                MemoryType memory_type = MemoryType::UNKNOWN)
-      : super(data, layout, memory_type) {}
-  NUMERIC_HOST_DEVICE ArrayView(const ArrayView &) = default;
-  NUMERIC_HOST_DEVICE ArrayView(ArrayView &&) = default;
+template <typename Scalar, dim_t N>
+NUMERIC_HOST_DEVICE ArrayView<Scalar, N> &
+ArrayView<Scalar, N>::operator=(const ArrayView &other) {
+  copy(*this, other);
+  return *this;
+}
 
-  template <typename Arg>
-  NUMERIC_HOST_DEVICE ArrayView &operator=(const ArrayBase<Arg> &other) {
-    copy(*this, other);
-    return *this;
+template <typename Scalar, dim_t N>
+template <typename Src>
+NUMERIC_HOST_DEVICE ArrayView<Scalar, N> &
+ArrayView<Scalar, N>::operator=(const ArrayBase<Src> &src) {
+#ifdef __HIP_DEVICE_COMPILE__
+  copy_naive_elm(*this, src.derived());
+#else
+  copy(*this, src);
+#endif
+  return *this;
+}
+
+template <typename Scalar, dim_t N>
+template <typename... Idxs>
+NUMERIC_HOST_DEVICE [[nodiscard]] decltype(auto)
+ArrayView<Scalar, N>::operator()(Idxs... idxs) noexcept {
+  if constexpr ((!meta::is_same_v<Idxs, Slice> && ...)) {
+    return raw()[memory_index(idxs...)];
+  } else {
+    return sub_view(*this, 0, idxs...);
   }
+}
 
-  template <typename... Idxs>
-  NUMERIC_HOST_DEVICE [[nodiscard]] decltype(auto)
-  operator()(Idxs... idxs) noexcept {
-    if constexpr ((!meta::is_same_v<Idxs, Slice> && ...)) {
-      return raw()[memory_index(idxs...)];
-    } else {
-      return sub_view(*this, 0, idxs...);
+template <typename Scalar, dim_t N>
+template <dim_t M>
+NUMERIC_HOST_DEVICE [[nodiscard]] ArrayView<Scalar, M>
+ArrayView<Scalar, N>::broadcast(const Layout<M> &layout) noexcept {
+  const Layout<M> new_layout = broadcasted_layout(layout_, layout);
+  return ArrayView<Scalar, M>(raw(), new_layout, memory_type());
+}
+
+template <typename Scalar, dim_t N>
+NUMERIC_HOST_DEVICE [[nodiscard]] ArrayConstView<Scalar, N>
+ArrayView<Scalar, N>::const_view() const noexcept {
+  return *this;
+}
+
+#if NUMERIC_ENABLE_EIGEN
+template <typename Scalar, dim_t N>
+[[nodiscard]] Eigen::Map<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>,
+                         0, Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>>
+ArrayView<Scalar, N>::matrix_view() noexcept {
+  static_assert(dim == 2);
+  return Eigen::Map<Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>, 0,
+                    Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>>(
+      raw(), shape(0), shape(1), Eigen::Stride(stride(0), stride(1)));
+}
+#endif
+
+template <typename Scalar, dim_t N>
+NUMERIC_HOST_DEVICE [[nodiscard]] Scalar *ArrayView<Scalar, N>::raw() noexcept {
+  return const_cast<Scalar *>(data_);
+}
+
+template <typename Scalar, dim_t N>
+template <dim_t M, typename Idx, typename... Idxs>
+NUMERIC_HOST_DEVICE decltype(auto)
+ArrayView<Scalar, N>::sub_view(ArrayView<Scalar, M> view, dim_t d, Idx idx,
+                               Idxs... idxs) noexcept {
+  if constexpr (meta::is_same_v<Idx, Slice>) {
+    if (idx.stop < 0) {
+      idx.stop += view.shape(d) + 1;
     }
-  }
-
-  template <dim_t M>
-  NUMERIC_HOST_DEVICE [[nodiscard]] ArrayView<scalar_t, M>
-  broadcast(const Layout<M> &layout) noexcept {
-    const Layout<M> new_layout = broadcasted_layout(layout_, layout);
-    return ArrayView<scalar_t, M>(raw(), new_layout, memory_type());
-  }
-
-  NUMERIC_HOST_DEVICE [[nodiscard]] ArrayConstView<Scalar, N>
-  const_view() const noexcept {
-    return *this;
-  }
-
-  using super::memory_type;
-  using super::operator();
-  using super::raw;
-  NUMERIC_HOST_DEVICE [[nodiscard]] scalar_t *raw() noexcept {
-    return const_cast<scalar_t *>(data_);
-  }
-  using super::broadcast;
-  using super::layout;
-  using super::shape;
-  using super::size;
-  using super::stride;
-
-protected:
-  using super::data_;
-  using super::layout_;
-  using super::memory_type_;
-
-  using super::broadcasted_layout;
-  using super::memory_index;
-
-  template <dim_t M, typename Idx, typename... Idxs>
-  static NUMERIC_HOST_DEVICE [[nodiscard]] decltype(auto)
-  sub_view(ArrayView<scalar_t, M> view, dim_t d, Idx idx,
-           Idxs... idxs) noexcept {
-    if constexpr (meta::is_same_v<Idx, Slice>) {
-      if (idx.stop < 0) {
-        idx.stop += view.shape(d) + 1;
-      }
-      scalar_t *new_data = view.raw() + idx.start * view.stride(d);
-      Layout<M> new_layout;
-      for (dim_t i = 0; i < M; ++i) {
-        new_layout.shape(i) = view.shape(i);
-        new_layout.stride(i) = view.stride(i);
-      }
-      new_layout.shape(d) = (idx.stop - idx.start) / idx.step;
-      new_layout.stride(d) = view.stride(d) * idx.step;
-      return sub_view(
-          ArrayView<scalar_t, M>(new_data, new_layout, view.memory_type()),
-          d + 1, idxs...);
-    } else {
-      scalar_t *new_data = view.raw() + idx * view.stride(d);
-      Layout<M - 1> new_layout;
-      for (dim_t i = 0; i < M - 1; ++i) {
-        new_layout.shape(i) = view.shape(i + (i < d ? 0 : 1));
-        new_layout.stride(i) = view.stride(i + (i < d ? 0 : 1));
-      }
-      return sub_view(
-          ArrayView<scalar_t, M - 1>(new_data, new_layout, view.memory_type()),
-          d, idxs...);
+    Scalar *new_data = view.raw() + idx.start * view.stride(d);
+    Layout<M> new_layout;
+    for (dim_t i = 0; i < M; ++i) {
+      new_layout.shape(i) = view.shape(i);
+      new_layout.stride(i) = view.stride(i);
     }
+    new_layout.shape(d) = (idx.stop - idx.start) / idx.step;
+    new_layout.stride(d) = view.stride(d) * idx.step;
+    return sub_view(
+        ArrayView<Scalar, M>(new_data, new_layout, view.memory_type()), d + 1,
+        idxs...);
+  } else {
+    Scalar *new_data = view.raw() + idx * view.stride(d);
+    Layout<M - 1> new_layout;
+    for (dim_t i = 0; i < M - 1; ++i) {
+      new_layout.shape(i) = view.shape(i + (i < d ? 0 : 1));
+      new_layout.stride(i) = view.stride(i + (i < d ? 0 : 1));
+    }
+    return sub_view(
+        ArrayView<Scalar, M - 1>(new_data, new_layout, view.memory_type()), d,
+        idxs...);
   }
+}
 
-  template <dim_t M>
-  static NUMERIC_HOST_DEVICE [[nodiscard]] ArrayView<scalar_t, M>
-  sub_view(ArrayView<scalar_t, M> view, dim_t) noexcept {
-    return view;
-  }
-};
+template <typename Scalar, dim_t N>
+template <dim_t M>
+NUMERIC_HOST_DEVICE ArrayView<Scalar, M>
+ArrayView<Scalar, N>::sub_view(ArrayView<Scalar, M> view, dim_t) noexcept {
+  return view;
+}
 
 } // namespace numeric::memory
 

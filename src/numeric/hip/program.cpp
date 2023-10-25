@@ -9,9 +9,19 @@
 namespace numeric::hip {
 
 std::vector<std::string_view> Program::numeric_headers_ = {
-    "numeric/config.hpp", "numeric/memory/array_const_view.hpp",
-    "numeric/memory/array_view.hpp", "numeric/memory/layout.hpp",
-    "numeric/memory/memory_type.hpp"};
+    "numeric/config.hpp",
+    "numeric/memory/array_base_decl.hpp",
+    "numeric/memory/array_base.hpp",
+    "numeric/memory/array_const_view_decl.hpp",
+    "numeric/memory/array_const_view.hpp",
+    "numeric/memory/array_view_decl.hpp",
+    "numeric/memory/array_view.hpp",
+    "numeric/memory/layout.hpp",
+    "numeric/memory/slice.hpp",
+    "numeric/memory/memory_type.hpp",
+    "numeric/memory/copy_kernels.hpp",
+    "numeric/math/array_op.hpp",
+    "numeric/meta/meta.hpp"};
 
 Program::Header::Header(std::string_view name_, std::string_view src_)
     : name(name_), src(src_) {}

@@ -12,7 +12,8 @@ namespace internal {
 template <typename... Ts>
 [[noreturn]] void error_impl(const char *file, int line, const char *func,
                              const char *msg, Ts &&...args) {
-  const std::string fmtmsg = fmt::format(msg, std::forward<Ts>(args)...);
+  const std::string fmtmsg =
+      fmt::format(fmt::runtime(msg), std::forward<Ts>(args)...);
   fmt::print(stderr, "file: {}({}) `{}`: {}\n", file, line, func, fmtmsg);
   exit(EXIT_FAILURE);
 }

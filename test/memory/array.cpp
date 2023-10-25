@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 #include <numeric/memory/array.hpp>
+#include <numeric/memory/array_base.hpp>
+#include <numeric/memory/array_const_view.hpp>
+#include <numeric/memory/array_view.hpp>
 #include <numeric/memory/slice.hpp>
 
 TEST(array, row_major) {
