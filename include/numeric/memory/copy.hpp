@@ -6,6 +6,7 @@
 #include <numeric/utils/error.hpp>
 #if NUMERIC_ENABLE_HIP
 #include <numeric/memory/copy_device_device.hpp>
+#include <numeric/memory/copy_device_host.hpp>
 #include <numeric/memory/copy_host_device.hpp>
 #endif
 
@@ -31,6 +32,12 @@ void copy_host_to_device(ArrayView<Scalar, N> dst, const ArrayBase<Src> &src) {
 }
 
 template <typename Scalar, dim_t N, typename Src>
+void copy_device_to_host(ArrayView<Scalar, N> dst, const ArrayBase<Src> &src) {
+  CopyDeviceToHost<Scalar, N, Src> cpy(dst, src.derived());
+  cpy(dst, src);
+}
+
+template <typename Scalar, dim_t N, typename Src>
 void copy(ArrayView<Scalar, N> dst, const ArrayBase<Src> &src) {
   if (is_host_accessible(dst.memory_type()) &&
       is_host_accessible(src.memory_type())) {
@@ -39,6 +46,9 @@ void copy(ArrayView<Scalar, N> dst, const ArrayBase<Src> &src) {
   } else if (is_device_accessible(dst.memory_type()) &&
              is_host_accessible(src.memory_type())) {
     copy_host_to_device(dst, src.derived());
+  } else if (is_host_accessible(dst.memory_type()) &&
+             is_device_accessible(src.memory_type())) {
+    copy_device_to_host(dst, src.derived());
   } else if (is_device_accessible(dst.memory_type()) &&
              is_device_accessible(src.memory_type())) {
     copy_device_to_device(dst, src.derived());
