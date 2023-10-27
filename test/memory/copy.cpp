@@ -2,10 +2,8 @@
 #include <numeric/math/array_op.hpp>
 #include <numeric/memory/array.hpp>
 #include <numeric/memory/copy.hpp>
+#include <numeric/memory/memcpy.hpp>
 #include <numeric/memory/slice.hpp>
-#if NUMERIC_ENABLE_HIP
-#include <hip/hip_runtime_api.h>
-#endif
 
 TEST(copy, HH_array_to_array) {
   numeric::memory::Layout<3> shape(2, 3, 4);
@@ -113,9 +111,9 @@ TEST(copy, DD_array_to_array) {
   for (size_t i = 0; i < ah.size(); ++i) {
     ah.raw()[i] = i;
   }
-  hipMemcpy(ad.raw(), ah.raw(), ah.size() * sizeof(int), hipMemcpyHostToDevice);
+  numeric::memory::memcpy(ad, ah);
   bd = ad;
-  hipMemcpy(bh.raw(), bd.raw(), bh.size() * sizeof(int), hipMemcpyDeviceToHost);
+  numeric::memory::memcpy(bh, bd);
   for (size_t i = 0; i < bh.shape(0); ++i) {
     for (size_t j = 0; j < bh.shape(1); ++j) {
       for (size_t k = 0; k < bh.shape(2); ++k) {
@@ -139,9 +137,9 @@ TEST(copy, DD_array_to_array_broadcast) {
   for (size_t i = 0; i < ah.size(); ++i) {
     ah.raw()[i] = i;
   }
-  hipMemcpy(ad.raw(), ah.raw(), ah.size() * sizeof(int), hipMemcpyHostToDevice);
+  numeric::memory::memcpy(ad, ah);
   bd = ad;
-  hipMemcpy(bh.raw(), bd.raw(), bh.size() * sizeof(int), hipMemcpyDeviceToHost);
+  numeric::memory::memcpy(bh, bd);
   for (size_t i = 0; i < bh.shape(0); ++i) {
     for (size_t j = 0; j < bh.shape(1); ++j) {
       for (size_t k = 0; k < bh.shape(2); ++k) {
@@ -168,11 +166,11 @@ TEST(copy, DD_array_to_slice) {
   for (size_t i = 0; i < bh.size(); ++i) {
     bh.raw()[i] = 0;
   }
-  hipMemcpy(ad.raw(), ah.raw(), ah.size() * sizeof(int), hipMemcpyHostToDevice);
-  hipMemcpy(bd.raw(), bh.raw(), bh.size() * sizeof(int), hipMemcpyHostToDevice);
+  numeric::memory::memcpy(ad, ah);
+  numeric::memory::memcpy(bd, bh);
   using sl = numeric::memory::Slice;
   bd(sl(0, 3), sl(), sl(), sl()) = ad;
-  hipMemcpy(bh.raw(), bd.raw(), bh.size() * sizeof(int), hipMemcpyDeviceToHost);
+  numeric::memory::memcpy(bh, bd);
   for (size_t i = 0; i < bh.shape(0); ++i) {
     for (size_t j = 0; j < bh.shape(1); ++j) {
       for (size_t k = 0; k < bh.shape(2); ++k) {
@@ -208,11 +206,11 @@ TEST(copy, DD_expr_to_array) {
   for (size_t i = 0; i < ch.size(); ++i) {
     ch.raw()[i] = i;
   }
-  hipMemcpy(ad.raw(), ah.raw(), ah.size() * sizeof(int), hipMemcpyHostToDevice);
-  hipMemcpy(bd.raw(), bh.raw(), bh.size() * sizeof(int), hipMemcpyHostToDevice);
-  hipMemcpy(cd.raw(), ch.raw(), ch.size() * sizeof(int), hipMemcpyHostToDevice);
+  numeric::memory::memcpy(ad, ah);
+  numeric::memory::memcpy(bd, bh);
+  numeric::memory::memcpy(cd, ch);
   ad = bd + cd;
-  hipMemcpy(ah.raw(), ad.raw(), ah.size() * sizeof(int), hipMemcpyDeviceToHost);
+  numeric::memory::memcpy(ah, ad);
   for (size_t i = 0; i < ah.shape(0); ++i) {
     for (size_t j = 0; j < ah.shape(1); ++j) {
       for (size_t k = 0; k < ah.shape(2); ++k) {
@@ -235,7 +233,7 @@ TEST(copy, HD_array_to_array) {
     ah.raw()[i] = i;
   }
   bd = ah;
-  hipMemcpy(bh.raw(), bd.raw(), bh.size() * sizeof(int), hipMemcpyDeviceToHost);
+  numeric::memory::memcpy(bh, bd);
   for (size_t i = 0; i < bh.shape(0); ++i) {
     for (size_t j = 0; j < bh.shape(1); ++j) {
       for (size_t k = 0; k < bh.shape(2); ++k) {
@@ -258,7 +256,7 @@ TEST(copy, HD_array_to_array_broadcast) {
     ah.raw()[i] = i;
   }
   bd = ah;
-  hipMemcpy(bh.raw(), bd.raw(), bh.size() * sizeof(int), hipMemcpyDeviceToHost);
+  numeric::memory::memcpy(bh, bd);
   for (size_t i = 0; i < bh.shape(0); ++i) {
     for (size_t j = 0; j < bh.shape(1); ++j) {
       for (size_t k = 0; k < bh.shape(2); ++k) {
@@ -283,10 +281,10 @@ TEST(copy, HD_array_to_slice) {
   for (size_t i = 0; i < bh.size(); ++i) {
     bh.raw()[i] = 0;
   }
-  hipMemcpy(bd.raw(), bh.raw(), bh.size() * sizeof(int), hipMemcpyHostToDevice);
+  numeric::memory::memcpy(bd, bh);
   using sl = numeric::memory::Slice;
   bd(sl(0, 3), sl(), sl(), sl()) = ah;
-  hipMemcpy(bh.raw(), bd.raw(), bh.size() * sizeof(int), hipMemcpyDeviceToHost);
+  numeric::memory::memcpy(bh, bd);
   for (size_t i = 0; i < bh.shape(0); ++i) {
     for (size_t j = 0; j < bh.shape(1); ++j) {
       for (size_t k = 0; k < bh.shape(2); ++k) {
@@ -318,9 +316,9 @@ TEST(copy, HD_expr_to_array) {
   for (size_t i = 0; i < ch.size(); ++i) {
     ch.raw()[i] = i;
   }
-  hipMemcpy(ad.raw(), ah.raw(), ah.size() * sizeof(int), hipMemcpyHostToDevice);
+  numeric::memory::memcpy(ad, ah);
   ad = bh + ch;
-  hipMemcpy(ah.raw(), ad.raw(), ah.size() * sizeof(int), hipMemcpyDeviceToHost);
+  numeric::memory::memcpy(ah, ad);
   for (size_t i = 0; i < ah.shape(0); ++i) {
     for (size_t j = 0; j < ah.shape(1); ++j) {
       for (size_t k = 0; k < ah.shape(2); ++k) {
