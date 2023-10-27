@@ -17,6 +17,15 @@ NUMERIC_HOST_DEVICE ArrayConstView<Scalar, N>::ArrayConstView(
     : data_(data), layout_(layout), memory_type_(memory_type) {}
 
 template <typename Scalar, dim_t N>
+NUMERIC_HOST_DEVICE void
+ArrayConstView<Scalar, N>::set(const scalar_t *data, const Layout<dim> &layout,
+                               MemoryType memory_type) noexcept {
+  data_ = data;
+  layout_ = layout;
+  memory_type_ = memory_type;
+}
+
+template <typename Scalar, dim_t N>
 NUMERIC_HOST_DEVICE [[nodiscard]] MemoryType
 ArrayConstView<Scalar, N>::memory_type() const noexcept {
   return memory_type_;

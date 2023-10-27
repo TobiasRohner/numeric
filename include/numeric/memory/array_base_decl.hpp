@@ -9,10 +9,12 @@ namespace numeric::memory {
 
 template <typename Derived> class ArrayBase {
 public:
-  NUMERIC_HOST_DEVICE [[nodiscard]] dim_t shape(size_t idx) const noexcept;
-  NUMERIC_HOST_DEVICE [[nodiscard]] Derived &derived() noexcept;
-  NUMERIC_HOST_DEVICE [[nodiscard]] const Derived &derived() const noexcept;
-  NUMERIC_HOST_DEVICE [[nodiscard]] MemoryType memory_type() const noexcept;
+  NUMERIC_HOST_DEVICE dim_t shape(size_t idx) const noexcept;
+  NUMERIC_HOST_DEVICE Derived &derived() noexcept;
+  NUMERIC_HOST_DEVICE const Derived &derived() const noexcept;
+  NUMERIC_HOST_DEVICE MemoryType memory_type() const noexcept;
+  NUMERIC_HOST_DEVICE decltype(auto) layout() const noexcept;
+  NUMERIC_HOST_DEVICE dim_t size() const noexcept;
 
 protected:
   template <dim_t N, dim_t M>

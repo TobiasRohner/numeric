@@ -28,6 +28,10 @@ public:
   ArrayConstView &operator=(const ArrayConstView &) = delete;
   ArrayConstView &operator=(ArrayConstView &&) = delete;
 
+  NUMERIC_HOST_DEVICE void
+  set(const scalar_t *data, const Layout<dim> &layout,
+      MemoryType memory_type = MemoryType::UNKNOWN) noexcept;
+
   NUMERIC_HOST_DEVICE [[nodiscard]] MemoryType memory_type() const noexcept;
 
   template <typename... Idxs>

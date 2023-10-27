@@ -41,6 +41,10 @@ public:
     return arg_.layout();
   }
 
+  NUMERIC_HOST_DEVICE [[nodiscard]] dim_t size() const noexcept {
+    return arg_.size();
+  }
+
   template <dim_t M>
   NUMERIC_HOST_DEVICE [[nodiscard]] auto
   broadcast(const memory::Layout<M> &layout) const noexcept {
@@ -102,6 +106,23 @@ public:
     const dim_t shape_lhs = lhs_.shape(idx);
     const dim_t shape_rhs = rhs_.shape(idx);
     return shape_lhs > shape_rhs ? shape_lhs : shape_rhs;
+  }
+
+  NUMERIC_HOST_DEVICE [[nodiscard]] memory::Layout<dim>
+  layout() const noexcept {
+    memory::Layout<dim> l;
+    for (dim_t d = 0; d < dim; ++d) {
+      l.shape(d) = shape(d);
+    }
+    return l;
+  }
+
+  NUMERIC_HOST_DEVICE [[nodiscard]] dim_t size() const noexcept {
+    dim_t s = 1;
+    for (dim_t d = 0; d < dim; ++d) {
+      s *= shape(d);
+    }
+    return s;
   }
 
   template <dim_t M>

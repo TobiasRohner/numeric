@@ -47,6 +47,17 @@ void test_binary(const Func &f) {
   }
 }
 
+TEST(array_op, shape) {
+  const numeric::memory::Layout<3> shape_a(2, 3, 4);
+  const numeric::memory::Layout<3> shape_b(2, 1, 4);
+  numeric::memory::Array<int, 3> a(shape_a);
+  numeric::memory::Array<int, 3> b(shape_b);
+  const numeric::memory::Layout<3> shape_ab = (a + b).layout();
+  ASSERT_EQ(shape_ab.shape(0), 2);
+  ASSERT_EQ(shape_ab.shape(1), 3);
+  ASSERT_EQ(shape_ab.shape(2), 4);
+}
+
 TEST(array_op, unary_plus) {
   test_unary<double>([](const auto &val) { return +val; });
 }

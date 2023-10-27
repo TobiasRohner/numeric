@@ -30,6 +30,16 @@ ArrayBase<Derived>::memory_type() const noexcept {
 }
 
 template <typename Derived>
+NUMERIC_HOST_DEVICE decltype(auto) ArrayBase<Derived>::layout() const noexcept {
+  return derived().layout();
+}
+
+template <typename Derived>
+NUMERIC_HOST_DEVICE dim_t ArrayBase<Derived>::size() const noexcept {
+  return derived().size();
+}
+
+template <typename Derived>
 template <dim_t N, dim_t M>
 NUMERIC_HOST_DEVICE Layout<M>
 ArrayBase<Derived>::broadcasted_layout(const Layout<N> &from,
