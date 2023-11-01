@@ -1,4 +1,5 @@
 #include <array>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -10,6 +11,7 @@ namespace numeric::hip {
 
 std::vector<std::string_view> Program::numeric_headers_ = {
     "numeric/config.hpp",
+    "numeric/memory/array_traits.hpp",
     "numeric/memory/array_base_decl.hpp",
     "numeric/memory/array_base.hpp",
     "numeric/memory/array_const_view_decl.hpp",
@@ -20,7 +22,7 @@ std::vector<std::string_view> Program::numeric_headers_ = {
     "numeric/memory/slice.hpp",
     "numeric/memory/memory_type.hpp",
     "numeric/memory/copy_kernels.hpp",
-    "numeric/math/array_op.hpp",
+    "numeric/memory/array_op.hpp",
     "numeric/meta/meta.hpp"};
 
 Program::Header::Header(std::string_view name_, std::string_view src_)
@@ -61,6 +63,23 @@ std::string Program::read_file(std::string_view path) {
   return src;
 }
 
+void Program::add_optimization_flags() {
+  char *c = CMAKE_HIP_FLAGS;
+  while (*c) {
+    if (*c == ' ') {
+      ++c;
+      continue;
+    }
+    const char *start = c;
+    while (*c && *c != ' ' && *c != '\t') {
+      ++c;
+    }
+    ptrdiff_t len = c - start;
+    const std::string_view option(start, len);
+    add_compile_option(option);
+  }
+}
+
 void Program::add_compatibility_headers() {
   const std::string path =
       std::string(DATA_DIR) + "/hip/include/api_compat.hpp";
@@ -83,6 +102,7 @@ void Program::add_numeric_headers() {
 void Program::compile() {
   add_compatibility_headers();
   add_numeric_headers();
+  add_optimization_flags();
   src_ = "#include <api_compat.hpp>\n\n" + src_;
   add_compile_option("-D__HIP_DEVICE_COMPILE__");
   add_compile_option("-DNUMERIC_ENABLE_HIP=1");

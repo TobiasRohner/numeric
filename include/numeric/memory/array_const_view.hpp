@@ -35,7 +35,8 @@ template <typename Scalar, dim_t N>
 template <typename... Idxs>
 NUMERIC_HOST_DEVICE [[nodiscard]] decltype(auto)
 ArrayConstView<Scalar, N>::operator()(Idxs... idxs) const noexcept {
-  if constexpr ((!meta::is_same_v<Idxs, Slice> && ...)) {
+  if constexpr (sizeof...(idxs) == dim &&
+                (!meta::is_same_v<Idxs, Slice> && ...)) {
     return data_[memory_index(idxs...)];
   } else {
     return sub_view(*this, 0, idxs...);

@@ -2,6 +2,7 @@
 #include <hip/hiprtc.h>
 #include <numeric/hip/device.hpp>
 #include <numeric/hip/safe_call.hpp>
+#include <numeric/math/functions.hpp>
 
 namespace numeric::hip {
 
@@ -32,5 +33,53 @@ void Device::sync() const {
 }
 
 int Device::id() const { return id_; }
+
+unsigned Device::max_block_dim_x() const {
+  int pi;
+  hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxBlockDimX, id_);
+  return pi;
+}
+
+unsigned Device::max_block_dim_y() const {
+  int pi;
+  hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxBlockDimY, id_);
+  return pi;
+}
+
+unsigned Device::max_block_dim_z() const {
+  int pi;
+  hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxBlockDimZ, id_);
+  return pi;
+}
+
+unsigned Device::max_grid_dim_x() const {
+  int pi;
+  hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxGridDimX, id_);
+  return pi;
+}
+
+unsigned Device::max_grid_dim_y() const {
+  int pi;
+  hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxGridDimY, id_);
+  return pi;
+}
+
+unsigned Device::max_grid_dim_z() const {
+  int pi;
+  hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxGridDimZ, id_);
+  return pi;
+}
+
+LaunchParams Device::launch_params_for_grid(unsigned Nx, unsigned Ny,
+                                            unsigned Nz) const {
+  LaunchParams lp;
+  lp.block_dim_x = math::min(Nx, max_block_dim_x());
+  lp.block_dim_y = math::min(Ny, max_block_dim_y());
+  lp.block_dim_z = math::min(Nz, max_block_dim_z());
+  lp.grid_dim_x = math::div_up(Nx, lp.block_dim_x);
+  lp.grid_dim_y = math::div_up(Ny, lp.block_dim_y);
+  lp.grid_dim_z = math::div_up(Nz, lp.block_dim_z);
+  return lp;
+}
 
 } // namespace numeric::hip

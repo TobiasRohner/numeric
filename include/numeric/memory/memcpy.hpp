@@ -5,6 +5,7 @@
 #include <numeric/config.hpp>
 #include <numeric/memory/array_const_view_decl.hpp>
 #include <numeric/memory/array_view_decl.hpp>
+#include <numeric/utils/error.hpp>
 #if NUMERIC_ENABLE_HIP
 #include <hip/hip_runtime_api.h>
 #endif

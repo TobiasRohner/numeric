@@ -4,13 +4,14 @@
 #include <numeric/config.hpp>
 #include <numeric/memory/array_base.hpp>
 #include <numeric/memory/array_const_view.hpp>
+#include <numeric/memory/array_traits.hpp>
 #include <numeric/meta/meta.hpp>
 
-namespace numeric::math {
+namespace numeric::memory {
 
 template <typename Op, typename Arg>
-class ArrayUnaryOp : public memory::ArrayBase<ArrayUnaryOp<Op, Arg>> {
-  using super = memory::ArrayBase<ArrayUnaryOp<Op, Arg>>;
+class ArrayUnaryOp : public ArrayBase<ArrayUnaryOp<Op, Arg>> {
+  using super = ArrayBase<ArrayUnaryOp<Op, Arg>>;
 
 public:
   using scalar_t =
@@ -19,10 +20,10 @@ public:
 
   NUMERIC_HOST_DEVICE ArrayUnaryOp(const Op op, const Arg &arg)
       : op_(op), arg_(arg) {}
-  NUMERIC_HOST_DEVICE ArrayUnaryOp(const ArrayUnaryOp &) = default;
-  NUMERIC_HOST_DEVICE ArrayUnaryOp &operator=(const ArrayUnaryOp &) = default;
+  ArrayUnaryOp(const ArrayUnaryOp &) = default;
+  ArrayUnaryOp &operator=(const ArrayUnaryOp &) = default;
 
-  NUMERIC_HOST_DEVICE [[nodiscard]] memory::MemoryType memory_type() const {
+  NUMERIC_HOST_DEVICE [[nodiscard]] MemoryType memory_type() const {
     return arg_.memory_type();
   }
 
@@ -36,8 +37,7 @@ public:
     return arg_.shape(idx);
   }
 
-  NUMERIC_HOST_DEVICE [[nodiscard]] memory::Layout<dim>
-  layout() const noexcept {
+  NUMERIC_HOST_DEVICE [[nodiscard]] Layout<dim> layout() const noexcept {
     return arg_.layout();
   }
 
@@ -47,7 +47,7 @@ public:
 
   template <dim_t M>
   NUMERIC_HOST_DEVICE [[nodiscard]] auto
-  broadcast(const memory::Layout<M> &layout) const noexcept {
+  broadcast(const Layout<M> &layout) const noexcept {
     auto brd_arg = arg_.broadcast(layout);
     return ArrayUnaryOp<Op, decltype(brd_arg)>(op_, brd_arg);
   }
@@ -61,8 +61,8 @@ private:
 };
 
 template <typename Op, typename Lhs, typename Rhs>
-class ArrayBinaryOp : public memory::ArrayBase<ArrayBinaryOp<Op, Lhs, Rhs>> {
-  using super = memory::ArrayBase<ArrayBinaryOp<Op, Lhs, Rhs>>;
+class ArrayBinaryOp : public ArrayBase<ArrayBinaryOp<Op, Lhs, Rhs>> {
+  using super = ArrayBase<ArrayBinaryOp<Op, Lhs, Rhs>>;
 
 public:
   using lhs_scalar_t = typename Lhs::scalar_t;
@@ -70,36 +70,43 @@ public:
   using scalar_t = decltype(meta::declval<Op>()(meta::declval<lhs_scalar_t>(),
                                                 meta::declval<rhs_scalar_t>()));
   static constexpr dim_t dim = Lhs::dim > Rhs::dim ? Lhs::dim : Rhs::dim;
-  using lhs_t = decltype(meta::declval<Lhs>().broadcast(
-      meta::declval<memory::Layout<dim>>()));
-  using rhs_t = decltype(meta::declval<Rhs>().broadcast(
-      meta::declval<memory::Layout<dim>>()));
+  using lhs_t =
+      decltype(meta::declval<Lhs>().broadcast(meta::declval<Layout<dim>>()));
+  using rhs_t =
+      decltype(meta::declval<Rhs>().broadcast(meta::declval<Layout<dim>>()));
 
   NUMERIC_HOST_DEVICE ArrayBinaryOp(const Op op, const Lhs &lhs, const Rhs &rhs)
       : op_(op), lhs_(lhs), rhs_(rhs) {}
-  NUMERIC_HOST_DEVICE ArrayBinaryOp(const ArrayBinaryOp &) = default;
-  NUMERIC_HOST_DEVICE ArrayBinaryOp &operator=(const ArrayBinaryOp &) = default;
+  ArrayBinaryOp(const ArrayBinaryOp &) = default;
+  ArrayBinaryOp &operator=(const ArrayBinaryOp &) = default;
 
-  NUMERIC_HOST_DEVICE [[nodiscard]] memory::MemoryType memory_type() const {
-    const memory::MemoryType mtl = lhs_.memory_type();
-    const memory::MemoryType mtr = rhs_.memory_type();
+  NUMERIC_HOST_DEVICE [[nodiscard]] MemoryType memory_type() const {
+    const MemoryType mtl = lhs_.memory_type();
+    const MemoryType mtr = rhs_.memory_type();
     if (mtl == mtr) {
       return mtl;
     } else if (is_host_accessible(mtl) && is_host_accessible(mtr)) {
-      return memory::MemoryType::HOST;
+      return MemoryType::HOST;
 #if NUMERIC_ENABLE_HIP
     } else if (is_device_accessible(mtl) && is_device_accessible(mtr)) {
-      return memory::MemoryType::DEVICE;
+      return MemoryType::DEVICE;
 #endif
     } else {
-      return memory::MemoryType::UNKNOWN;
+      return MemoryType::UNKNOWN;
     }
   }
 
   template <typename... Idxs>
-  NUMERIC_HOST_DEVICE [[nodiscard]] const scalar_t
+  NUMERIC_HOST_DEVICE [[nodiscard]] decltype(auto)
   operator()(Idxs... idxs) const noexcept {
-    return op_(lhs_(idxs...), rhs_(idxs...));
+    if constexpr (sizeof...(idxs) == dim) {
+      return op_(lhs_(idxs...), rhs_(idxs...));
+    } else {
+      using lhs_slice_t = meta::remove_cvref_t<decltype(lhs_(idxs...))>;
+      using rhs_slice_t = meta::remove_cvref_t<decltype(rhs_(idxs...))>;
+      return ArrayBinaryOp<Op, lhs_slice_t, rhs_slice_t>(op_, lhs_(idxs...),
+                                                         rhs_(idxs...));
+    }
   }
 
   NUMERIC_HOST_DEVICE [[nodiscard]] dim_t shape(size_t idx) const noexcept {
@@ -108,9 +115,8 @@ public:
     return shape_lhs > shape_rhs ? shape_lhs : shape_rhs;
   }
 
-  NUMERIC_HOST_DEVICE [[nodiscard]] memory::Layout<dim>
-  layout() const noexcept {
-    memory::Layout<dim> l;
+  NUMERIC_HOST_DEVICE [[nodiscard]] Layout<dim> layout() const noexcept {
+    Layout<dim> l;
     for (dim_t d = 0; d < dim; ++d) {
       l.shape(d) = shape(d);
     }
@@ -127,7 +133,7 @@ public:
 
   template <dim_t M>
   NUMERIC_HOST_DEVICE [[nodiscard]] auto
-  broadcast(const memory::Layout<M> &layout) const noexcept {
+  broadcast(const Layout<M> &layout) const noexcept {
     auto brd_lhs = lhs_.broadcast(layout);
     auto brd_rhs = rhs_.broadcast(layout);
     return ArrayBinaryOp<Op, decltype(brd_lhs), decltype(brd_rhs)>(op_, brd_lhs,
@@ -303,177 +309,186 @@ struct OpBinaryGeq {
   }
 };
 
-} // namespace numeric::math
+template <typename Op, typename Arg> struct ArrayTraits<ArrayUnaryOp<Op, Arg>> {
+  static constexpr dim_t dim = ArrayTraits<Arg>::dim;
+  using scalar_t = decltype(meta::declval<Op>()(
+      meta::declval<typename ArrayTraits<Arg>::scalar_t>()));
+};
+
+template <typename Op, typename Lhs, typename Rhs>
+struct ArrayTraits<ArrayBinaryOp<Op, Lhs, Rhs>> {
+  static constexpr dim_t lhs_dim = ArrayTraits<Lhs>::dim;
+  static constexpr dim_t rhs_dim = ArrayTraits<Rhs>::dim;
+  static constexpr dim_t dim = lhs_dim > rhs_dim ? lhs_dim : rhs_dim;
+  using lhs_scalar_t = typename ArrayTraits<Lhs>::scalar_t;
+  using rhs_scalar_t = typename ArrayTraits<Rhs>::scalar_t;
+  using scalar_t = decltype(meta::declval<Op>()(meta::declval<lhs_scalar_t>(),
+                                                meta::declval<rhs_scalar_t>()));
+};
+
+} // namespace numeric::memory
 
 template <typename Arg>
 NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayUnaryOp<numeric::math::OpUnaryPlus, Arg>
+    [[nodiscard]] numeric::memory::ArrayUnaryOp<numeric::memory::OpUnaryPlus,
+                                                Arg>
     operator+(const numeric::memory::ArrayBase<Arg> &arg) noexcept {
-  return {numeric::math::OpUnaryPlus{}, arg.derived()};
+  return {numeric::memory::OpUnaryPlus{}, arg.derived()};
 }
 
 template <typename Arg>
 NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayUnaryOp<numeric::math::OpUnaryMinus, Arg>
+    [[nodiscard]] numeric::memory::ArrayUnaryOp<numeric::memory::OpUnaryMinus,
+                                                Arg>
     operator-(const numeric::memory::ArrayBase<Arg> &arg) noexcept {
-  return {numeric::math::OpUnaryMinus{}, arg.derived()};
+  return {numeric::memory::OpUnaryMinus{}, arg.derived()};
 }
 
 template <typename Arg>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayUnaryOp<numeric::math::OpUnaryBitwiseNot,
-                                              Arg>
-    operator~(const numeric::memory::ArrayBase<Arg> &arg) noexcept {
-  return {numeric::math::OpUnaryBitwiseNot{}, arg.derived()};
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayUnaryOp<
+    numeric::memory::OpUnaryBitwiseNot, Arg>
+operator~(const numeric::memory::ArrayBase<Arg> &arg) noexcept {
+  return {numeric::memory::OpUnaryBitwiseNot{}, arg.derived()};
 }
 
 template <typename Arg>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayUnaryOp<numeric::math::OpUnaryLogicalNot,
-                                              Arg>
-    operator!(const numeric::memory::ArrayBase<Arg> &arg) noexcept {
-  return {numeric::math::OpUnaryLogicalNot{}, arg.derived()};
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayUnaryOp<
+    numeric::memory::OpUnaryLogicalNot, Arg>
+operator!(const numeric::memory::ArrayBase<Arg> &arg) noexcept {
+  return {numeric::memory::OpUnaryLogicalNot{}, arg.derived()};
 }
 
 template <typename Lhs, typename Rhs>
 NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryPlus, Lhs,
-                                               Rhs>
+    [[nodiscard]] numeric::memory::ArrayBinaryOp<numeric::memory::OpBinaryPlus,
+                                                 Lhs, Rhs>
     operator+(const numeric::memory::ArrayBase<Lhs> &lhs,
               const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryPlus{}, lhs.derived(), rhs.derived()};
+  return {numeric::memory::OpBinaryPlus{}, lhs.derived(), rhs.derived()};
 }
 
 template <typename Lhs, typename Rhs>
 NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryMinus,
-                                               Lhs, Rhs>
+    [[nodiscard]] numeric::memory::ArrayBinaryOp<numeric::memory::OpBinaryMinus,
+                                                 Lhs, Rhs>
     operator-(const numeric::memory::ArrayBase<Lhs> &lhs,
               const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryMinus{}, lhs.derived(), rhs.derived()};
+  return {numeric::memory::OpBinaryMinus{}, lhs.derived(), rhs.derived()};
 }
 
 template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryMultiply,
-                                               Lhs, Rhs>
-    operator*(const numeric::memory::ArrayBase<Lhs> &lhs,
-              const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryMultiply{}, lhs.derived(), rhs.derived()};
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
+    numeric::memory::OpBinaryMultiply, Lhs, Rhs>
+operator*(const numeric::memory::ArrayBase<Lhs> &lhs,
+          const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
+  return {numeric::memory::OpBinaryMultiply{}, lhs.derived(), rhs.derived()};
 }
 
 template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryDivide,
-                                               Lhs, Rhs>
-    operator/(const numeric::memory::ArrayBase<Lhs> &lhs,
-              const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryDivide{}, lhs.derived(), rhs.derived()};
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
+    numeric::memory::OpBinaryDivide, Lhs, Rhs>
+operator/(const numeric::memory::ArrayBase<Lhs> &lhs,
+          const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
+  return {numeric::memory::OpBinaryDivide{}, lhs.derived(), rhs.derived()};
 }
 
 template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryModulo,
-                                               Lhs, Rhs>
-    operator%(const numeric::memory::ArrayBase<Lhs> &lhs,
-              const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryModulo{}, lhs.derived(), rhs.derived()};
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
+    numeric::memory::OpBinaryModulo, Lhs, Rhs>
+operator%(const numeric::memory::ArrayBase<Lhs> &lhs,
+          const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
+  return {numeric::memory::OpBinaryModulo{}, lhs.derived(), rhs.derived()};
 }
 
 template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::math::ArrayBinaryOp<
-    numeric::math::OpBinaryBitwiseAnd, Lhs, Rhs>
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
+    numeric::memory::OpBinaryBitwiseAnd, Lhs, Rhs>
 operator&(const numeric::memory::ArrayBase<Lhs> &lhs,
           const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryBitwiseAnd{}, lhs.derived(), rhs.derived()};
+  return {numeric::memory::OpBinaryBitwiseAnd{}, lhs.derived(), rhs.derived()};
 }
 
 template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryBitwiseOr,
-                                               Lhs, Rhs>
-    operator|(const numeric::memory::ArrayBase<Lhs> &lhs,
-              const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryBitwiseOr{}, lhs.derived(), rhs.derived()};
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
+    numeric::memory::OpBinaryBitwiseOr, Lhs, Rhs>
+operator|(const numeric::memory::ArrayBase<Lhs> &lhs,
+          const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
+  return {numeric::memory::OpBinaryBitwiseOr{}, lhs.derived(), rhs.derived()};
 }
 
 template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::math::ArrayBinaryOp<
-    numeric::math::OpBinaryBitwiseXor, Lhs, Rhs>
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
+    numeric::memory::OpBinaryBitwiseXor, Lhs, Rhs>
 operator^(const numeric::memory::ArrayBase<Lhs> &lhs,
           const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryBitwiseXor{}, lhs.derived(), rhs.derived()};
+  return {numeric::memory::OpBinaryBitwiseXor{}, lhs.derived(), rhs.derived()};
 }
 
 template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::math::ArrayBinaryOp<
-    numeric::math::OpBinaryLogicalAnd, Lhs, Rhs>
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
+    numeric::memory::OpBinaryLogicalAnd, Lhs, Rhs>
 operator&&(const numeric::memory::ArrayBase<Lhs> &lhs,
            const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryLogicalAnd{}, lhs.derived(), rhs.derived()};
+  return {numeric::memory::OpBinaryLogicalAnd{}, lhs.derived(), rhs.derived()};
+}
+
+template <typename Lhs, typename Rhs>
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
+    numeric::memory::OpBinaryLogicalOr, Lhs, Rhs>
+operator||(const numeric::memory::ArrayBase<Lhs> &lhs,
+           const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
+  return {numeric::memory::OpBinaryLogicalOr{}, lhs.derived(), rhs.derived()};
+}
+
+template <typename Lhs, typename Rhs>
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
+    numeric::memory::OpBinaryEquals, Lhs, Rhs>
+operator==(const numeric::memory::ArrayBase<Lhs> &lhs,
+           const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
+  return {numeric::memory::OpBinaryEquals{}, lhs.derived(), rhs.derived()};
+}
+
+template <typename Lhs, typename Rhs>
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
+    numeric::memory::OpBinaryNotEquals, Lhs, Rhs>
+operator!=(const numeric::memory::ArrayBase<Lhs> &lhs,
+           const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
+  return {numeric::memory::OpBinaryNotEquals{}, lhs.derived(), rhs.derived()};
 }
 
 template <typename Lhs, typename Rhs>
 NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryLogicalOr,
-                                               Lhs, Rhs>
-    operator||(const numeric::memory::ArrayBase<Lhs> &lhs,
-               const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryLogicalOr{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryEquals,
-                                               Lhs, Rhs>
-    operator==(const numeric::memory::ArrayBase<Lhs> &lhs,
-               const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryEquals{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryNotEquals,
-                                               Lhs, Rhs>
-    operator!=(const numeric::memory::ArrayBase<Lhs> &lhs,
-               const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryNotEquals{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryLess, Lhs,
-                                               Rhs>
+    [[nodiscard]] numeric::memory::ArrayBinaryOp<numeric::memory::OpBinaryLess,
+                                                 Lhs, Rhs>
     operator<(const numeric::memory::ArrayBase<Lhs> &lhs,
               const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryLess{}, lhs.derived(), rhs.derived()};
+  return {numeric::memory::OpBinaryLess{}, lhs.derived(), rhs.derived()};
+}
+
+template <typename Lhs, typename Rhs>
+NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
+    numeric::memory::OpBinaryGreater, Lhs, Rhs>
+operator>(const numeric::memory::ArrayBase<Lhs> &lhs,
+          const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
+  return {numeric::memory::OpBinaryGreater{}, lhs.derived(), rhs.derived()};
 }
 
 template <typename Lhs, typename Rhs>
 NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryGreater,
-                                               Lhs, Rhs>
-    operator>(const numeric::memory::ArrayBase<Lhs> &lhs,
-              const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryGreater{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryLeq, Lhs,
-                                               Rhs>
+    [[nodiscard]] numeric::memory::ArrayBinaryOp<numeric::memory::OpBinaryLeq,
+                                                 Lhs, Rhs>
     operator<=(const numeric::memory::ArrayBase<Lhs> &lhs,
                const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryLeq{}, lhs.derived(), rhs.derived()};
+  return {numeric::memory::OpBinaryLeq{}, lhs.derived(), rhs.derived()};
 }
 
 template <typename Lhs, typename Rhs>
 NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::math::ArrayBinaryOp<numeric::math::OpBinaryGeq, Lhs,
-                                               Rhs>
+    [[nodiscard]] numeric::memory::ArrayBinaryOp<numeric::memory::OpBinaryGeq,
+                                                 Lhs, Rhs>
     operator>=(const numeric::memory::ArrayBase<Lhs> &lhs,
                const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::math::OpBinaryGeq{}, lhs.derived(), rhs.derived()};
+  return {numeric::memory::OpBinaryGeq{}, lhs.derived(), rhs.derived()};
 }
 
 #endif

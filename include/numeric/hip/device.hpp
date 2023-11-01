@@ -1,6 +1,8 @@
 #ifndef NUMERIC_HIP_DEVICE_HPP_
 #define NUMERIC_HIP_DEVICE_HPP_
 
+#include <numeric/hip/launch_params.hpp>
+
 namespace numeric::hip {
 
 class Device {
@@ -16,6 +18,16 @@ public:
   void sync() const;
 
   int id() const;
+
+  unsigned max_block_dim_x() const;
+  unsigned max_block_dim_y() const;
+  unsigned max_block_dim_z() const;
+  unsigned max_grid_dim_x() const;
+  unsigned max_grid_dim_y() const;
+  unsigned max_grid_dim_z() const;
+
+  LaunchParams launch_params_for_grid(unsigned Nx, unsigned Ny,
+                                      unsigned Nz) const;
 
   template <typename Func> void do_while_active(const Func &func) const {
     Device current;

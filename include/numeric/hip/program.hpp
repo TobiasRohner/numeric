@@ -63,6 +63,7 @@ private:
   static std::vector<std::string_view> numeric_headers_;
 
   static std::string read_file(std::string_view path);
+  void add_optimization_flags();
   void add_compatibility_headers();
   void add_numeric_headers();
   void compile();

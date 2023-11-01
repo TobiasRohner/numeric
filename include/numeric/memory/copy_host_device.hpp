@@ -5,13 +5,18 @@
 #include <numeric/memory/array_view_decl.hpp>
 #include <numeric/memory/copy_device_device.hpp>
 #include <numeric/memory/copy_host_host.hpp>
+#include <numeric/memory/copyer_impl.hpp>
 #include <numeric/memory/device_memory_resource.hpp>
 #include <numeric/memory/memcpy.hpp>
 #include <numeric/memory/pinned_memory_resource.hpp>
+#include <numeric/utils/error.hpp>
 
 namespace numeric::memory {
 
-template <typename Scalar, dim_t N, typename Src> class CopyHostToDevice {
+template <typename Scalar, dim_t N, typename Src>
+class CopyHostToDevice : public CopyerImpl<Scalar, N, Src> {
+  using super = CopyerImpl<Scalar, N, Src>;
+
 public:
   CopyHostToDevice(const ArrayView<Scalar, N> &dst, const ArrayBase<Src> &src,
                    bool allocate_workspace = true)
@@ -42,7 +47,8 @@ public:
     }
   }
 
-  void operator()(const ArrayView<Scalar, N> &dst, const ArrayBase<Src> &src) {
+  virtual void operator()(ArrayView<Scalar, N> dst,
+                          const ArrayBase<Src> &src) override {
     cpy_h_h_(buffer_host_, src);
     memcpy(buffer_device_, buffer_host_);
     cpy_d_d_(dst, buffer_device_.const_view());

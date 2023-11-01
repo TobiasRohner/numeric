@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <numeric/math/array_op.hpp>
 #include <numeric/memory/array.hpp>
+#include <numeric/memory/array_op.hpp>
 
 template <typename T, typename Func> void test_unary(const Func &f) {
   numeric::memory::Layout<3> shape(2, 3, 4);

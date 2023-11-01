@@ -3,6 +3,7 @@
 
 #include <numeric/config.hpp>
 #include <numeric/memory/array_const_view_decl.hpp>
+#include <numeric/memory/array_traits.hpp>
 #if NUMERIC_ENABLE_EIGEN
 #include <Eigen/Dense>
 #endif
@@ -70,6 +71,11 @@ protected:
   template <dim_t M>
   static NUMERIC_HOST_DEVICE ArrayView<scalar_t, M>
   sub_view(ArrayView<scalar_t, M> view, dim_t) noexcept;
+};
+
+template <typename Scalar, dim_t N> struct ArrayTraits<ArrayView<Scalar, N>> {
+  static constexpr dim_t dim = N;
+  using scalar_t = Scalar;
 };
 
 } // namespace numeric::memory

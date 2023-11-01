@@ -3,6 +3,7 @@
 
 #include <numeric/config.hpp>
 #include <numeric/memory/allocator.hpp>
+#include <numeric/memory/array_traits.hpp>
 #include <numeric/memory/array_view.hpp>
 
 namespace numeric::memory {
@@ -74,6 +75,11 @@ protected:
   using super::memory_type_;
 
   using super::memory_index;
+};
+
+template <typename Scalar, dim_t N> struct ArrayTraits<Array<Scalar, N>> {
+  static constexpr dim_t dim = N;
+  using scalar_t = Scalar;
 };
 
 } // namespace numeric::memory

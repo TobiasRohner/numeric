@@ -4,6 +4,7 @@ project(numeric VERSION 0.1 LANGUAGES CXX)
 
 option(NUMERIC_ENABLE_HIP "Enable GPU support using HIP" ON)
 option(NUMERIC_BUILD_TESTS "Build Tests for the Library" ON)
+option(NUMERIC_BUILD_BENCHMARKS "Build Benchmarks for the Library" ON)
 option(NUMERIC_ENABLE_EIGEN "Enable Matrix Operations using Eigen" ON)
 
 
@@ -63,4 +64,16 @@ if(NUMERIC_BUILD_TESTS)
   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   FetchContent_MakeAvailable(googletest)
   add_subdirectory(test)
+endif()
+
+
+if(NUMERIC_BUILD_BENCHMARKS)
+  set(BENCHMARK_ENABLE_TESTING OFF)
+  FetchContent_Declare(
+    googlebenchmark
+    GIT_REPOSITORY https://github.com/google/benchmark.git
+    GIT_TAG v1.8.3
+  )
+  FetchContent_MakeAvailable(googlebenchmark)
+  add_subdirectory(benchmark)
 endif()

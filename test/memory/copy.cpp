@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <numeric/math/array_op.hpp>
 #include <numeric/memory/array.hpp>
+#include <numeric/memory/array_op.hpp>
 #include <numeric/memory/copy.hpp>
 #include <numeric/memory/memcpy.hpp>
 #include <numeric/memory/slice.hpp>
@@ -36,7 +36,7 @@ TEST(copy, HH_array_to_array_broadcast) {
   for (size_t i = 0; i < b.shape(0); ++i) {
     for (size_t j = 0; j < b.shape(1); ++j) {
       for (size_t k = 0; k < b.shape(2); ++k) {
-        const int expected = a(j);
+        const int expected = a(j, 0);
         const int gotten = b(i, j, k);
         ASSERT_EQ(expected, gotten);
       }
@@ -143,7 +143,7 @@ TEST(copy, DD_array_to_array_broadcast) {
   for (size_t i = 0; i < bh.shape(0); ++i) {
     for (size_t j = 0; j < bh.shape(1); ++j) {
       for (size_t k = 0; k < bh.shape(2); ++k) {
-        const int expected = ah(j);
+        const int expected = ah(j, 0);
         const int gotten = bh(i, j, k);
         ASSERT_EQ(expected, gotten);
       }
@@ -260,7 +260,7 @@ TEST(copy, HD_array_to_array_broadcast) {
   for (size_t i = 0; i < bh.shape(0); ++i) {
     for (size_t j = 0; j < bh.shape(1); ++j) {
       for (size_t k = 0; k < bh.shape(2); ++k) {
-        const int expected = ah(j);
+        const int expected = ah(j, 0);
         const int gotten = bh(i, j, k);
         ASSERT_EQ(expected, gotten);
       }
@@ -368,7 +368,7 @@ TEST(copy, DH_array_to_array_broadcast) {
   for (size_t i = 0; i < bh.shape(0); ++i) {
     for (size_t j = 0; j < bh.shape(1); ++j) {
       for (size_t k = 0; k < bh.shape(2); ++k) {
-        const int expected = ah(j);
+        const int expected = ah(j, 0);
         const int gotten = bh(i, j, k);
         ASSERT_EQ(expected, gotten);
       }

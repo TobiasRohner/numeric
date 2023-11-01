@@ -77,6 +77,12 @@ protected:
   using super::broadcasted_layout;
 };
 
+template <typename Scalar, dim_t N>
+struct ArrayTraits<ArrayConstView<Scalar, N>> {
+  static constexpr dim_t dim = N;
+  using scalar_t = Scalar;
+};
+
 } // namespace numeric::memory
 
 #endif
