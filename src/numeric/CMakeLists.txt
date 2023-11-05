@@ -3,3 +3,5 @@ if (NUMERIC_ENABLE_HIP)
 endif()
 
 add_subdirectory(memory)
+add_subdirectory(utils)
+add_subdirectory(io)

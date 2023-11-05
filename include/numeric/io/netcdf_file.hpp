@@ -1,0 +1,71 @@
+#ifndef NUMERIC_IO_NETCDF_FILE_HPP_
+#define NUMERIC_IO_NETCDF_FILE_HPP_
+
+#include <memory>
+#include <numeric/io/file_mode.hpp>
+#include <numeric/io/hierarchical_file.hpp>
+
+namespace numeric::io {
+
+class NetCDFFile : public HierarchicalFile,
+                   public std::enable_shared_from_this<NetCDFFile> {
+  using super = HierarchicalFile;
+
+public:
+  NetCDFFile(const NetCDFFile &) = delete;
+  NetCDFFile(NetCDFFile &&) = delete;
+  NetCDFFile &operator=(const NetCDFFile &) = delete;
+  NetCDFFile &operator=(NetCDFFile &&) = delete;
+  virtual ~NetCDFFile() override;
+
+  static std::shared_ptr<NetCDFFile> open(std::string_view path,
+                                          FileMode mode = FileMode::READ);
+  static std::shared_ptr<NetCDFFile>
+  create(std::string_view path, FileMode mode = FileMode::OVERWRITE);
+
+protected:
+  std::shared_ptr<const NetCDFFile> root_file_;
+  int ncid_;
+
+  NetCDFFile(int ncid, const std::shared_ptr<const NetCDFFile> &root_file);
+
+  virtual std::vector<std::string> do_get_variable_names() const override;
+  virtual std::vector<std::string> do_get_group_names() const override;
+  virtual bool do_variable_exists(std::string_view name) const override;
+  virtual bool do_group_exists(std::string_view name) const override;
+  virtual std::shared_ptr<HierarchicalFile>
+  do_open_group(std::string_view name) override;
+  virtual std::shared_ptr<const HierarchicalFile>
+  do_open_group(std::string_view name) const override;
+  virtual std::shared_ptr<HierarchicalFile>
+  do_create_group(std::string_view name) override;
+  virtual std::shared_ptr<Variable>
+  do_open_variable(std::string_view name) override;
+  virtual std::shared_ptr<const Variable>
+  do_open_variable(std::string_view name) const override;
+  virtual std::shared_ptr<Variable>
+  do_create_variable(std::string_view name, utils::Datatype type, dim_t ndims,
+                     const dim_t *dims) override;
+
+private:
+  static int file_mode_to_mode(FileMode mode);
+  bool is_root_file() const;
+  std::shared_ptr<const NetCDFFile> get_root_file() const;
+  int get_num_variables() const;
+  std::vector<int> get_variable_ids() const;
+  int get_variable_id(std::string_view name) const;
+  std::string get_variable_name(int varid) const;
+  int get_num_groups() const;
+  std::vector<int> get_group_ids() const;
+  int get_group_id(std::string_view name) const;
+  std::string get_group_name(int grpid) const;
+  int create_dim(std::string_view name, dim_t size);
+  bool dimname_exists(std::string_view name) const;
+  std::string next_available_dimname(std::string_view basename) const;
+  bool varname_exists(std::string_view name) const;
+  bool grpname_exists(std::string_view name) const;
+};
+
+} // namespace numeric::io
+
+#endif
