@@ -67,10 +67,10 @@ namespace numeric {
 using dim_t = long long;
 
 #ifndef __HIP_DEVICE_COMPILE__
-static constexpr char *DATA_DIR = "@DATA_DIR@";
-static constexpr char *NUMERIC_INCLUDE_DIR = "@NUMERIC_INCLUDE_DIR@";
-static constexpr char *CMAKE_BUILD_TYPE = "@CMAKE_BUILD_TYPE@";
-static constexpr char *CMAKE_HIP_FLAGS = "@CMAKE_HIP_FLAGS@";
+static constexpr char DATA_DIR[] = "@DATA_DIR@";
+static constexpr char NUMERIC_INCLUDE_DIR[] = "@NUMERIC_INCLUDE_DIR@";
+static constexpr char CMAKE_BUILD_TYPE[] = "@CMAKE_BUILD_TYPE@";
+static constexpr char CMAKE_HIP_FLAGS[] = "@CMAKE_HIP_FLAGS@";
 #endif
 
 }

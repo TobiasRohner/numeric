@@ -64,7 +64,7 @@ std::string Program::read_file(std::string_view path) {
 }
 
 void Program::add_optimization_flags() {
-  char *c = CMAKE_HIP_FLAGS;
+  const char *c = CMAKE_HIP_FLAGS;
   while (*c) {
     if (*c == ' ') {
       ++c;

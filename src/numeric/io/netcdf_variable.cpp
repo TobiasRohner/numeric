@@ -2,6 +2,7 @@
 #include <numeric/io/netcdf_types.hpp>
 #include <numeric/io/netcdf_variable.hpp>
 #include <numeric/utils/error.hpp>
+#include <vector>
 
 namespace numeric::io {
 
@@ -26,12 +27,30 @@ std::vector<dim_t> NetCDFVariable::do_dims() const {
 
 void NetCDFVariable::do_read(void *data, const dim_t *shape,
                              const dim_t *stride, dim_t N) const {
-  NUMERIC_ERROR("Not yet implemented");
+  std::vector<size_t> startp(N);
+  std::vector<size_t> countp(N);
+  std::vector<ptrdiff_t> imapp(N);
+  for (dim_t d = 0; d < N; ++d) {
+    startp[d] = 0;
+    countp[d] = shape[d];
+    imapp[d] = stride[d];
+  }
+  NUMERIC_CHECK_NETCDF_STATUS(nc_get_varm(
+      ncid_, varid_, startp.data(), countp.data(), NULL, imapp.data(), data));
 }
 
 void NetCDFVariable::do_write(const void *data, const dim_t *shape,
                               const dim_t *stride, dim_t N) {
-  NUMERIC_ERROR("Not yet implemented");
+  std::vector<size_t> startp(N);
+  std::vector<size_t> countp(N);
+  std::vector<ptrdiff_t> imapp(N);
+  for (dim_t d = 0; d < N; ++d) {
+    startp[d] = 0;
+    countp[d] = shape[d];
+    imapp[d] = stride[d];
+  }
+  NUMERIC_CHECK_NETCDF_STATUS(nc_put_varm(
+      ncid_, varid_, startp.data(), countp.data(), NULL, imapp.data(), data));
 }
 
 int NetCDFVariable::get_num_dims() const {

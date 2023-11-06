@@ -200,6 +200,7 @@ bool NetCDFFile::dimname_exists(std::string_view name) const {
     return false;
   } else {
     NUMERIC_CHECK_NETCDF_STATUS(status);
+    NUMERIC_ERROR("This should never be reached");
   }
 }
 
@@ -223,6 +224,7 @@ bool NetCDFFile::varname_exists(std::string_view name) const {
     return false;
   } else {
     NUMERIC_CHECK_NETCDF_STATUS(status);
+    NUMERIC_ERROR("This should never be reached");
   }
 }
 
@@ -235,6 +237,7 @@ bool NetCDFFile::grpname_exists(std::string_view name) const {
     return false;
   } else {
     NUMERIC_CHECK_NETCDF_STATUS(status);
+    NUMERIC_ERROR("This should never be reached");
   }
 }
 

@@ -29,7 +29,7 @@ public:
   }
 
   Array(Array &&other)
-      : super(other.data_, other.layout_, other.memory_type_),
+      : super(other.raw(), other.layout_, other.memory_type_),
         alloc_(std::move(other.alloc_)) {
     other.data_ = nullptr;
   }
