@@ -11,6 +11,8 @@ namespace numeric::hip {
 
 std::vector<std::string_view> Program::numeric_headers_ = {
     "numeric/config.hpp",
+    "numeric/hip/runtime.hpp",
+    "numeric/math/functions.hpp",
     "numeric/memory/array_traits.hpp",
     "numeric/memory/array_base_decl.hpp",
     "numeric/memory/array_base.hpp",
@@ -104,6 +106,7 @@ void Program::compile() {
   add_numeric_headers();
   add_optimization_flags();
   src_ = "#include <api_compat.hpp>\n\n" + src_;
+  add_compile_option("-D__HIPCC_RTC__");
   add_compile_option("-D__HIP_DEVICE_COMPILE__");
   add_compile_option("-DNUMERIC_ENABLE_HIP=1");
 

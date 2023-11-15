@@ -59,6 +59,11 @@ private:
   }
 };
 
+template <typename Scalar, dim_t N, typename Src>
+Copyer<Scalar, N, Src> make_copyer(ArrayView<Scalar, N> dst, const Src &src) {
+  return Copyer<Scalar, N, Src>(dst, src);
+}
+
 } // namespace numeric::memory
 
 #endif

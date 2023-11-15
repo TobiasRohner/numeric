@@ -7,7 +7,7 @@
 #include <numeric/memory/array_view_decl.hpp>
 #include <numeric/utils/error.hpp>
 #if NUMERIC_ENABLE_HIP
-#include <hip/hip_runtime_api.h>
+#include <numeric/hip/runtime.hpp>
 #endif
 
 namespace numeric::memory {
@@ -25,13 +25,16 @@ void memcpy(ArrayView<ScalarL, NL> dst, const ArrayConstView<ScalarR, NR> &src,
 #if NUMERIC_ENABLE_HIP
   else if (is_host_accessible(dst.memory_type()) &&
            is_device_accessible(src.memory_type())) {
-    hipMemcpy(dst.raw(), src.raw(), N, hipMemcpyDeviceToHost);
+    NUMERIC_CHECK_HIP(
+        hipMemcpy(dst.raw(), src.raw(), N, hipMemcpyDeviceToHost));
   } else if (is_device_accessible(dst.memory_type()) &&
              is_host_accessible(src.memory_type())) {
-    hipMemcpy(dst.raw(), src.raw(), N, hipMemcpyHostToDevice);
+    NUMERIC_CHECK_HIP(
+        hipMemcpy(dst.raw(), src.raw(), N, hipMemcpyHostToDevice));
   } else if (is_device_accessible(dst.memory_type()) &&
              is_device_accessible(src.memory_type())) {
-    hipMemcpy(dst.raw(), src.raw(), N, hipMemcpyDeviceToDevice);
+    NUMERIC_CHECK_HIP(
+        hipMemcpy(dst.raw(), src.raw(), N, hipMemcpyDeviceToDevice));
   }
 #endif
   else {

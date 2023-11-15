@@ -27,6 +27,10 @@ public:
       : super(nullptr, other.layout_, other.memory_type_) {
     *this = other;
   }
+  template <typename Src>
+  Array(const ArrayBase<Src> &src) : Array(src.layout(), src.memory_type()) {
+    *this = src;
+  }
 
   Array(Array &&other)
       : super(other.raw(), other.layout_, other.memory_type_),
@@ -78,6 +82,7 @@ protected:
 };
 
 template <typename Scalar, dim_t N> struct ArrayTraits<Array<Scalar, N>> {
+  static constexpr bool is_array = true;
   static constexpr dim_t dim = N;
   using scalar_t = Scalar;
 };

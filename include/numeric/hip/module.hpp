@@ -1,7 +1,7 @@
 #ifndef NUMERIC_HIP_MODULE_HPP_
 #define NUMERIC_HIP_MODULE_HPP_
 
-#include <hip/hip_runtime_api.h>
+#include <numeric/hip/runtime.hpp>
 #include <vector>
 
 namespace numeric::hip {

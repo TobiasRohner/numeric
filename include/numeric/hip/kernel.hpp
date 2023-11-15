@@ -1,9 +1,9 @@
 #ifndef NUMERIC_HIP_KERNEL_HPP_
 #define NUMERIC_HIP_KERNEL_HPP_
 
-#include <hip/hip_runtime_api.h>
 #include <numeric/hip/launch_params.hpp>
 #include <numeric/hip/module.hpp>
+#include <numeric/hip/runtime.hpp>
 #include <numeric/hip/safe_call.hpp>
 #include <numeric/hip/stream.hpp>
 #include <string_view>
@@ -12,6 +12,7 @@ namespace numeric::hip {
 
 class Kernel {
 public:
+  Kernel();
   Kernel(const std::shared_ptr<Module> &module, std::string_view name);
   Kernel(const Kernel &) = default;
   Kernel(Kernel &&) = default;

@@ -2,6 +2,7 @@
 #define NUMERIC_MATH_ARRAY_OP_HPP_
 
 #include <numeric/config.hpp>
+#include <numeric/math/functions.hpp>
 #include <numeric/memory/array_base.hpp>
 #include <numeric/memory/array_const_view.hpp>
 #include <numeric/memory/array_traits.hpp>
@@ -181,6 +182,22 @@ struct OpUnaryLogicalNot {
   }
 };
 
+template <dim_t p> struct OpUnaryPow {
+  template <typename Scalar>
+  NUMERIC_HOST_DEVICE auto operator()(Scalar val) const
+      noexcept(noexcept(math::pow<p>(val))) {
+    return math::pow<p>(val);
+  }
+};
+
+struct OpUnaryExp {
+  template <typename Scalar>
+  NUMERIC_HOST_DEVICE auto operator()(Scalar val) const
+      noexcept(noexcept(math::exp(val))) {
+    return math::exp(val);
+  }
+};
+
 struct OpBinaryPlus {
   template <typename Lhs, typename Rhs>
   NUMERIC_HOST_DEVICE auto operator()(Lhs lhs, Rhs rhs) const
@@ -309,7 +326,30 @@ struct OpBinaryGeq {
   }
 };
 
+template <typename Op, typename Scalar> struct OpScalarLhs {
+  Op op;
+  Scalar scalar;
+
+  template <typename Rhs>
+  NUMERIC_HOST_DEVICE auto operator()(Rhs rhs) const
+      noexcept(noexcept(op(scalar, rhs))) {
+    return op(scalar, rhs);
+  }
+};
+
+template <typename Op, typename Scalar> struct OpScalarRhs {
+  Op op;
+  Scalar scalar;
+
+  template <typename Lhs>
+  NUMERIC_HOST_DEVICE auto operator()(Lhs lhs) const
+      noexcept(noexcept(op(lhs, scalar))) {
+    return op(lhs, scalar);
+  }
+};
+
 template <typename Op, typename Arg> struct ArrayTraits<ArrayUnaryOp<Op, Arg>> {
+  static constexpr bool is_array = true;
   static constexpr dim_t dim = ArrayTraits<Arg>::dim;
   using scalar_t = decltype(meta::declval<Op>()(
       meta::declval<typename ArrayTraits<Arg>::scalar_t>()));
@@ -317,6 +357,7 @@ template <typename Op, typename Arg> struct ArrayTraits<ArrayUnaryOp<Op, Arg>> {
 
 template <typename Op, typename Lhs, typename Rhs>
 struct ArrayTraits<ArrayBinaryOp<Op, Lhs, Rhs>> {
+  static constexpr bool is_array = true;
   static constexpr dim_t lhs_dim = ArrayTraits<Lhs>::dim;
   static constexpr dim_t rhs_dim = ArrayTraits<Rhs>::dim;
   static constexpr dim_t dim = lhs_dim > rhs_dim ? lhs_dim : rhs_dim;
@@ -326,169 +367,92 @@ struct ArrayTraits<ArrayBinaryOp<Op, Lhs, Rhs>> {
                                                 meta::declval<rhs_scalar_t>()));
 };
 
+template <dim_t p, typename Arg,
+          typename = meta::enable_if_t<ArrayTraits<Arg>::is_array>>
+NUMERIC_HOST_DEVICE ArrayUnaryOp<OpUnaryPow<p>, Arg>
+pow(const ArrayBase<Arg> &arg) noexcept {
+  return {OpUnaryPow<p>{}, arg.derived()};
+}
+
+template <typename Arg,
+          typename = meta::enable_if_t<ArrayTraits<Arg>::is_array>>
+NUMERIC_HOST_DEVICE ArrayUnaryOp<OpUnaryExp, Arg>
+exp(const ArrayBase<Arg> &arg) noexcept {
+  return {OpUnaryExp{}, arg.derived()};
+}
+
 } // namespace numeric::memory
 
-template <typename Arg>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::memory::ArrayUnaryOp<numeric::memory::OpUnaryPlus,
-                                                Arg>
-    operator+(const numeric::memory::ArrayBase<Arg> &arg) noexcept {
-  return {numeric::memory::OpUnaryPlus{}, arg.derived()};
-}
+#define NUMERIC_DECLARE_UNARY_OP(op, obj)                                      \
+  template <typename Arg, typename = numeric::meta::enable_if_t<               \
+                              numeric::memory::ArrayTraits<Arg>::is_array>>    \
+  NUMERIC_HOST_DEVICE                                                          \
+      [[nodiscard]] numeric::memory::ArrayUnaryOp<numeric::memory::obj, Arg>   \
+      operator op(const numeric::memory::ArrayBase<Arg> &arg) noexcept {       \
+    return {numeric::memory::obj{}, arg.derived()};                            \
+  }
 
-template <typename Arg>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::memory::ArrayUnaryOp<numeric::memory::OpUnaryMinus,
-                                                Arg>
-    operator-(const numeric::memory::ArrayBase<Arg> &arg) noexcept {
-  return {numeric::memory::OpUnaryMinus{}, arg.derived()};
-}
+NUMERIC_DECLARE_UNARY_OP(+, OpUnaryPlus);
+NUMERIC_DECLARE_UNARY_OP(-, OpUnaryMinus);
+NUMERIC_DECLARE_UNARY_OP(~, OpUnaryBitwiseNot);
+NUMERIC_DECLARE_UNARY_OP(!, OpUnaryLogicalNot);
 
-template <typename Arg>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayUnaryOp<
-    numeric::memory::OpUnaryBitwiseNot, Arg>
-operator~(const numeric::memory::ArrayBase<Arg> &arg) noexcept {
-  return {numeric::memory::OpUnaryBitwiseNot{}, arg.derived()};
-}
+#undef NUMERIC_DECLARE_UNARY_OP
 
-template <typename Arg>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayUnaryOp<
-    numeric::memory::OpUnaryLogicalNot, Arg>
-operator!(const numeric::memory::ArrayBase<Arg> &arg) noexcept {
-  return {numeric::memory::OpUnaryLogicalNot{}, arg.derived()};
-}
+#define NUMERIC_DECLARE_BINARY_OP(op, obj)                                     \
+  template <typename Lhs, typename Rhs,                                        \
+            typename = numeric::meta::enable_if_t<                             \
+                numeric::memory::ArrayTraits<Lhs>::is_array &&                 \
+                numeric::memory::ArrayTraits<Rhs>::is_array>>                  \
+  NUMERIC_HOST_DEVICE                                                          \
+      [[nodiscard]] numeric::memory::ArrayBinaryOp<numeric::memory::obj, Lhs,  \
+                                                   Rhs>                        \
+      operator op(const numeric::memory::ArrayBase<Lhs> &lhs,                  \
+                  const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {       \
+    return {numeric::memory::obj{}, lhs.derived(), rhs.derived()};             \
+  }                                                                            \
+                                                                               \
+  template <typename Lhs, typename Rhs,                                        \
+            typename = numeric::meta::enable_if_t<                             \
+                !numeric::memory::ArrayTraits<Lhs>::is_array &&                \
+                numeric::memory::ArrayTraits<Rhs>::is_array>>                  \
+  NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayUnaryOp<             \
+      numeric::memory::OpScalarLhs<numeric::memory::obj, Lhs>, Rhs>            \
+  operator op(Lhs lhs, const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {  \
+    return {numeric::memory::OpScalarLhs<numeric::memory::obj, Lhs>{           \
+                numeric::memory::obj{}, lhs},                                  \
+            rhs.derived()};                                                    \
+  }                                                                            \
+                                                                               \
+  template <typename Lhs, typename Rhs,                                        \
+            typename = numeric::meta::enable_if_t<                             \
+                numeric::memory::ArrayTraits<Lhs>::is_array &&                 \
+                !numeric::memory::ArrayTraits<Rhs>::is_array>>                 \
+  NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayUnaryOp<             \
+      numeric::memory::OpScalarRhs<numeric::memory::obj, Rhs>, Lhs>            \
+  operator op(const numeric::memory::ArrayBase<Lhs> &lhs, Rhs rhs) noexcept {  \
+    return {numeric::memory::OpScalarRhs<numeric::memory::obj, Rhs>{           \
+                numeric::memory::obj{}, rhs},                                  \
+            lhs.derived()};                                                    \
+  }
 
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::memory::ArrayBinaryOp<numeric::memory::OpBinaryPlus,
-                                                 Lhs, Rhs>
-    operator+(const numeric::memory::ArrayBase<Lhs> &lhs,
-              const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryPlus{}, lhs.derived(), rhs.derived()};
-}
+NUMERIC_DECLARE_BINARY_OP(+, OpBinaryPlus);
+NUMERIC_DECLARE_BINARY_OP(-, OpBinaryMinus);
+NUMERIC_DECLARE_BINARY_OP(*, OpBinaryMultiply);
+NUMERIC_DECLARE_BINARY_OP(/, OpBinaryDivide);
+NUMERIC_DECLARE_BINARY_OP(%, OpBinaryModulo);
+NUMERIC_DECLARE_BINARY_OP(&, OpBinaryBitwiseAnd);
+NUMERIC_DECLARE_BINARY_OP(|, OpBinaryBitwiseOr);
+NUMERIC_DECLARE_BINARY_OP(^, OpBinaryBitwiseXor);
+NUMERIC_DECLARE_BINARY_OP(&&, OpBinaryLogicalAnd);
+NUMERIC_DECLARE_BINARY_OP(||, OpBinaryLogicalOr);
+NUMERIC_DECLARE_BINARY_OP(==, OpBinaryEquals);
+NUMERIC_DECLARE_BINARY_OP(!=, OpBinaryNotEquals);
+NUMERIC_DECLARE_BINARY_OP(<, OpBinaryLess);
+NUMERIC_DECLARE_BINARY_OP(>, OpBinaryGreater);
+NUMERIC_DECLARE_BINARY_OP(<=, OpBinaryLeq);
+NUMERIC_DECLARE_BINARY_OP(>=, OpBinaryGeq);
 
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::memory::ArrayBinaryOp<numeric::memory::OpBinaryMinus,
-                                                 Lhs, Rhs>
-    operator-(const numeric::memory::ArrayBase<Lhs> &lhs,
-              const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryMinus{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
-    numeric::memory::OpBinaryMultiply, Lhs, Rhs>
-operator*(const numeric::memory::ArrayBase<Lhs> &lhs,
-          const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryMultiply{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
-    numeric::memory::OpBinaryDivide, Lhs, Rhs>
-operator/(const numeric::memory::ArrayBase<Lhs> &lhs,
-          const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryDivide{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
-    numeric::memory::OpBinaryModulo, Lhs, Rhs>
-operator%(const numeric::memory::ArrayBase<Lhs> &lhs,
-          const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryModulo{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
-    numeric::memory::OpBinaryBitwiseAnd, Lhs, Rhs>
-operator&(const numeric::memory::ArrayBase<Lhs> &lhs,
-          const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryBitwiseAnd{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
-    numeric::memory::OpBinaryBitwiseOr, Lhs, Rhs>
-operator|(const numeric::memory::ArrayBase<Lhs> &lhs,
-          const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryBitwiseOr{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
-    numeric::memory::OpBinaryBitwiseXor, Lhs, Rhs>
-operator^(const numeric::memory::ArrayBase<Lhs> &lhs,
-          const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryBitwiseXor{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
-    numeric::memory::OpBinaryLogicalAnd, Lhs, Rhs>
-operator&&(const numeric::memory::ArrayBase<Lhs> &lhs,
-           const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryLogicalAnd{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
-    numeric::memory::OpBinaryLogicalOr, Lhs, Rhs>
-operator||(const numeric::memory::ArrayBase<Lhs> &lhs,
-           const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryLogicalOr{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
-    numeric::memory::OpBinaryEquals, Lhs, Rhs>
-operator==(const numeric::memory::ArrayBase<Lhs> &lhs,
-           const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryEquals{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
-    numeric::memory::OpBinaryNotEquals, Lhs, Rhs>
-operator!=(const numeric::memory::ArrayBase<Lhs> &lhs,
-           const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryNotEquals{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::memory::ArrayBinaryOp<numeric::memory::OpBinaryLess,
-                                                 Lhs, Rhs>
-    operator<(const numeric::memory::ArrayBase<Lhs> &lhs,
-              const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryLess{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE [[nodiscard]] numeric::memory::ArrayBinaryOp<
-    numeric::memory::OpBinaryGreater, Lhs, Rhs>
-operator>(const numeric::memory::ArrayBase<Lhs> &lhs,
-          const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryGreater{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::memory::ArrayBinaryOp<numeric::memory::OpBinaryLeq,
-                                                 Lhs, Rhs>
-    operator<=(const numeric::memory::ArrayBase<Lhs> &lhs,
-               const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryLeq{}, lhs.derived(), rhs.derived()};
-}
-
-template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE
-    [[nodiscard]] numeric::memory::ArrayBinaryOp<numeric::memory::OpBinaryGeq,
-                                                 Lhs, Rhs>
-    operator>=(const numeric::memory::ArrayBase<Lhs> &lhs,
-               const numeric::memory::ArrayBase<Rhs> &rhs) noexcept {
-  return {numeric::memory::OpBinaryGeq{}, lhs.derived(), rhs.derived()};
-}
+#undef NUMERIC_DECLARE_BINARY_OP
 
 #endif

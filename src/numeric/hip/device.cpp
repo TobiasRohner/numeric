@@ -1,6 +1,5 @@
-#include <hip/hip_runtime_api.h>
-#include <hip/hiprtc.h>
 #include <numeric/hip/device.hpp>
+#include <numeric/hip/runtime.hpp>
 #include <numeric/hip/safe_call.hpp>
 #include <numeric/math/functions.hpp>
 
@@ -36,37 +35,43 @@ int Device::id() const { return id_; }
 
 unsigned Device::max_block_dim_x() const {
   int pi;
-  hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxBlockDimX, id_);
+  NUMERIC_CHECK_HIP(
+      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxBlockDimX, id_));
   return pi;
 }
 
 unsigned Device::max_block_dim_y() const {
   int pi;
-  hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxBlockDimY, id_);
+  NUMERIC_CHECK_HIP(
+      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxBlockDimY, id_));
   return pi;
 }
 
 unsigned Device::max_block_dim_z() const {
   int pi;
-  hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxBlockDimZ, id_);
+  NUMERIC_CHECK_HIP(
+      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxBlockDimZ, id_));
   return pi;
 }
 
 unsigned Device::max_grid_dim_x() const {
   int pi;
-  hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxGridDimX, id_);
+  NUMERIC_CHECK_HIP(
+      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxGridDimX, id_));
   return pi;
 }
 
 unsigned Device::max_grid_dim_y() const {
   int pi;
-  hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxGridDimY, id_);
+  NUMERIC_CHECK_HIP(
+      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxGridDimY, id_));
   return pi;
 }
 
 unsigned Device::max_grid_dim_z() const {
   int pi;
-  hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxGridDimZ, id_);
+  NUMERIC_CHECK_HIP(
+      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxGridDimZ, id_));
   return pi;
 }
 

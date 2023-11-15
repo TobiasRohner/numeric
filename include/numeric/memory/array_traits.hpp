@@ -6,8 +6,12 @@
 namespace numeric::memory {
 
 template <typename T> struct ArrayTraits {
-  static_assert(!meta::is_same_v<T, T>, "Forgot overload ArrayTraits");
+  static constexpr bool is_array = false;
 };
+
+template <typename T> struct ArrayTraits<const T> : public ArrayTraits<T> {};
+template <typename T> struct ArrayTraits<T &> : public ArrayTraits<T> {};
+template <typename T> struct ArrayTraits<const T &> : public ArrayTraits<T> {};
 
 } // namespace numeric::memory
 

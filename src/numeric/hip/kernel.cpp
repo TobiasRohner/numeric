@@ -1,8 +1,10 @@
-#include <hip/hiprtc.h>
 #include <numeric/hip/kernel.hpp>
+#include <numeric/hip/runtime.hpp>
 #include <numeric/hip/safe_call.hpp>
 
 namespace numeric::hip {
+
+Kernel::Kernel() : module_(nullptr), kernel_(0) {}
 
 Kernel::Kernel(const std::shared_ptr<Module> &module, std::string_view name)
     : module_(module) {

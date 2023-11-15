@@ -4,6 +4,7 @@ project(numeric VERSION 0.1 LANGUAGES CXX)
 
 option(NUMERIC_ENABLE_HIP "Enable GPU support using HIP" ON)
 option(NUMERIC_BUILD_TESTS "Build Tests for the Library" ON)
+option(NUMERIC_BUILD_EXAMPLES "Build Examples" ON)
 option(NUMERIC_BUILD_BENCHMARKS "Build Benchmarks for the Library" ON)
 option(NUMERIC_ENABLE_EIGEN "Enable Matrix Operations using Eigen" ON)
 option(NUMERIC_ENABLE_HDF5 "Enable I/O using HDF5" ON)
@@ -104,4 +105,9 @@ endif()
 
 if(NUMERIC_BUILD_BENCHMARKS)
   add_subdirectory(benchmark)
+endif()
+
+
+if (NUMERIC_BUILD_EXAMPLES)
+  add_subdirectory(examples)
 endif()

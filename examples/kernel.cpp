@@ -1,16 +1,10 @@
 #include <fstream>
-#include <hip/hip_runtime_api.h>
-#include <hip/hiprtc.h>
 #include <iostream>
 #include <iterator>
 #include <numeric/hip/device.hpp>
 #include <numeric/hip/kernel.hpp>
 #include <numeric/hip/program.hpp>
-#include <numeric/hip/safe_call.hpp>
-#include <numeric/memory/allocator.hpp>
 #include <numeric/memory/array.hpp>
-#include <numeric/memory/layout.hpp>
-#include <numeric/memory/memory_type.hpp>
 #include <string>
 #include <vector>
 
@@ -50,16 +44,14 @@ int main() {
   auto kernel = program.get_kernel<double>("gpu_kernel");
 
   numeric::memory::Layout<2> a_layout(N, N);
-  numeric::memory::Array<double, 2> a_host(a_layout,
-                                           numeric::memory::MemoryType::HOST);
   numeric::memory::Array<double, 2> a_device(
       a_layout, numeric::memory::MemoryType::DEVICE);
-  kernel(N / 8, N / 8, 1, 8, 8, 1, 0, numeric::hip::Stream(device),
+  kernel({N / 8, N / 8, 1, 8, 8, 1}, numeric::hip::Stream(device),
          a_device.view());
   device.sync();
 
-  hipMemcpy(a_host.raw(), a_device.raw(), a_layout.size() * sizeof(double),
-            hipMemcpyDeviceToHost);
+  numeric::memory::Array<double, 2> a_host(a_layout);
+  numeric::memory::memcpy(a_host, a_device);
   for (size_t i = 0; i < N; ++i) {
     for (size_t j = 0; j < N; ++j) {
       std::cout << a_host(i, j) << ' ';

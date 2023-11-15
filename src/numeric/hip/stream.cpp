@@ -1,5 +1,6 @@
 #include <numeric/hip/safe_call.hpp>
 #include <numeric/hip/stream.hpp>
+#include <numeric/utils/error.hpp>
 
 namespace numeric::hip {
 
@@ -38,6 +39,7 @@ bool Stream::is_running() const {
     return true;
   } else {
     NUMERIC_CHECK_HIP(status);
+    NUMERIC_ERROR("This should never be reached");
   }
 }
 

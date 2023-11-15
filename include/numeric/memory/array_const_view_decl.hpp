@@ -79,6 +79,7 @@ protected:
 
 template <typename Scalar, dim_t N>
 struct ArrayTraits<ArrayConstView<Scalar, N>> {
+  static constexpr bool is_array = true;
   static constexpr dim_t dim = N;
   using scalar_t = Scalar;
 };

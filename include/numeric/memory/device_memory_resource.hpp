@@ -2,8 +2,8 @@
 #define NUMERIC_MEMORY_DEVICE_MEMORY_RESOURCE_HPP_
 
 #include <cstdlib>
-#include <hip/hip_runtime_api.h>
 #include <numeric/hip/device.hpp>
+#include <numeric/hip/runtime.hpp>
 #include <numeric/hip/safe_call.hpp>
 #include <numeric/memory/memory_resource.hpp>
 

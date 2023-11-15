@@ -1,11 +1,11 @@
 #ifndef NUMERIC_HIP_PROGRAM_HPP_
 #define NUMERIC_HIP_PROGRAM_HPP_
 
-#include <hip/hiprtc.h>
 #include <map>
 #include <memory>
 #include <numeric/hip/kernel.hpp>
 #include <numeric/hip/module.hpp>
+#include <numeric/hip/runtime.hpp>
 #include <numeric/utils/type_name.hpp>
 #include <string>
 #include <string_view>

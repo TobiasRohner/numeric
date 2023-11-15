@@ -5,6 +5,23 @@
 
 namespace numeric::meta {
 
+template <typename T, T v> struct integral_constant {
+  static constexpr T value = v;
+  using type = T;
+  NUMERIC_HOST_DEVICE constexpr operator T() { return v; }
+};
+
+using true_type = integral_constant<bool, true>;
+using false_type = integral_constant<bool, false>;
+
+struct nonesuch {
+  ~nonesuch() = delete;
+  nonesuch(const nonesuch &) = delete;
+  void operator=(const nonesuch &) = delete;
+};
+
+template <typename...> using void_t = void;
+
 template <typename T> NUMERIC_HOST_DEVICE T declval();
 
 template <typename T1, typename T2> struct is_same {
@@ -55,6 +72,39 @@ template <typename T> struct remove_cvref {
 };
 
 template <typename T> using remove_cvref_t = typename remove_cvref<T>::type;
+
+template <bool B> struct enable_if {};
+template <> struct enable_if<true> { using type = void; };
+template <bool B> using enable_if_t = typename enable_if<B>::type;
+
+namespace detail {
+
+template <typename Default, typename AlwaysVoid,
+          template <typename...> typename Op, typename... Args>
+struct Detector {
+  using value_t = false_type;
+  using type = Default;
+};
+
+template <typename Default, template <typename...> typename Op,
+          typename... Args>
+struct Detector<Default, void_t<Op<Args...>>, Op, Args...> {
+  using value_t = true_type;
+  using type = Op<Args...>;
+};
+
+} // namespace detail
+
+template <template <typename...> typename Op, typename... Args>
+using is_detected =
+    typename detail::Detector<nonesuch, void, Op, Args...>::value_t;
+
+template <template <typename...> typename Op, typename... Args>
+static constexpr bool is_detected_v = is_detected<Op, Args...>::value;
+
+template <template <typename...> typename Op, typename... Args>
+using is_detected_t =
+    typename detail::Detector<nonesuch, void, Op, Args...>::type;
 
 } // namespace numeric::meta
 

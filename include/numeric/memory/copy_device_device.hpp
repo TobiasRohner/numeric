@@ -24,11 +24,14 @@ class CopyDeviceToDevice : public CopyerImpl<Scalar, N, Src> {
   using super = CopyerImpl<Scalar, N, Src>;
 
 public:
-  CopyDeviceToDevice(const hip::Device &device = hip::Device())
-      : kernel_(internal::copy_device_to_device_build_kernel(
+  CopyDeviceToDevice(const hip::Device &device = hip::Device()) {
+    static hip::Kernel shared_kernel =
+        internal::copy_device_to_device_build_kernel(
             utils::type_name<Scalar>(), N,
             utils::type_name<decltype(meta::declval<Src>().broadcast(
-                meta::declval<ArrayView<Scalar, N>>().layout()))>())) {}
+                meta::declval<ArrayView<Scalar, N>>().layout()))>());
+    kernel_ = shared_kernel;
+  }
 
   virtual void operator()(ArrayView<Scalar, N> dst,
                           const ArrayBase<Src> &src) override {
