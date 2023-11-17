@@ -26,6 +26,7 @@ public:
   NUMERIC_HOST_DEVICE ArrayView &operator=(const ArrayView &other);
   template <typename Src>
   NUMERIC_HOST_DEVICE ArrayView &operator=(const ArrayBase<Src> &src);
+  NUMERIC_HOST_DEVICE ArrayView &operator=(Scalar val);
 
   template <typename... Idxs>
   NUMERIC_HOST_DEVICE [[nodiscard]] decltype(auto)

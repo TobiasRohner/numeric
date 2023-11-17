@@ -28,7 +28,8 @@ public:
     *this = other;
   }
   template <typename Src>
-  Array(const ArrayBase<Src> &src) : Array(src.layout(), src.memory_type()) {
+  explicit Array(const ArrayBase<Src> &src)
+      : Array(src.layout(), src.memory_type()) {
     *this = src;
   }
 
@@ -51,6 +52,10 @@ public:
   }
   template <typename Src> Array &operator=(const ArrayBase<Src> &src) {
     super::operator=(src);
+    return *this;
+  }
+  Array &operator=(Scalar val) {
+    super::operator=(val);
     return *this;
   }
 

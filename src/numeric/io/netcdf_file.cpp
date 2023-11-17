@@ -28,6 +28,27 @@ std::shared_ptr<NetCDFFile> NetCDFFile::create(std::string_view path,
   return std::shared_ptr<NetCDFFile>(new NetCDFFile(ncid, nullptr));
 }
 
+std::vector<NetCDFDimension> NetCDFFile::get_dims() const {
+  const int ndims = get_num_dims();
+  std::vector<NetCDFDimension> dims;
+  for (int dimid = 0; dimid < ndims; ++dimid) {
+    dims.push_back(NetCDFDimension(ncid_, dimid, get_root_file()));
+  }
+  return dims;
+}
+
+NetCDFDimension NetCDFFile::get_dim(std::string_view name) const {
+  int dimid;
+  NUMERIC_CHECK_NETCDF_STATUS(nc_inq_dimid(ncid_, name.data(), &dimid));
+  return NetCDFDimension(ncid_, dimid, get_root_file());
+}
+
+NetCDFDimension NetCDFFile::create_dim(std::string_view name, size_t len) {
+  int dimid;
+  NUMERIC_CHECK_NETCDF_STATUS(nc_def_dim(ncid_, name.data(), len, &dimid));
+  return NetCDFDimension(ncid_, dimid, get_root_file());
+}
+
 NetCDFFile::NetCDFFile(int ncid,
                        const std::shared_ptr<const NetCDFFile> &root_file)
     : root_file_(root_file), ncid_(ncid) {}
@@ -75,16 +96,26 @@ std::shared_ptr<Variable> NetCDFFile::do_create_variable(std::string_view name,
                                                          utils::Datatype type,
                                                          dim_t ndims,
                                                          const dim_t *dims) {
-  std::vector<int> dimids(ndims);
+  std::vector<NetCDFDimension> ncdims;
   for (dim_t i = 0; i < ndims; ++i) {
     const std::string dimname =
         next_available_dimname(std::string(name) + "_dim");
-    dimids[i] = create_dim(dimname, dims[i]);
+    ncdims.push_back(create_dim(dimname, dims[i]));
+  }
+  return do_create_variable(name, type, ncdims);
+}
+
+std::shared_ptr<NetCDFVariable>
+NetCDFFile::do_create_variable(std::string_view name, utils::Datatype type,
+                               const std::vector<NetCDFDimension> &dims) {
+  std::vector<int> dimids;
+  for (const auto &dim : dims) {
+    dimids.push_back(dim.dimid_);
   }
   const nc_type xtype = datatype_to_netcdf_type(type);
   int varid;
-  NUMERIC_CHECK_NETCDF_STATUS(
-      nc_def_var(ncid_, name.data(), xtype, ndims, dimids.data(), &varid));
+  NUMERIC_CHECK_NETCDF_STATUS(nc_def_var(ncid_, name.data(), xtype,
+                                         dimids.size(), dimids.data(), &varid));
   return std::make_shared<NetCDFVariable>(ncid_, varid, get_root_file());
 }
 
@@ -130,6 +161,12 @@ std::shared_ptr<const NetCDFFile> NetCDFFile::get_root_file() const {
     root = this->shared_from_this();
   }
   return root;
+}
+
+int NetCDFFile::get_num_dims() const {
+  int ndims;
+  NUMERIC_CHECK_NETCDF_STATUS(nc_inq_ndims(ncid_, &ndims));
+  return ndims;
 }
 
 int NetCDFFile::get_num_variables() const {
@@ -183,12 +220,6 @@ std::string NetCDFFile::get_group_name(int grpid) const {
   auto name = std::make_unique<char[]>(len);
   NUMERIC_CHECK_NETCDF_STATUS(nc_inq_grpname(grpid, name.get()));
   return std::string(name.get());
-}
-
-int NetCDFFile::create_dim(std::string_view name, dim_t size) {
-  int dimid;
-  NUMERIC_CHECK_NETCDF_STATUS(nc_def_dim(ncid_, name.data(), size, &dimid));
-  return dimid;
 }
 
 bool NetCDFFile::dimname_exists(std::string_view name) const {

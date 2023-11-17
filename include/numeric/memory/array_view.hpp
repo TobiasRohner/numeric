@@ -43,6 +43,19 @@ ArrayView<Scalar, N>::operator=(const ArrayBase<Src> &src) {
 }
 
 template <typename Scalar, dim_t N>
+NUMERIC_HOST_DEVICE ArrayView<Scalar, N> &
+ArrayView<Scalar, N>::operator=(Scalar val) {
+#ifdef __HIP_DEVICE_COMPILE__
+  static constexpr MemoryType mt = MemoryType::DEVICE;
+#else
+  static constexpr MemoryType mt = MemoryType::HOST;
+#endif
+  const ArrayConstView<Scalar, 1> view(&val, Layout<1>(1), mt);
+  *this = view;
+  return *this;
+}
+
+template <typename Scalar, dim_t N>
 template <typename... Idxs>
 NUMERIC_HOST_DEVICE [[nodiscard]] decltype(auto)
 ArrayView<Scalar, N>::operator()(Idxs... idxs) noexcept {
