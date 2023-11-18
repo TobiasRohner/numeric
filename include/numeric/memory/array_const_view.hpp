@@ -120,8 +120,8 @@ ArrayConstView<Scalar, N>::memory_index(Idxs... idxs) const noexcept {
 template <typename Scalar, dim_t N>
 template <dim_t M, typename Idx, typename... Idxs>
 NUMERIC_HOST_DEVICE decltype(auto)
-ArrayConstView<Scalar, N>::sub_view(const ArrayConstView<Scalar, M> &view,
-                                    dim_t d, Idx idx, Idxs... idxs) noexcept {
+ArrayConstView<Scalar, N>::sub_view(ArrayConstView<Scalar, M> view, dim_t d,
+                                    Idx idx, Idxs... idxs) noexcept {
   if constexpr (meta::is_same_v<Idx, Slice>) {
     if (idx.stop < 0) {
       idx.stop += view.shape(d) + 1;
@@ -153,7 +153,7 @@ ArrayConstView<Scalar, N>::sub_view(const ArrayConstView<Scalar, M> &view,
 template <typename Scalar, dim_t N>
 template <dim_t M>
 NUMERIC_HOST_DEVICE decltype(auto)
-ArrayConstView<Scalar, N>::sub_view(const ArrayConstView<Scalar, M> &view,
+ArrayConstView<Scalar, N>::sub_view(ArrayConstView<Scalar, M> view,
                                     dim_t) noexcept {
   return view;
 }

@@ -46,6 +46,7 @@ public:
                                           dst.shape(0));
     }
     kernel_(lp, hip::Stream(device_), dst, src_derived);
+    device_.sync();
   }
 
 private:

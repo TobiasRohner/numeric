@@ -67,12 +67,12 @@ protected:
 
   template <dim_t M, typename Idx, typename... Idxs>
   static NUMERIC_HOST_DEVICE decltype(auto)
-  sub_view(const ArrayConstView<scalar_t, M> &view, dim_t d, Idx idx,
+  sub_view(ArrayConstView<scalar_t, M> view, dim_t d, Idx idx,
            Idxs... idxs) noexcept;
 
   template <dim_t M>
   static NUMERIC_HOST_DEVICE decltype(auto)
-  sub_view(const ArrayConstView<scalar_t, M> &view, dim_t) noexcept;
+  sub_view(ArrayConstView<scalar_t, M> view, dim_t) noexcept;
 
   using super::broadcasted_layout;
 };
