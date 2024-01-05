@@ -7,3 +7,8 @@ add_executable(fd_wave)
 target_sources(fd_wave PUBLIC fd_wave.cpp)
 set_target_properties(fd_wave PROPERTIES CXX_STANDARD 20)
 target_link_libraries(fd_wave PUBLIC numeric)
+
+add_executable(fd_poisson)
+target_sources(fd_poisson PUBLIC fd_poisson.cpp)
+set_target_properties(fd_poisson PROPERTIES CXX_STANDARD 20)
+target_link_libraries(fd_poisson PUBLIC numeric)

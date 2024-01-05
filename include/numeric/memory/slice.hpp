@@ -18,6 +18,14 @@ struct Slice {
       : start(start_), stop(stop_), step(step_) {}
   Slice(const Slice &) = default;
   Slice &operator=(const Slice &) = default;
+
+  NUMERIC_HOST_DEVICE dim_t size(dim_t N) const noexcept {
+    dim_t real_stop = stop;
+    while (real_stop < 0) {
+      real_stop += N;
+    }
+    return (real_stop - start) / step;
+  }
 };
 
 #ifndef __HIP_DEVICE_COMPILE__

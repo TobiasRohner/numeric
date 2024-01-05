@@ -14,12 +14,12 @@ int main() {
   const double x1 = 1;
   const double T = 10;
   const double c = 1;
-  const dim_t N = 500;
+  const dim_t N = 5000;
   const double C = 0.5;
   const double dx = (x1 - x0) / (N - 1);
   const double dt = C * dx / c;
   const dim_t M = T / dt;
-  const memory::MemoryType memory_type = memory::MemoryType::HOST;
+  const memory::MemoryType memory_type = memory::MemoryType::DEVICE;
 
   memory::Array<double, 2> u(memory::Layout<2>(M + 1, N), memory_type);
   memory::Array<double, 2> v(memory::Layout<2>(M + 1, N), memory_type);

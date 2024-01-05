@@ -58,6 +58,24 @@ public:
     super::operator=(val);
     return *this;
   }
+#define NUMERIC_ARRAY_DEFINE_ASSIGNMENT(op)                                    \
+  template <typename Src> Array &operator op(const ArrayBase<Src> &src) {      \
+    super::operator op(src);                                                   \
+    return *this;                                                              \
+  }                                                                            \
+  Array &operator op(Scalar val) {                                             \
+    super::operator op(val);                                                   \
+    return *this;                                                              \
+  }
+  NUMERIC_ARRAY_DEFINE_ASSIGNMENT(+=);
+  NUMERIC_ARRAY_DEFINE_ASSIGNMENT(-=);
+  NUMERIC_ARRAY_DEFINE_ASSIGNMENT(*=);
+  NUMERIC_ARRAY_DEFINE_ASSIGNMENT(/=);
+  NUMERIC_ARRAY_DEFINE_ASSIGNMENT(%=);
+  NUMERIC_ARRAY_DEFINE_ASSIGNMENT(&=);
+  NUMERIC_ARRAY_DEFINE_ASSIGNMENT(|=);
+  NUMERIC_ARRAY_DEFINE_ASSIGNMENT(^=);
+#undef NUMERIC_ARRAY_DEFINE_ASSIGNMENT
 
   ~Array() {
     if (raw()) {

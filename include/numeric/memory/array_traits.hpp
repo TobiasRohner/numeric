@@ -7,6 +7,8 @@ namespace numeric::memory {
 
 template <typename T> struct ArrayTraits {
   static constexpr bool is_array = false;
+  // using scalar_t = /* specicalize */
+  // static constexpr dim_t dim = /* specialize */
 };
 
 template <typename T> struct ArrayTraits<const T> : public ArrayTraits<T> {};

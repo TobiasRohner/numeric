@@ -27,6 +27,19 @@ public:
   template <typename Src>
   NUMERIC_HOST_DEVICE ArrayView &operator=(const ArrayBase<Src> &src);
   NUMERIC_HOST_DEVICE ArrayView &operator=(Scalar val);
+#define NUMERIC_ARRAY_VIEW_DECLARE_ASSIGNMENT(op)                              \
+  template <typename Src>                                                      \
+  NUMERIC_HOST_DEVICE ArrayView &operator op(const ArrayBase<Src> &src);       \
+  NUMERIC_HOST_DEVICE ArrayView &operator op(Scalar val);
+  NUMERIC_ARRAY_VIEW_DECLARE_ASSIGNMENT(+=);
+  NUMERIC_ARRAY_VIEW_DECLARE_ASSIGNMENT(-=);
+  NUMERIC_ARRAY_VIEW_DECLARE_ASSIGNMENT(*=);
+  NUMERIC_ARRAY_VIEW_DECLARE_ASSIGNMENT(/=);
+  NUMERIC_ARRAY_VIEW_DECLARE_ASSIGNMENT(%=);
+  NUMERIC_ARRAY_VIEW_DECLARE_ASSIGNMENT(&=);
+  NUMERIC_ARRAY_VIEW_DECLARE_ASSIGNMENT(|=);
+  NUMERIC_ARRAY_VIEW_DECLARE_ASSIGNMENT(^=);
+#undef NUMERIC_ARRAY_VIEW_DECLARE_ASSIGNMENT
 
   template <typename... Idxs>
   NUMERIC_HOST_DEVICE [[nodiscard]] decltype(auto)
