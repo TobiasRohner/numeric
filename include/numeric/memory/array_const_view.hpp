@@ -57,7 +57,7 @@ ArrayConstView<Scalar, N>::layout() const noexcept {
 }
 
 template <typename Scalar, dim_t N>
-NUMERIC_HOST_DEVICE [[nodiscard]] const dim_t *
+NUMERIC_HOST_DEVICE [[nodiscard]] const Shape<N> &
 ArrayConstView<Scalar, N>::shape() const noexcept {
   return layout_.shape();
 }
@@ -69,7 +69,7 @@ ArrayConstView<Scalar, N>::shape(size_t idx) const noexcept {
 }
 
 template <typename Scalar, dim_t N>
-NUMERIC_HOST_DEVICE [[nodiscard]] const dim_t *
+NUMERIC_HOST_DEVICE [[nodiscard]] const Stride<N> &
 ArrayConstView<Scalar, N>::stride() const noexcept {
   return layout_.stride();
 }
@@ -89,8 +89,8 @@ ArrayConstView<Scalar, N>::size() const noexcept {
 template <typename Scalar, dim_t N>
 template <dim_t M>
 NUMERIC_HOST_DEVICE [[nodiscard]] ArrayConstView<Scalar, M>
-ArrayConstView<Scalar, N>::broadcast(const Layout<M> &layout) const noexcept {
-  const Layout<M> new_layout = broadcasted_layout(layout_, layout);
+ArrayConstView<Scalar, N>::broadcast(const Shape<M> &shape) const noexcept {
+  const Layout<M> new_layout = broadcasted_layout(layout_, shape);
   return ArrayConstView<Scalar, M>(raw(), new_layout, memory_type());
 }
 
@@ -120,8 +120,8 @@ ArrayConstView<Scalar, N>::memory_index(Idxs... idxs) const noexcept {
 template <typename Scalar, dim_t N>
 template <dim_t M, typename Idx, typename... Idxs>
 NUMERIC_HOST_DEVICE decltype(auto)
-ArrayConstView<Scalar, N>::sub_view(ArrayConstView<Scalar, M> view, dim_t d,
-                                    Idx idx, Idxs... idxs) noexcept {
+ArrayConstView<Scalar, N>::sub_view(const ArrayConstView<Scalar, M> &view,
+                                    dim_t d, Idx idx, Idxs... idxs) noexcept {
   if constexpr (meta::is_same_v<Idx, Slice>) {
     if (idx.stop < 0) {
       idx.stop += view.shape(d) + 1;
@@ -152,8 +152,8 @@ ArrayConstView<Scalar, N>::sub_view(ArrayConstView<Scalar, M> view, dim_t d,
 
 template <typename Scalar, dim_t N>
 template <dim_t M>
-NUMERIC_HOST_DEVICE decltype(auto)
-ArrayConstView<Scalar, N>::sub_view(ArrayConstView<Scalar, M> view,
+NUMERIC_HOST_DEVICE ArrayConstView<Scalar, M>
+ArrayConstView<Scalar, N>::sub_view(const ArrayConstView<Scalar, M> &view,
                                     dim_t) noexcept {
   return view;
 }

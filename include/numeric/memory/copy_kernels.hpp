@@ -27,7 +27,7 @@ NUMERIC_HOST_DEVICE void copy_naive_elm_loop(ArrayView<Scalar, N> &dst,
 template <typename Scalar, dim_t N, typename Src>
 NUMERIC_HOST_DEVICE void copy_naive_elm(ArrayView<Scalar, N> &dst,
                                         const Src &src) {
-  const auto src_brdc = src.broadcast(dst.layout());
+  const auto src_brdc = src.broadcast(dst.shape());
   internal::copy_naive_elm_loop(dst, src_brdc);
 }
 

@@ -21,6 +21,8 @@ std::vector<std::string_view> Program::numeric_headers_ = {
     "numeric/memory/array_view_decl.hpp",
     "numeric/memory/array_view.hpp",
     "numeric/memory/layout.hpp",
+    "numeric/memory/shape.hpp",
+    "numeric/memory/stride.hpp",
     "numeric/memory/slice.hpp",
     "numeric/memory/memory_type.hpp",
     "numeric/memory/copy_kernels.hpp",

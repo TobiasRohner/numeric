@@ -47,7 +47,7 @@ public:
 
   template <dim_t M>
   NUMERIC_HOST_DEVICE [[nodiscard]] ArrayView<scalar_t, M>
-  broadcast(const Layout<M> &layout) noexcept;
+  broadcast(const Shape<M> &shape) noexcept;
 
   NUMERIC_HOST_DEVICE [[nodiscard]] ArrayConstView<Scalar, N>
   const_view() const noexcept;
@@ -79,12 +79,12 @@ protected:
 
   template <dim_t M, typename Idx, typename... Idxs>
   static NUMERIC_HOST_DEVICE decltype(auto)
-  sub_view(ArrayView<scalar_t, M> view, dim_t d, Idx idx,
+  sub_view(ArrayView<scalar_t, M> &view, dim_t d, Idx idx,
            Idxs... idxs) noexcept;
 
   template <dim_t M>
   static NUMERIC_HOST_DEVICE ArrayView<scalar_t, M>
-  sub_view(ArrayView<scalar_t, M> view, dim_t) noexcept;
+  sub_view(ArrayView<scalar_t, M> &view, dim_t) noexcept;
 };
 
 template <typename Scalar, dim_t N> struct ArrayTraits<ArrayView<Scalar, N>> {

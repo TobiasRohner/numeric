@@ -6,6 +6,7 @@
 #include <numeric/memory/array_view_decl.hpp>
 #include <numeric/memory/copy_host_host.hpp>
 #include <numeric/memory/copyer_impl.hpp>
+#include <numeric/utils/error.hpp>
 #if NUMERIC_ENABLE_HIP
 #include <numeric/memory/copy_device_device.hpp>
 #include <numeric/memory/copy_device_host.hpp>

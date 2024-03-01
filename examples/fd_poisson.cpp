@@ -1,3 +1,5 @@
+#include <iostream>
+#include <numeric/io/netcdf_file.hpp>
 #include <numeric/memory/array.hpp>
 #include <numeric/memory/array_op.hpp>
 #include <numeric/memory/linspace.hpp>
@@ -19,6 +21,15 @@ void minus_laplacian(memory::ArrayView<double, 2> &out,
 int main() {
   static constexpr numeric::dim_t N = 1024;
 
-  const numeric::memory::Linspace<double> x(0, 1, N);
+  const numeric::memory::Linspace<double> x(-1, 1, N);
   const auto [X, Y] = numeric::memory::meshgrid(x, x);
+  const numeric::memory::Array<double, 2> f = X * X + Y * Y;
+
+  auto file = io::NetCDFFile::create("fd_poisson.nc");
+  const auto dim = file->create_dim("N", N);
+  file->write("X", numeric::memory::Array<double, 2>(X), {dim, dim});
+  file->write("Y", numeric::memory::Array<double, 2>(Y), {dim, dim});
+  file->write("f", f, {dim, dim});
+
+  return 0;
 }

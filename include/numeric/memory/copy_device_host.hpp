@@ -23,11 +23,7 @@ public:
     NUMERIC_ERROR_IF(!allocate_workspace,
                      "Setting workspace manually is not supported yet");
     if (allocate_workspace_) {
-      Layout<Src::dim> layout = src.layout();
-      layout.stride(Src::dim - 1) = 1;
-      for (dim_t d = Src::dim - 2; d >= 0; --d) {
-        layout.stride(d) = layout.stride(d + 1) * layout.shape(d + 1);
-      }
+      Layout<Src::dim> layout = src.shape();
       Scalar *ptr_device = res_device_.allocate(src.size());
       buffer_device_.set(ptr_device, layout, MemoryType::DEVICE);
       Scalar *ptr_host = res_pinned_.allocate(src.size());

@@ -6,7 +6,7 @@
 #include <numeric/memory/slice.hpp>
 
 TEST(copy, HH_array_to_array) {
-  numeric::memory::Layout<3> shape(2, 3, 4);
+  numeric::memory::Shape<3> shape(2, 3, 4);
   numeric::memory::Array<int, 3> a(shape);
   numeric::memory::Array<int, 3> b(shape);
   for (size_t i = 0; i < a.size(); ++i) {
@@ -25,8 +25,8 @@ TEST(copy, HH_array_to_array) {
 }
 
 TEST(copy, HH_array_to_array_broadcast) {
-  numeric::memory::Layout<2> shape_a(3, 1);
-  numeric::memory::Layout<3> shape_b(2, 3, 4);
+  numeric::memory::Shape<2> shape_a(3, 1);
+  numeric::memory::Shape<3> shape_b(2, 3, 4);
   numeric::memory::Array<int, 2> a(shape_a);
   numeric::memory::Array<int, 3> b(shape_b);
   for (size_t i = 0; i < a.size(); ++i) {
@@ -45,8 +45,8 @@ TEST(copy, HH_array_to_array_broadcast) {
 }
 
 TEST(copy, HH_array_to_slice) {
-  numeric::memory::Layout<3> shape_a(2, 3, 4);
-  numeric::memory::Layout<4> shape_b(5, 2, 3, 4);
+  numeric::memory::Shape<3> shape_a(2, 3, 4);
+  numeric::memory::Shape<4> shape_b(5, 2, 3, 4);
   numeric::memory::Array<int, 3> a(shape_a);
   numeric::memory::Array<int, 4> b(shape_b);
   for (size_t i = 0; i < a.size(); ++i) {
@@ -71,9 +71,9 @@ TEST(copy, HH_array_to_slice) {
 }
 
 TEST(copy, HH_expr_to_array) {
-  numeric::memory::Layout<4> shape_a(5, 2, 3, 4);
-  numeric::memory::Layout<3> shape_b(2, 3, 4);
-  numeric::memory::Layout<3> shape_c(2, 1, 4);
+  numeric::memory::Shape<4> shape_a(5, 2, 3, 4);
+  numeric::memory::Shape<3> shape_b(2, 3, 4);
+  numeric::memory::Shape<3> shape_c(2, 1, 4);
   numeric::memory::Array<int, 4> a(shape_a);
   numeric::memory::Array<int, 3> b(shape_b);
   numeric::memory::Array<int, 3> c(shape_c);
@@ -103,7 +103,7 @@ TEST(copy, HH_expr_to_array) {
 #if NUMERIC_ENABLE_HIP
 
 TEST(copy, DD_array_to_array) {
-  numeric::memory::Layout<3> shape(2, 3, 4);
+  numeric::memory::Shape<3> shape(2, 3, 4);
   numeric::memory::Array<int, 3> ah(shape);
   numeric::memory::Array<int, 3> ad(shape, numeric::memory::MemoryType::DEVICE);
   numeric::memory::Array<int, 3> bh(shape);
@@ -126,8 +126,8 @@ TEST(copy, DD_array_to_array) {
 }
 
 TEST(copy, DD_array_to_array_broadcast) {
-  numeric::memory::Layout<2> shape_a(3, 1);
-  numeric::memory::Layout<3> shape_b(2, 3, 4);
+  numeric::memory::Shape<2> shape_a(3, 1);
+  numeric::memory::Shape<3> shape_b(2, 3, 4);
   numeric::memory::Array<int, 2> ah(shape_a);
   numeric::memory::Array<int, 2> ad(shape_a,
                                     numeric::memory::MemoryType::DEVICE);
@@ -152,8 +152,8 @@ TEST(copy, DD_array_to_array_broadcast) {
 }
 
 TEST(copy, DD_array_to_slice) {
-  numeric::memory::Layout<3> shape_a(2, 3, 4);
-  numeric::memory::Layout<4> shape_b(5, 2, 3, 4);
+  numeric::memory::Shape<3> shape_a(2, 3, 4);
+  numeric::memory::Shape<4> shape_b(5, 2, 3, 4);
   numeric::memory::Array<int, 3> ah(shape_a);
   numeric::memory::Array<int, 3> ad(shape_a,
                                     numeric::memory::MemoryType::DEVICE);
@@ -185,9 +185,9 @@ TEST(copy, DD_array_to_slice) {
 }
 
 TEST(copy, DD_expr_to_array) {
-  numeric::memory::Layout<4> shape_a(5, 2, 3, 4);
-  numeric::memory::Layout<3> shape_b(2, 3, 4);
-  numeric::memory::Layout<3> shape_c(2, 1, 4);
+  numeric::memory::Shape<4> shape_a(5, 2, 3, 4);
+  numeric::memory::Shape<3> shape_b(2, 3, 4);
+  numeric::memory::Shape<3> shape_c(2, 1, 4);
   numeric::memory::Array<int, 4> ah(shape_a);
   numeric::memory::Array<int, 4> ad(shape_a,
                                     numeric::memory::MemoryType::DEVICE);
@@ -225,7 +225,7 @@ TEST(copy, DD_expr_to_array) {
 }
 
 TEST(copy, HD_array_to_array) {
-  numeric::memory::Layout<3> shape(2, 3, 4);
+  numeric::memory::Shape<3> shape(2, 3, 4);
   numeric::memory::Array<int, 3> ah(shape);
   numeric::memory::Array<int, 3> bh(shape);
   numeric::memory::Array<int, 3> bd(shape, numeric::memory::MemoryType::DEVICE);
@@ -246,8 +246,8 @@ TEST(copy, HD_array_to_array) {
 }
 
 TEST(copy, HD_array_to_array_broadcast) {
-  numeric::memory::Layout<2> shape_a(3, 1);
-  numeric::memory::Layout<3> shape_b(2, 3, 4);
+  numeric::memory::Shape<2> shape_a(3, 1);
+  numeric::memory::Shape<3> shape_b(2, 3, 4);
   numeric::memory::Array<int, 2> ah(shape_a);
   numeric::memory::Array<int, 3> bh(shape_b);
   numeric::memory::Array<int, 3> bd(shape_b,
@@ -269,8 +269,8 @@ TEST(copy, HD_array_to_array_broadcast) {
 }
 
 TEST(copy, HD_array_to_slice) {
-  numeric::memory::Layout<3> shape_a(2, 3, 4);
-  numeric::memory::Layout<4> shape_b(5, 2, 3, 4);
+  numeric::memory::Shape<3> shape_a(2, 3, 4);
+  numeric::memory::Shape<4> shape_b(5, 2, 3, 4);
   numeric::memory::Array<int, 3> ah(shape_a);
   numeric::memory::Array<int, 4> bh(shape_b);
   numeric::memory::Array<int, 4> bd(shape_b,
@@ -299,9 +299,9 @@ TEST(copy, HD_array_to_slice) {
 }
 
 TEST(copy, HD_expr_to_array) {
-  numeric::memory::Layout<4> shape_a(5, 2, 3, 4);
-  numeric::memory::Layout<3> shape_b(2, 3, 4);
-  numeric::memory::Layout<3> shape_c(2, 1, 4);
+  numeric::memory::Shape<4> shape_a(5, 2, 3, 4);
+  numeric::memory::Shape<3> shape_b(2, 3, 4);
+  numeric::memory::Shape<3> shape_c(2, 1, 4);
   numeric::memory::Array<int, 4> ah(shape_a);
   numeric::memory::Array<int, 4> ad(shape_a,
                                     numeric::memory::MemoryType::DEVICE);
@@ -333,7 +333,7 @@ TEST(copy, HD_expr_to_array) {
 }
 
 TEST(copy, DH_array_to_array) {
-  numeric::memory::Layout<3> shape(2, 3, 4);
+  numeric::memory::Shape<3> shape(2, 3, 4);
   numeric::memory::Array<int, 3> ah(shape);
   numeric::memory::Array<int, 3> ad(shape, numeric::memory::MemoryType::DEVICE);
   numeric::memory::Array<int, 3> bh(shape);
@@ -354,8 +354,8 @@ TEST(copy, DH_array_to_array) {
 }
 
 TEST(copy, DH_array_to_array_broadcast) {
-  numeric::memory::Layout<2> shape_a(3, 1);
-  numeric::memory::Layout<3> shape_b(2, 3, 4);
+  numeric::memory::Shape<2> shape_a(3, 1);
+  numeric::memory::Shape<3> shape_b(2, 3, 4);
   numeric::memory::Array<int, 2> ah(shape_a);
   numeric::memory::Array<int, 2> ad(shape_a,
                                     numeric::memory::MemoryType::DEVICE);
@@ -377,8 +377,8 @@ TEST(copy, DH_array_to_array_broadcast) {
 }
 
 TEST(copy, DH_array_to_slice) {
-  numeric::memory::Layout<3> shape_a(2, 3, 4);
-  numeric::memory::Layout<4> shape_b(5, 2, 3, 4);
+  numeric::memory::Shape<3> shape_a(2, 3, 4);
+  numeric::memory::Shape<4> shape_b(5, 2, 3, 4);
   numeric::memory::Array<int, 3> ah(shape_a);
   numeric::memory::Array<int, 3> ad(shape_a,
                                     numeric::memory::MemoryType::DEVICE);
@@ -406,9 +406,9 @@ TEST(copy, DH_array_to_slice) {
 }
 
 TEST(copy, DH_expr_to_array) {
-  numeric::memory::Layout<4> shape_a(5, 2, 3, 4);
-  numeric::memory::Layout<3> shape_b(2, 3, 4);
-  numeric::memory::Layout<3> shape_c(2, 1, 4);
+  numeric::memory::Shape<4> shape_a(5, 2, 3, 4);
+  numeric::memory::Shape<3> shape_b(2, 3, 4);
+  numeric::memory::Shape<3> shape_c(2, 1, 4);
   numeric::memory::Array<int, 4> ah(shape_a);
   numeric::memory::Array<int, 3> bh(shape_b);
   numeric::memory::Array<int, 3> bd(shape_b,

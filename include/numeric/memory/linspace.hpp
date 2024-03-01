@@ -28,9 +28,7 @@ public:
   NUMERIC_HOST_DEVICE MemoryType memory_type() const noexcept {
     return memory_type_;
   }
-  NUMERIC_HOST_DEVICE Layout<1> layout() const noexcept {
-    return Layout<1>(N_);
-  }
+  NUMERIC_HOST_DEVICE Shape<1> shape() const noexcept { return Shape<1>(N_); }
   NUMERIC_HOST_DEVICE dim_t size() const noexcept { return N_; }
 
   template <typename Idx>
@@ -49,8 +47,8 @@ public:
 
   template <dim_t N>
   NUMERIC_HOST_DEVICE Broadcast<Linspace<Scalar>, N>
-  broadcast(const Layout<N> &layout) const noexcept {
-    return Broadcast<Linspace<Scalar>, N>(*this, layout);
+  broadcast(const Shape<N> &shape) const noexcept {
+    return Broadcast<Linspace<Scalar>, N>(*this, shape);
   }
 
 private:

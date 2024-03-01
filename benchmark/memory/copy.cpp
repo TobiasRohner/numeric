@@ -10,7 +10,7 @@ static void BandwidthMemcpy(benchmark::State &state,
                             numeric::memory::MemoryType from,
                             numeric::memory::MemoryType to) {
   constexpr static numeric::dim_t N = 4ll * 1024 * 1024 / sizeof(double);
-  const numeric::memory::Layout<1> shape(N);
+  const numeric::memory::Shape<1> shape(N);
   numeric::memory::Array<double, 1> a(shape, from);
   numeric::memory::Array<double, 1> b(shape, to);
   for (auto _ : state) {
@@ -52,7 +52,7 @@ static void BandwidthCopy(benchmark::State &state,
                           numeric::memory::MemoryType from,
                           numeric::memory::MemoryType to) {
   constexpr static numeric::dim_t N = 4ll * 1024 * 1024 / sizeof(double);
-  const numeric::memory::Layout<1> shape(N);
+  const numeric::memory::Shape<1> shape(N);
   numeric::memory::Array<double, 1> a(shape, from);
   numeric::memory::Array<double, 1> b(shape, to);
   numeric::memory::Copyer<double, 1, numeric::memory::ArrayConstView<double, 1>>

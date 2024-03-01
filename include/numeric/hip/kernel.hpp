@@ -20,14 +20,21 @@ public:
   Kernel &operator=(Kernel &&) = default;
 
   template <typename... Args>
-  void operator()(const LaunchParams &params, const Stream &stream,
-                  Args &&...args) const {
+  void async(const LaunchParams &params, const Stream &stream,
+             Args &&...args) const {
     const void *argsp[] = {&args...};
     NUMERIC_CHECK_HIP(hipModuleLaunchKernel(
         kernel_, params.grid_dim_x, params.grid_dim_y, params.grid_dim_z,
         params.block_dim_x, params.block_dim_y, params.block_dim_z,
         params.shared_mem_bytes, stream.id(), const_cast<void **>(argsp),
         NULL));
+  }
+
+  template <typename... Args>
+  void operator()(const LaunchParams &params, const Stream &stream,
+                  Args &&...args) const {
+    async(params, stream, std::forward<Args>(args)...);
+    stream.sync();
   }
 
 private:

@@ -9,6 +9,13 @@ option(NUMERIC_BUILD_BENCHMARKS "Build Benchmarks for the Library" ON)
 option(NUMERIC_ENABLE_EIGEN "Enable Matrix Operations using Eigen" ON)
 option(NUMERIC_ENABLE_HDF5 "Enable I/O using HDF5" ON)
 option(NUMERIC_ENABLE_NETCDF "Enable I/O using NetCDF4" ON)
+option(NUMERIC_ENABLE_CLANG_TIDY "Run clang-tidy while compiling" OFF)
+
+
+if (NUMERIC_ENABLE_CLANG_TIDY)
+  find_program(NUMERIC_CLANG_TIDY_EXE NAMES "clang-tidy")
+  set(NUMERIC_CLANG_TIDY_CMD "${NUMERIC_CLANG_TIDY_EXE}\;-checks=*,-llvmlibc-*,-modernize-use-trailing-return-type,-readability-identifier-length,-fuchsia-*,-readability-magic-numbers,-cppcoreguidelines-avoid-magic-numbers,-google-readability-avoid-underscore-in-googletest-name,-altera-id-dependent-backward-branch,-altera-unroll-loops,-portability-simd-intrinsics")
+endif()
 
 
 include(FetchContent)
@@ -70,6 +77,9 @@ endif()
 
 
 target_link_libraries(numeric PUBLIC fmt::fmt)
+if(NUMERIC_ENABLE_CLANG_TIDY)
+  set_target_properties(numeric PROPERTIES CXX_CLANG_TIDY ${NUMERIC_CLANG_TIDY_CMD})
+endif()
 
 if(NUMERIC_ENABLE_HIP)
   include("cmake/setup_hip.cmake")

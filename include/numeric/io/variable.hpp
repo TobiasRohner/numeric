@@ -40,7 +40,7 @@ public:
                        "Mismatch in dimension {}. Expected {}, got {}.", i,
                        d[i], arr.shape(i));
     }
-    do_read(arr.raw(), arr.shape(), arr.stride(), N);
+    do_read(arr.raw(), arr.shape().raw(), arr.stride().raw(), N);
   }
 
   template <typename T, dim_t N>
@@ -51,11 +51,11 @@ public:
         N != d.size(),
         "Requested wrong number of dimensions. Expected {}, got {}.", d.size(),
         N);
-    memory::Layout<N> layout;
+    memory::Shape<N> shape;
     for (dim_t i = 0; i < N; ++i) {
-      layout.shape(i) = d[i];
+      shape[i] = d[i];
     }
-    memory::Array<T, N> arr(layout, memory_type);
+    memory::Array<T, N> arr(shape, memory_type);
     read(arr);
     return arr;
   }
@@ -78,7 +78,7 @@ public:
                        "Mismatch in dimension {}. Expected {}, got {}.", i,
                        d[i], arr.shape(i));
     }
-    do_write(arr.raw(), arr.shape(), arr.stride(), N);
+    do_write(arr.raw(), arr.shape().raw(), arr.stride().raw(), N);
   }
 
 protected:

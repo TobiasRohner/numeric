@@ -9,6 +9,14 @@ namespace numeric::utils {
 namespace detail {
 
 template <size_t I, typename T> struct TupleLeaf {
+  TupleLeaf() = default;
+  TupleLeaf(const T &val) : value(val) {}
+  TupleLeaf(T &&val) : value(val) {}
+  TupleLeaf(const TupleLeaf &) = default;
+  TupleLeaf(TupleLeaf &&) = default;
+  TupleLeaf &operator=(const TupleLeaf &) = default;
+  TupleLeaf &operator=(TupleLeaf &&) = default;
+
   T value;
   T element_type(meta::integral_constant<size_t, I>) const;
   T &get(meta::integral_constant<size_t, I>) { return value; }

@@ -47,12 +47,12 @@ TEST(netcdf, create_variable) {
   const std::filesystem::path filename = get_temp_file();
   auto file = numeric::io::NetCDFFile::create(filename.c_str());
   const auto var = file->create_variable<double>(
-      "var", numeric::memory::Layout<4>(3, 4, 5, 6));
+      "var", numeric::memory::Shape<4>(3, 4, 5, 6));
   ASSERT_NE(var, nullptr);
 }
 
 TEST(netcdf, write_variable) {
-  numeric::memory::Layout<4> shape(3, 4, 5, 6);
+  numeric::memory::Shape<4> shape(3, 4, 5, 6);
   numeric::memory::Array<double, 4> arr(shape);
   for (numeric::dim_t i = 0; i < arr.size(); ++i) {
     arr.raw()[i] = i;

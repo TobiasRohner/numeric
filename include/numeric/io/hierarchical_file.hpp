@@ -38,8 +38,8 @@ public:
   std::shared_ptr<const Variable> open_variable(std::string_view name) const;
   template <typename T, dim_t N>
   std::shared_ptr<Variable> create_variable(std::string_view name,
-                                            const memory::Layout<N> &shape) {
-    return do_create_variable(name, utils::to_datatype_v<T>, N, shape.shape());
+                                            const memory::Shape<N> &shape) {
+    return do_create_variable(name, utils::to_datatype_v<T>, N, shape.raw());
   }
   template <typename T, dim_t N>
   void read(std::string_view name, memory::ArrayView<T, N> arr) const {
@@ -59,7 +59,7 @@ public:
     if (variable_exists(name)) {
       var = open_variable(name);
     } else {
-      var = create_variable<T>(name, arr.layout());
+      var = create_variable<T>(name, arr.shape());
     }
     var->write(arr);
   }

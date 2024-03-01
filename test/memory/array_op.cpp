@@ -4,7 +4,7 @@
 #include <numeric/memory/array_op.hpp>
 
 template <typename T, typename Func> void test_unary(const Func &f) {
-  numeric::memory::Layout<3> shape(2, 3, 4);
+  numeric::memory::Shape<3> shape(2, 3, 4);
   numeric::memory::Array<T, 3> array(shape);
   for (size_t i = 0; i < array.size(); ++i) {
     array.raw()[i] = i + 1;
@@ -26,7 +26,7 @@ template <typename T, typename Func> void test_unary(const Func &f) {
 
 template <typename T1, typename T2, typename Func>
 void test_binary(const Func &f) {
-  numeric::memory::Layout<3> shape(2, 3, 4);
+  numeric::memory::Shape<3> shape(2, 3, 4);
   numeric::memory::Array<T1, 3> a(shape);
   numeric::memory::Array<T2, 3> b(shape);
   for (size_t i = 0; i < a.size(); ++i) {
@@ -49,14 +49,14 @@ void test_binary(const Func &f) {
 }
 
 TEST(array_op, shape) {
-  const numeric::memory::Layout<3> shape_a(2, 3, 4);
-  const numeric::memory::Layout<3> shape_b(2, 1, 4);
+  const numeric::memory::Shape<3> shape_a(2, 3, 4);
+  const numeric::memory::Shape<3> shape_b(2, 1, 4);
   numeric::memory::Array<int, 3> a(shape_a);
   numeric::memory::Array<int, 3> b(shape_b);
-  const numeric::memory::Layout<3> shape_ab = (a + b).layout();
-  ASSERT_EQ(shape_ab.shape(0), 2);
-  ASSERT_EQ(shape_ab.shape(1), 3);
-  ASSERT_EQ(shape_ab.shape(2), 4);
+  const numeric::memory::Shape<3> shape_ab = (a + b).shape();
+  ASSERT_EQ(shape_ab[0], 2);
+  ASSERT_EQ(shape_ab[1], 3);
+  ASSERT_EQ(shape_ab[2], 4);
 }
 
 TEST(array_op, unary_plus) {
@@ -76,7 +76,7 @@ TEST(array_op, unary_logical_not) {
 }
 
 TEST(array_op, unary_pow_2) {
-  numeric::memory::Layout<3> shape(2, 3, 4);
+  numeric::memory::Shape<3> shape(2, 3, 4);
   numeric::memory::Array<double, 3> array(shape);
   for (size_t i = 0; i < array.size(); ++i) {
     array.raw()[i] = i;
@@ -97,7 +97,7 @@ TEST(array_op, unary_pow_2) {
 }
 
 TEST(array_op, unary_pow_m2) {
-  numeric::memory::Layout<3> shape(2, 3, 4);
+  numeric::memory::Shape<3> shape(2, 3, 4);
   numeric::memory::Array<double, 3> array(shape);
   for (size_t i = 0; i < array.size(); ++i) {
     array.raw()[i] = i;
@@ -118,7 +118,7 @@ TEST(array_op, unary_pow_m2) {
 }
 
 TEST(array_op, unary_exp) {
-  numeric::memory::Layout<3> shape(2, 3, 4);
+  numeric::memory::Shape<3> shape(2, 3, 4);
   numeric::memory::Array<double, 3> array(shape);
   for (size_t i = 0; i < array.size(); ++i) {
     array.raw()[i] = i;

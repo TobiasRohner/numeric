@@ -16,13 +16,13 @@ public:
   NUMERIC_HOST_DEVICE Derived &derived() noexcept;
   NUMERIC_HOST_DEVICE const Derived &derived() const noexcept;
   NUMERIC_HOST_DEVICE MemoryType memory_type() const noexcept;
-  NUMERIC_HOST_DEVICE Layout<dim> layout() const noexcept;
+  NUMERIC_HOST_DEVICE Shape<dim> shape() const noexcept;
   NUMERIC_HOST_DEVICE dim_t size() const noexcept;
 
 protected:
   template <dim_t N, dim_t M>
   static NUMERIC_HOST_DEVICE Layout<M>
-  broadcasted_layout(const Layout<N> &from, const Layout<M> &to) noexcept;
+  broadcasted_layout(const Layout<N> &from, const Shape<M> &to) noexcept;
 };
 
 } // namespace numeric::memory

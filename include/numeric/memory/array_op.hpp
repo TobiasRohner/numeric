@@ -38,8 +38,8 @@ public:
     return arg_.shape(idx);
   }
 
-  NUMERIC_HOST_DEVICE [[nodiscard]] Layout<dim> layout() const noexcept {
-    return arg_.layout();
+  NUMERIC_HOST_DEVICE [[nodiscard]] Shape<dim> shape() const noexcept {
+    return arg_.shape();
   }
 
   NUMERIC_HOST_DEVICE [[nodiscard]] dim_t size() const noexcept {
@@ -48,8 +48,8 @@ public:
 
   template <dim_t M>
   NUMERIC_HOST_DEVICE [[nodiscard]] auto
-  broadcast(const Layout<M> &layout) const noexcept {
-    auto brd_arg = arg_.broadcast(layout);
+  broadcast(const Shape<M> &shape) const noexcept {
+    auto brd_arg = arg_.broadcast(shape);
     return ArrayUnaryOp<Op, decltype(brd_arg)>(op_, brd_arg);
   }
 
@@ -72,12 +72,13 @@ public:
                                                 meta::declval<rhs_scalar_t>()));
   static constexpr dim_t dim = Lhs::dim > Rhs::dim ? Lhs::dim : Rhs::dim;
   using lhs_t =
-      decltype(meta::declval<Lhs>().broadcast(meta::declval<Layout<dim>>()));
+      decltype(meta::declval<Lhs>().broadcast(meta::declval<Shape<dim>>()));
   using rhs_t =
-      decltype(meta::declval<Rhs>().broadcast(meta::declval<Layout<dim>>()));
+      decltype(meta::declval<Rhs>().broadcast(meta::declval<Shape<dim>>()));
 
   NUMERIC_HOST_DEVICE ArrayBinaryOp(const Op op, const Lhs &lhs, const Rhs &rhs)
-      : op_(op), lhs_(lhs), rhs_(rhs) {}
+      : op_(op), lhs_(lhs.broadcast(shape(lhs.shape(), rhs.shape()))),
+        rhs_(rhs.broadcast(shape(lhs.shape(), rhs.shape()))) {}
   ArrayBinaryOp(const ArrayBinaryOp &) = default;
   ArrayBinaryOp &operator=(const ArrayBinaryOp &) = default;
 
@@ -116,12 +117,12 @@ public:
     return shape_lhs > shape_rhs ? shape_lhs : shape_rhs;
   }
 
-  NUMERIC_HOST_DEVICE [[nodiscard]] Layout<dim> layout() const noexcept {
-    Layout<dim> l;
+  NUMERIC_HOST_DEVICE [[nodiscard]] Shape<dim> shape() const noexcept {
+    Shape<dim> s;
     for (dim_t d = 0; d < dim; ++d) {
-      l.shape(d) = shape(d);
+      s[d] = shape(d);
     }
-    return l;
+    return s;
   }
 
   NUMERIC_HOST_DEVICE [[nodiscard]] dim_t size() const noexcept {
@@ -134,9 +135,9 @@ public:
 
   template <dim_t M>
   NUMERIC_HOST_DEVICE [[nodiscard]] auto
-  broadcast(const Layout<M> &layout) const noexcept {
-    auto brd_lhs = lhs_.broadcast(layout);
-    auto brd_rhs = rhs_.broadcast(layout);
+  broadcast(const Shape<M> &shape) const noexcept {
+    auto brd_lhs = lhs_.broadcast(shape);
+    auto brd_rhs = rhs_.broadcast(shape);
     return ArrayBinaryOp<Op, decltype(brd_lhs), decltype(brd_rhs)>(op_, brd_lhs,
                                                                    brd_rhs);
   }
@@ -148,6 +149,22 @@ private:
   Op op_;
   lhs_t lhs_;
   rhs_t rhs_;
+
+  template <dim_t M1, dim_t M2>
+  static NUMERIC_HOST_DEVICE Shape<(M1 > M2 ? M1 : M2)>
+  shape(const Shape<M1> &s1, const Shape<M2> &s2) {
+    if (M1 < M2) {
+      return shape(s2, s1);
+    } else {
+      Shape<M1> s = s1;
+      for (dim_t i = 0; i < M2; ++i) {
+        if (s2[i] > s[i + M1 - M2]) {
+          s[i + M1 - M2] = s2[i];
+        }
+      }
+      return s;
+    }
+  }
 };
 
 struct OpUnaryPlus {

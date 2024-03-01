@@ -4,13 +4,14 @@
 #include <numeric/memory/array_base.hpp>
 #include <numeric/memory/broadcast_decl.hpp>
 #include <numeric/meta/meta.hpp>
+#include <numeric/utils/error.hpp>
 
 namespace numeric::memory {
 
 template <typename Src, dim_t N>
 NUMERIC_HOST_DEVICE Broadcast<Src, N>::Broadcast(const ArrayBase<Src> &src,
-                                                 const Layout<N> &layout)
-    : src_(src.derived()), layout_(layout) {}
+                                                 const Shape<N> &shape)
+    : src_(src.derived()), shape_(shape) {}
 
 template <typename Src, dim_t N>
 NUMERIC_HOST_DEVICE MemoryType Broadcast<Src, N>::memory_type() const noexcept {
@@ -29,21 +30,23 @@ Broadcast<Src, N>::operator()(Idxs... idxs) const noexcept {
 }
 
 template <typename Src, dim_t N>
-NUMERIC_HOST_DEVICE const Layout<N> &
-Broadcast<Src, N>::layout() const noexcept {
-  return layout_;
-}
-template <typename Src, dim_t N>
-NUMERIC_HOST_DEVICE const dim_t *Broadcast<Src, N>::shape() const noexcept {
-  return layout_.shape();
+NUMERIC_HOST_DEVICE const Shape<N> &Broadcast<Src, N>::shape() const noexcept {
+  return shape_;
 }
 template <typename Src, dim_t N>
 NUMERIC_HOST_DEVICE dim_t Broadcast<Src, N>::shape(size_t idx) const noexcept {
-  return layout_.shape(idx);
+  return shape_[idx];
 }
 template <typename Src, dim_t N>
 NUMERIC_HOST_DEVICE dim_t Broadcast<Src, N>::size() const noexcept {
-  return layout_.size();
+  return shape_.size();
+}
+
+template <typename Src, dim_t N>
+template <dim_t M>
+NUMERIC_HOST_DEVICE [[nodiscard]] Broadcast<Src, M>
+Broadcast<Src, N>::broadcast(const Shape<M> &shape) const noexcept {
+  return Broadcast<Src, M>(src_, shape);
 }
 
 template <typename Src, dim_t N>
@@ -64,13 +67,15 @@ template <typename Src, dim_t N>
 template <typename... Idxs>
 NUMERIC_HOST_DEVICE decltype(auto)
 Broadcast<Src, N>::sub_view(dim_t d, Idxs... idxs) const noexcept {
-  static_assert((idxs != ...), "Slicing not yet supported for Broadcast views");
+  static_assert(!meta::is_same_v<Src, Src>,
+                "Slicing not yet supported for Broadcast views");
+  NUMERIC_ERROR("Slicing not yet implemented for Broadcast views");
 }
 
 template <typename Src, dim_t N>
 NUMERIC_HOST_DEVICE Broadcast<Src, N>
-broadcast(const ArrayBase<Src> &src, const Layout<N> &layout) noexcept {
-  return Broadcast<Src, N>(src, layout);
+broadcast(const ArrayBase<Src> &src, const Shape<N> &shape) noexcept {
+  return Broadcast<Src, N>(src, shape);
 }
 
 } // namespace numeric::memory

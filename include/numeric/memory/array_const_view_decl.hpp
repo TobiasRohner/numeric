@@ -40,15 +40,15 @@ public:
 
   NUMERIC_HOST_DEVICE [[nodiscard]] const scalar_t *raw() const noexcept;
   NUMERIC_HOST_DEVICE [[nodiscard]] const Layout<dim> &layout() const noexcept;
-  NUMERIC_HOST_DEVICE [[nodiscard]] const dim_t *shape() const noexcept;
+  NUMERIC_HOST_DEVICE [[nodiscard]] const Shape<N> &shape() const noexcept;
   NUMERIC_HOST_DEVICE [[nodiscard]] dim_t shape(size_t idx) const noexcept;
-  NUMERIC_HOST_DEVICE [[nodiscard]] const dim_t *stride() const noexcept;
+  NUMERIC_HOST_DEVICE [[nodiscard]] const Stride<N> &stride() const noexcept;
   NUMERIC_HOST_DEVICE [[nodiscard]] dim_t stride(size_t idx) const noexcept;
   NUMERIC_HOST_DEVICE [[nodiscard]] dim_t size() const noexcept;
 
   template <dim_t M>
   NUMERIC_HOST_DEVICE [[nodiscard]] ArrayConstView<scalar_t, M>
-  broadcast(const Layout<M> &layout) const noexcept;
+  broadcast(const Shape<M> &shape) const noexcept;
 
 #if NUMERIC_ENABLE_EIGEN
   [[nodiscard]] Eigen::Map<
@@ -67,12 +67,12 @@ protected:
 
   template <dim_t M, typename Idx, typename... Idxs>
   static NUMERIC_HOST_DEVICE decltype(auto)
-  sub_view(ArrayConstView<scalar_t, M> view, dim_t d, Idx idx,
+  sub_view(const ArrayConstView<scalar_t, M> &view, dim_t d, Idx idx,
            Idxs... idxs) noexcept;
 
   template <dim_t M>
-  static NUMERIC_HOST_DEVICE decltype(auto)
-  sub_view(ArrayConstView<scalar_t, M> view, dim_t) noexcept;
+  static NUMERIC_HOST_DEVICE ArrayConstView<scalar_t, M>
+  sub_view(const ArrayConstView<scalar_t, M> &view, dim_t) noexcept;
 
   using super::broadcasted_layout;
 };

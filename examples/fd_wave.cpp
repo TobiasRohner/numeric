@@ -19,11 +19,11 @@ int main() {
   const double dx = (x1 - x0) / (N - 1);
   const double dt = C * dx / c;
   const dim_t M = T / dt;
-  const memory::MemoryType memory_type = memory::MemoryType::DEVICE;
+  const memory::MemoryType memory_type = memory::MemoryType::HOST;
 
-  memory::Array<double, 2> u(memory::Layout<2>(M + 1, N), memory_type);
-  memory::Array<double, 2> v(memory::Layout<2>(M + 1, N), memory_type);
-  memory::Array<double, 2> a(memory::Layout<2>(M + 1, N), memory_type);
+  memory::Array<double, 2> u(memory::Shape<2>(M + 1, N), memory_type);
+  memory::Array<double, 2> v(memory::Shape<2>(M + 1, N), memory_type);
+  memory::Array<double, 2> a(memory::Shape<2>(M + 1, N), memory_type);
 
   u = 0;
   v = 0;

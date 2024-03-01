@@ -17,19 +17,19 @@ public:
 
   Array() : super(nullptr, {}, MemoryType::UNKNOWN), alloc_(nullptr) {}
 
-  Array(const Layout<dim> &layout, Allocator<scalar_t> alloc)
-      : super(alloc.allocate(layout.size()), layout, alloc.memory_type()),
+  Array(const Shape<dim> &shape, Allocator<scalar_t> alloc)
+      : super(alloc.allocate(shape.size()), Layout<dim>(shape),
+              alloc.memory_type()),
         alloc_(alloc) {}
-  explicit Array(const Layout<dim> &layout,
+  explicit Array(const Shape<dim> &shape,
                  MemoryType mem_type = MemoryType::HOST)
-      : Array(layout, Allocator<scalar_t>(mem_type)) {}
+      : Array(shape, Allocator<scalar_t>(mem_type)) {}
   Array(const Array &other)
-      : super(nullptr, other.layout_, other.memory_type_) {
+      : super(nullptr, other.shape(), other.memory_type_) {
     *this = other;
   }
   template <typename Src>
-  explicit Array(const ArrayBase<Src> &src)
-      : Array(src.layout(), src.memory_type()) {
+  Array(const ArrayBase<Src> &src) : Array(src.shape(), src.memory_type()) {
     *this = src;
   }
 

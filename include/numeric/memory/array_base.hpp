@@ -30,9 +30,9 @@ ArrayBase<Derived>::memory_type() const noexcept {
 }
 
 template <typename Derived>
-NUMERIC_HOST_DEVICE Layout<ArrayBase<Derived>::dim>
-ArrayBase<Derived>::layout() const noexcept {
-  return derived().layout();
+NUMERIC_HOST_DEVICE Shape<ArrayBase<Derived>::dim>
+ArrayBase<Derived>::shape() const noexcept {
+  return derived().shape();
 }
 
 template <typename Derived>
@@ -44,17 +44,17 @@ template <typename Derived>
 template <dim_t N, dim_t M>
 NUMERIC_HOST_DEVICE Layout<M>
 ArrayBase<Derived>::broadcasted_layout(const Layout<N> &from,
-                                       const Layout<M> &to) noexcept {
+                                       const Shape<M> &to) noexcept {
   static_assert(M >= N, "Broadcasted shape needs to have at least as many "
                         "dimensions as original array");
   Layout<M> brd;
   for (dim_t d = 0; d < M - N; ++d) {
-    brd.shape(d) = to.shape(d);
+    brd.shape(d) = to[d];
     brd.stride(d) = 0;
   }
   for (dim_t d = 0; d < N; ++d) {
     if (from.shape(d) == 1) {
-      brd.shape(M - N + d) = to.shape(M - N + d);
+      brd.shape(M - N + d) = to[M - N + d];
       brd.stride(M - N + d) = 0;
     } else {
       brd.shape(M - N + d) = from.shape(d);

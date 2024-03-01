@@ -7,11 +7,13 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-result"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wreturn-local-addr"
 #endif
 #if NUMERIC_CLANG_COMPILER
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-result"
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#pragma clang diagnostic ignored "-Wreturn-local-addr"
 #endif
 
 #ifndef __HIP_DEVICE_COMPILE__

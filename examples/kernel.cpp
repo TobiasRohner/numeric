@@ -43,7 +43,7 @@ int main() {
   program.instantiate_kernel<double>("gpu_kernel");
   auto kernel = program.get_kernel<double>("gpu_kernel");
 
-  numeric::memory::Layout<2> a_layout(N, N);
+  numeric::memory::Shape<2> a_layout(N, N);
   numeric::memory::Array<double, 2> a_device(
       a_layout, numeric::memory::MemoryType::DEVICE);
   kernel({N / 8, N / 8, 1, 8, 8, 1}, numeric::hip::Stream(device),

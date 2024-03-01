@@ -29,13 +29,13 @@ public:
         internal::copy_device_to_device_build_kernel(
             utils::type_name<Scalar>(), N,
             utils::type_name<decltype(meta::declval<Src>().broadcast(
-                meta::declval<ArrayView<Scalar, N>>().layout()))>());
+                meta::declval<ArrayView<Scalar, N>>().shape()))>());
     kernel_ = shared_kernel;
   }
 
   virtual void operator()(ArrayView<Scalar, N> dst,
                           const ArrayBase<Src> &src) override {
-    const auto src_derived = src.derived().broadcast(dst.layout());
+    const auto src_derived = src.derived().broadcast(dst.shape());
     hip::LaunchParams lp;
     if (N == 1) {
       lp = device_.launch_params_for_grid(dst.shape(0), 1, 1);

@@ -14,7 +14,7 @@ public:
   using scalar_t = typename ArrayTraits<Src>::scalar_t;
 
   NUMERIC_HOST_DEVICE Broadcast(const ArrayBase<Src> &src,
-                                const Layout<N> &layout);
+                                const Shape<N> &shape);
   Broadcast(const Broadcast &) = default;
   Broadcast(Broadcast &&) = default;
   Broadcast &operator=(const Broadcast &) = default;
@@ -25,14 +25,17 @@ public:
   template <typename... Idxs>
   NUMERIC_HOST_DEVICE decltype(auto) operator()(Idxs... idxs) const noexcept;
 
-  NUMERIC_HOST_DEVICE const Layout<N> &layout() const noexcept;
-  NUMERIC_HOST_DEVICE const dim_t *shape() const noexcept;
+  NUMERIC_HOST_DEVICE const Shape<N> &shape() const noexcept;
   NUMERIC_HOST_DEVICE dim_t shape(size_t idx) const noexcept;
   NUMERIC_HOST_DEVICE dim_t size() const noexcept;
 
+  template <dim_t M>
+  NUMERIC_HOST_DEVICE [[nodiscard]] Broadcast<Src, M>
+  broadcast(const Shape<M> &shape) const noexcept;
+
 private:
   Src src_;
-  Layout<N> layout_;
+  Shape<N> shape_;
 
   template <typename Idx, typename... Idxs>
   NUMERIC_HOST_DEVICE scalar_t element(Idx idx, Idxs... idxs) const noexcept;
@@ -49,8 +52,8 @@ template <typename Src, dim_t N> struct ArrayTraits<Broadcast<Src, N>> {
 };
 
 template <typename Src, dim_t N>
-NUMERIC_HOST_DEVICE Broadcast<Src, N>
-broadcast(const ArrayBase<Src> &src, const Layout<N> &layout) noexcept;
+NUMERIC_HOST_DEVICE Broadcast<Src, N> broadcast(const ArrayBase<Src> &src,
+                                                const Shape<N> &shape) noexcept;
 
 } // namespace numeric::memory
 
