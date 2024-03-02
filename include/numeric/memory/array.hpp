@@ -39,6 +39,9 @@ public:
     other.data_ = nullptr;
   }
   Array &operator=(Array &&other) {
+    if (raw()) {
+      alloc_.deallocate(raw(), size());
+    }
     alloc_ = other.alloc_;
     data_ = other.data_;
     layout_ = other.layout_;

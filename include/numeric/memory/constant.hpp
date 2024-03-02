@@ -11,15 +11,16 @@
 namespace numeric::memory {
 
 template <typename Scalar, dim_t N>
-class Constant : ArrayBase<Constant<Scalar, N>> {
+class Constant : public ArrayBase<Constant<Scalar, N>> {
   using super = ArrayBase<Constant<Scalar, N>>;
 
 public:
   using scalar_t = Scalar;
   static constexpr dim_t dim = N;
 
-  NUMERIC_HOST_DEVICE Constant(const Layout<dim> &layout, scalar_t value)
-      : value_(value), layout_(layout) {}
+  NUMERIC_HOST_DEVICE Constant(const Shape<dim> &shape, scalar_t value,
+                               MemoryType memory_type = MemoryType::HOST)
+      : value_(value), shape_(shape), memory_type_(memory_type) {}
   Constant(const Constant &) = default;
   Constant(Constant &&) = default;
   Constant &operator=(const Constant &) = default;
@@ -34,9 +35,25 @@ public:
     }
   }
 
+  NUMERIC_HOST_DEVICE const Shape<N> &shape() const noexcept { return shape_; }
+  NUMERIC_HOST_DEVICE dim_t shape(size_t idx) const noexcept {
+    return shape_[idx];
+  }
+  NUMERIC_HOST_DEVICE dim_t size() const noexcept { return shape_.size(); }
+  NUMERIC_HOST_DEVICE MemoryType memory_type() const noexcept {
+    return memory_type_;
+  }
+
+  template <dim_t M>
+  NUMERIC_HOST_DEVICE Constant<Scalar, M>
+  broadcast(const Shape<M> &shape) const noexcept {
+    return Constant<Scalar, M>(shape, value_);
+  }
+
 private:
   scalar_t value_;
-  Layout<dim> layout_;
+  Shape<dim> shape_;
+  MemoryType memory_type_;
 
   template <typename... Idxs>
   NUMERIC_HOST_DEVICE auto slice(Idxs... idxs) const noexcept {
@@ -47,7 +64,7 @@ private:
   NUMERIC_HOST_DEVICE auto slice_impl(meta::index_sequence<IdxsIdxs...>,
                                       Idxs... idxs) const noexcept {
     static constexpr dim_t new_dim = (0 + ... + meta::is_same_v<Idxs, Slice>);
-    Layout<new_dim> new_layout;
+    Shape<new_dim> new_shape;
     dim_t i = 0;
     const auto get_size = [&](auto sl, size_t size) {
       if constexpr (meta::is_same_v<decltype(sl), Slice>) {
@@ -57,9 +74,9 @@ private:
       }
     };
     ((meta::is_same_v<Idxs, Slice> &&
-      (new_layout.shape(i++) = get_size(idxs, layout_.shape(IdxsIdxs)))),
+      (new_shape[i++] = get_size(idxs, shape_[IdxsIdxs]))),
      ...);
-    return Constant<scalar_t, new_dim>(new_layout, value_);
+    return Constant<scalar_t, new_dim>(new_shape, value_);
   }
 };
 
