@@ -29,9 +29,14 @@ public:
   }
 
   template <typename... Idxs>
-  NUMERIC_HOST_DEVICE [[nodiscard]] const scalar_t
+  NUMERIC_HOST_DEVICE [[nodiscard]] decltype(auto)
   operator()(Idxs... idxs) const noexcept {
-    return op_(arg_(idxs...));
+    if constexpr (sizeof...(Idxs) == dim) {
+      return op_(arg_(idxs...));
+    } else {
+      using slice_t = meta::remove_cvref_t<decltype(arg_(idxs...))>;
+      return ArrayUnaryOp<Op, slice_t>(op_, arg_(idxs...));
+    }
   }
 
   NUMERIC_HOST_DEVICE [[nodiscard]] dim_t shape(size_t idx) const noexcept {

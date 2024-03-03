@@ -1,5 +1,6 @@
 #include <iostream>
 #include <numeric/io/netcdf_file.hpp>
+#include <numeric/math/sum.hpp>
 #include <numeric/memory/array.hpp>
 #include <numeric/memory/array_op.hpp>
 #include <numeric/memory/constant.hpp>
@@ -34,13 +35,7 @@ int main() {
                 (*xi)(sl(1, -2), sl(0, -3)) + (*xi)(sl(1, -2), sl(2, -1)) +
                 (*xi)(sl(0, -3), sl(1, -2)) + (*xi)(sl(2, -1), sl(1, -2)));
     std::swap(xi, xip1);
-    double norm2 = 0;
-    for (dim_t j = 1; j <= N; ++j) {
-      for (dim_t k = 1; k <= N; ++k) {
-        const double diff = (*xi)(j, k) - (*xip1)(j, k);
-        norm2 += diff * diff;
-      }
-    }
+    double norm2 = math::sum(memory::pow<2>(*xip1 - *xi));
     norm = 4 * std::sqrt(norm2) / ((N + 2) * (N + 2));
   } while (norm > 1e-8);
   std::cout << "Converged with relative error of " << norm << std::endl;
