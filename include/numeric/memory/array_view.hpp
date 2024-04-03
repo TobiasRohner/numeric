@@ -55,26 +55,26 @@ ArrayView<Scalar, N>::operator=(Scalar val) {
   return *this;
 }
 
-#define NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(op)                               \
+#define NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(op, opeq)                         \
   template <typename Scalar, dim_t N>                                          \
   template <typename Src>                                                      \
-  NUMERIC_HOST_DEVICE ArrayView<Scalar, N> &ArrayView<Scalar, N>::operator op( \
-      const ArrayBase<Src> &src) {                                             \
+  NUMERIC_HOST_DEVICE ArrayView<Scalar, N>                                     \
+      &ArrayView<Scalar, N>::operator opeq(const ArrayBase<Src> &src) {        \
     return *this = *this op src;                                               \
   }                                                                            \
   template <typename Scalar, dim_t N>                                          \
-  NUMERIC_HOST_DEVICE ArrayView<Scalar, N> &ArrayView<Scalar, N>::operator op( \
-      Scalar val) {                                                            \
+  NUMERIC_HOST_DEVICE ArrayView<Scalar, N>                                     \
+      &ArrayView<Scalar, N>::operator opeq(Scalar val) {                       \
     return *this = *this op val;                                               \
   }
-NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(+=);
-NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(-=);
-NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(*=);
-NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(/=);
-NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(%=);
-NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(&=);
-NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(|=);
-NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(^=);
+NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(+, +=);
+NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(-, -=);
+NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(*, *=);
+NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(/, /=);
+NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(%, %=);
+NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(&, &=);
+NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(|, |=);
+NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT(^, ^=);
 #undef NUMERIC_ARRAY_VIEW_DEFINE_ASSIGNMENT
 
 template <typename Scalar, dim_t N>

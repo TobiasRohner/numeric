@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(numeric VERSION 0.1 LANGUAGES CXX)
+project(numeric VERSION 0.1 LANGUAGES C CXX)
 
 
 option(NUMERIC_ENABLE_HIP "Enable GPU support using HIP" ON)
@@ -9,6 +9,7 @@ option(NUMERIC_BUILD_BENCHMARKS "Build Benchmarks for the Library" ON)
 option(NUMERIC_ENABLE_EIGEN "Enable Matrix Operations using Eigen" ON)
 option(NUMERIC_ENABLE_HDF5 "Enable I/O using HDF5" ON)
 option(NUMERIC_ENABLE_NETCDF "Enable I/O using NetCDF4" ON)
+option(NUMERIC_ENABLE_MPI "Parallelize using MPI" ON)
 option(NUMERIC_ENABLE_CLANG_TIDY "Run clang-tidy while compiling" OFF)
 
 
@@ -42,6 +43,30 @@ if (NUMERIC_ENABLE_EIGEN)
     GIT_PROGRESS TRUE
   )
 endif()
+if (NUMERIC_ENABLE_NETCDF)
+  if (NUMERIC_ENABLE_MPI)
+    find_package(MPI REQUIRED COMPONENTS C)
+    include_directories(${MPI_C_INCLUDE_PATH})
+  endif()
+  set(HDF5_PREFER_PARALLEL ${NUMERIC_ENABLE_MPI})
+  set(BUILD_UTILITIES OFF)
+  set(ENABLE_EXAMPLES OFF)
+  set(ENABLE_TESTS OFF)
+  set(ENABLE_DAP OFF)
+  set(ENABLE_HDF5 ON)
+  set(HDF5_PARALLEL ${NUMERIC_ENABLE_MPI})
+  set(ENABLE_NETCDF4 ON)
+  set(ENABLE_PNETCDF ${NUMERIC_ENABLE_MPI})
+  set(ENABLE_PARALLEL4 ${NUMERIC_ENABLE_MPI})
+  set(ENABLE_PARALLEL ${NUMERIC_ENABLE_MPI})
+  set(USE_PARALLEL ${NUMERIC_ENABLE_MPI})
+FetchContent_Declare(
+  NetCDF
+  GIT_REPOSITORY https://github.com/Unidata/netcdf-c.git
+  GIT_TAG main
+  OVERRIDE_FIND_PACKAGE
+)
+endif()
 if (NUMERIC_BUILD_TESTS)
   FetchContent_Declare(
     googletest
@@ -72,7 +97,9 @@ if (NUMERIC_BUILD_BENCHMARKS)
   FetchContent_MakeAvailable(googlebenchmark)
 endif()
 if (NUMERIC_ENABLE_NETCDF)
+  FetchContent_MakeAvailable(NetCDF)
   find_package(NetCDF REQUIRED)
+  target_link_libraries(numeric PUBLIC netCDF::netcdf)
 endif()
 
 

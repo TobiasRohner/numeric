@@ -20,6 +20,11 @@ std::vector<std::string_view> Program::numeric_headers_ = {
     "numeric/memory/array_const_view.hpp",
     "numeric/memory/array_view_decl.hpp",
     "numeric/memory/array_view.hpp",
+    "numeric/memory/constant.hpp",
+    "numeric/memory/linspace.hpp",
+    "numeric/memory/meshgrid.hpp",
+    "numeric/memory/broadcast.hpp",
+    "numeric/memory/broadcast_decl.hpp",
     "numeric/memory/layout.hpp",
     "numeric/memory/shape.hpp",
     "numeric/memory/stride.hpp",
@@ -27,7 +32,10 @@ std::vector<std::string_view> Program::numeric_headers_ = {
     "numeric/memory/memory_type.hpp",
     "numeric/memory/copy_kernels.hpp",
     "numeric/memory/array_op.hpp",
-    "numeric/meta/meta.hpp"};
+    "numeric/utils/error.hpp",
+    "numeric/utils/tuple.hpp",
+    "numeric/meta/meta.hpp",
+    "numeric/meta/integer_sequence.hpp"};
 
 Program::Header::Header(std::string_view name_, std::string_view src_)
     : name(name_), src(src_) {}

@@ -5,6 +5,8 @@
 #include <numeric/memory/array_base_decl.hpp>
 #include <numeric/memory/array_traits.hpp>
 #include <numeric/memory/slice.hpp>
+#include <numeric/meta/integer_sequence.hpp>
+#include <numeric/utils/tuple.hpp>
 
 namespace numeric::memory {
 
@@ -41,8 +43,17 @@ private:
   NUMERIC_HOST_DEVICE scalar_t element(Idx idx, Idxs... idxs) const noexcept;
 
   template <typename... Idxs>
-  NUMERIC_HOST_DEVICE decltype(auto) sub_view(dim_t d,
-                                              Idxs... idxs) const noexcept;
+  NUMERIC_HOST_DEVICE decltype(auto) sub_view(Idxs... idxs) const noexcept;
+  template <typename... Idxs, size_t... IdxsIdxs>
+  NUMERIC_HOST_DEVICE decltype(auto)
+  sub_view_impl(meta::index_sequence<IdxsIdxs...>, Idxs... idxs) const noexcept;
+  template <typename... Idxs, size_t... IdxsIdxs, size_t... IdxsIdxsBroadcast,
+            size_t... IdxsIdxsSrc>
+  NUMERIC_HOST_DEVICE decltype(auto)
+  sub_view_impl(const utils::Tuple<Idxs...> &idxs,
+                meta::index_sequence<IdxsIdxs...>,
+                meta::index_sequence<IdxsIdxsBroadcast...>,
+                meta::index_sequence<IdxsIdxsSrc...>) const noexcept;
 };
 
 template <typename Src, dim_t N> struct ArrayTraits<Broadcast<Src, N>> {

@@ -12,6 +12,10 @@ static const char kernel_src[] = R"(
   #include <numeric/memory/array_const_view.hpp>
   #include <numeric/memory/array_view.hpp>
   #include <numeric/memory/array_op.hpp>
+  #include <numeric/memory/constant.hpp>
+  #include <numeric/memory/linspace.hpp>
+  #include <numeric/memory/meshgrid.hpp>
+  #include <numeric/memory/broadcast.hpp>
 
   template<typename Scalar, typename Src>
   __device__ void copy_naive_impl(numeric::memory::ArrayView<Scalar, 1> &dst, const Src &src) {

@@ -24,8 +24,7 @@ public:
   explicit Array(const Shape<dim> &shape,
                  MemoryType mem_type = MemoryType::HOST)
       : Array(shape, Allocator<scalar_t>(mem_type)) {}
-  Array(const Array &other)
-      : super(nullptr, other.shape(), other.memory_type_) {
+  Array(const Array &other) : Array(other.shape(), other.memory_type_) {
     *this = other;
   }
   template <typename Src>

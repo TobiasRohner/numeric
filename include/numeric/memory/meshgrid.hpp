@@ -24,15 +24,18 @@ public:
   using scalar_t = typename Arg::scalar_t;
   static constexpr dim_t dim = N;
 
-  Meshgrid(const Shape<dim> &shape, const Arg &arg)
+  NUMERIC_HOST_DEVICE Meshgrid(const Shape<dim> &shape, const Arg &arg)
       : shape_(shape), arg_(arg) {}
   Meshgrid(const Meshgrid &) = default;
   Meshgrid(Meshgrid &&) = default;
   Meshgrid &operator=(const Meshgrid &) = default;
   Meshgrid &operator=(Meshgrid &&) = default;
 
-  template <typename... Idxs> auto operator()(Idxs... idxs) const noexcept {
-    if constexpr (use_direct_access<Idxs...>()) {
+  template <typename... Idxs>
+  NUMERIC_HOST_DEVICE decltype(auto) operator()(Idxs... idxs) const noexcept {
+    static constexpr bool use_element_access =
+        sizeof...(Idxs) == N && (!meta::is_same_v<Idxs, Slice> && ...);
+    if constexpr (use_element_access) {
       return arg_(extract_Idxth(idxs...));
     } else {
       return slice(idxs...);
@@ -61,19 +64,9 @@ private:
   Shape<dim> shape_;
   Arg arg_;
 
-  template <typename... Idxs, size_t... IdxsIdxs>
-  static constexpr bool
-  use_direct_access_impl(meta::index_sequence<IdxsIdxs...>) noexcept {
-    return ((!meta::is_same_v<Idxs, Slice> || IdxsIdxs == Idx) && ...);
-  }
-
-  template <typename... Idxs>
-  static constexpr bool use_direct_access() noexcept {
-    return use_direct_access_impl<Idxs...>(meta::index_sequence_for<Idxs...>{});
-  }
-
   template <size_t I, typename FirstIdx, typename... Idxs>
-  static auto extract_Idxth_impl(FirstIdx idx, Idxs... idxs) noexcept {
+  NUMERIC_HOST_DEVICE static auto extract_Idxth_impl(FirstIdx idx,
+                                                     Idxs... idxs) noexcept {
     if constexpr (I == Idx) {
       return idx;
     } else {
@@ -81,22 +74,53 @@ private:
     }
   }
 
-  template <typename... Idxs> static auto extract_Idxth(Idxs... idxs) noexcept {
+  template <typename... Idxs>
+  NUMERIC_HOST_DEVICE static auto extract_Idxth(Idxs... idxs) noexcept {
     return extract_Idxth_impl<0>(idxs...);
   }
 
   template <typename... Idxs, size_t... IdxsIdxs>
-  auto slice_impl(meta::index_sequence<IdxsIdxs...>,
-                  Idxs... idxs) const noexcept {
-    static constexpr dim_t ndim_left =
-        (0 + ... + (meta::is_same_v<Idxs, Slice> && IdxsIdxs < Idx));
-    static constexpr dim_t ndim_right =
-        (0 + ... + (meta::is_same_v<Idxs, Slice> && IdxsIdxs > Idx));
-    // TODO: Implement
-    NUMERIC_ERROR("Not yet implemented!");
+  NUMERIC_HOST_DEVICE decltype(auto)
+  slice_impl(meta::index_sequence<IdxsIdxs...>, Idxs... idxs) const noexcept {
+    static constexpr dim_t num_slices_in_idxs =
+        (0 + ... + meta::is_same_v<Idxs, Slice>);
+    static constexpr dim_t new_dim = N - sizeof...(Idxs) + num_slices_in_idxs;
+    const auto get_size = [&](auto sl, size_t size) {
+      if constexpr (meta::is_same_v<decltype(sl), Slice>) {
+        return sl.size(size);
+      } else {
+        return 0;
+      }
+    };
+    Shape<new_dim> new_shape;
+    dim_t i = 0;
+    ((meta::is_same_v<Idxs, Slice> &&
+      (new_shape[i++] = get_size(idxs, shape_[IdxsIdxs]))),
+     ...);
+    for (; i < new_dim; ++i) {
+      new_shape[i] = shape_[sizeof...(Idxs) + i];
+    }
+    static constexpr bool is_constant =
+        ((IdxsIdxs == Idx && !meta::is_same_v<Idxs, Slice>) || ...);
+    if constexpr (is_constant) {
+      using scalar_t = typename ArrayTraits<Arg>::scalar_t;
+      const scalar_t value = arg_(extract_Idxth(idxs...));
+      return Constant<scalar_t, new_dim>(new_shape, value, arg_.memory_type());
+    } else {
+      static constexpr dim_t ndim_left =
+          (0 + ... + (meta::is_same_v<Idxs, Slice> && IdxsIdxs < Idx));
+      if constexpr (sizeof...(Idxs) > Idx) {
+        auto arg_slice = arg_(extract_Idxth(idxs...));
+        return Meshgrid<decltype(arg_slice), new_dim, ndim_left>(new_shape,
+                                                                 arg_slice);
+      } else {
+        return Meshgrid<Arg, new_dim, ndim_left>(new_shape, arg_);
+      }
+    }
   }
 
-  template <typename... Idxs> auto slice(Idxs... idxs) const noexcept {
+  template <typename... Idxs>
+  NUMERIC_HOST_DEVICE decltype(auto) slice(Idxs... idxs) const noexcept {
     return slice_impl(meta::index_sequence_for<Idxs...>{}, idxs...);
   }
 };
@@ -111,7 +135,8 @@ struct ArrayTraits<Meshgrid<Arg, N, Idx>> {
 namespace detail {
 
 template <size_t... Idxs, typename... Args>
-auto meshgrid_impl(meta::index_sequence<Idxs...>, const Args &...args) {
+NUMERIC_HOST_DEVICE auto meshgrid_impl(meta::index_sequence<Idxs...>,
+                                       const Args &...args) {
   static constexpr size_t N = sizeof...(Args);
   const Shape<N> shape(args.shape(Idxs)...);
   return utils::Tuple<Meshgrid<Args, N, Idxs>...>(
@@ -120,7 +145,8 @@ auto meshgrid_impl(meta::index_sequence<Idxs...>, const Args &...args) {
 
 } // namespace detail
 
-template <typename... Args> auto meshgrid(const ArrayBase<Args> &...args) {
+template <typename... Args>
+NUMERIC_HOST_DEVICE auto meshgrid(const ArrayBase<Args> &...args) {
   return detail::meshgrid_impl(meta::make_index_sequence<sizeof...(Args)>(),
                                args.derived()...);
 }

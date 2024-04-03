@@ -1,11 +1,13 @@
 #ifndef NUMERIC_META_INTEGER_SEQUENCE_HPP_
 #define NUMERIC_META_INTEGER_SEQUENCE_HPP_
 
+#include <numeric/config.hpp>
+
 namespace numeric::meta {
 
 template <typename T, T... Ints> struct integer_sequence {
   using value_type = T;
-  static constexpr size_t size() { return sizeof...(Ints); }
+  NUMERIC_HOST_DEVICE static constexpr size_t size() { return sizeof...(Ints); }
 };
 
 namespace detail {

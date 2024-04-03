@@ -13,7 +13,7 @@ message(STATUS "HIP_VERSION = ${HIP_VERSION}")
 set(HIP_INCLUDE_DIR ${HIP_ROOT_DIR}/../include)
 
 add_library(hip INTERFACE)
-target_compile_definitions(hip INTERFACE "-DNUMERIC_ENABLE_HIP")
+target_compile_definitions(hip INTERFACE "-DNUMERIC_ENABLE_HIP=1")
 target_include_directories(hip INTERFACE ${HIP_INCLUDE_DIR})
 set(CMAKE_HIP_FLAGS "${CMAKE_HIP_FLAGS} -I${HIP_INCLUDE_DIR}")
 if(HIP_PLATFORM STREQUAL "amd")

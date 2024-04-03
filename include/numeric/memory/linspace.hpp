@@ -60,9 +60,9 @@ private:
 };
 
 template <typename Scalar>
-Linspace<Scalar> linspace(Scalar start, Scalar stop, dim_t N,
-                          bool endpoint = true,
-                          MemoryType memory_type = MemoryType::HOST) {
+NUMERIC_HOST_DEVICE Linspace<Scalar>
+linspace(Scalar start, Scalar stop, dim_t N, bool endpoint = true,
+         MemoryType memory_type = MemoryType::HOST) {
   return Linspace<Scalar>(start, stop, N, endpoint, memory_type);
 }
 

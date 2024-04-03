@@ -47,7 +47,7 @@ public:
   template <dim_t M>
   NUMERIC_HOST_DEVICE Constant<Scalar, M>
   broadcast(const Shape<M> &shape) const noexcept {
-    return Constant<Scalar, M>(shape, value_);
+    return Constant<Scalar, M>(shape, value_, memory_type_);
   }
 
 private:
@@ -63,9 +63,9 @@ private:
   template <typename... Idxs, size_t... IdxsIdxs>
   NUMERIC_HOST_DEVICE auto slice_impl(meta::index_sequence<IdxsIdxs...>,
                                       Idxs... idxs) const noexcept {
-    static constexpr dim_t new_dim = (0 + ... + meta::is_same_v<Idxs, Slice>);
-    Shape<new_dim> new_shape;
-    dim_t i = 0;
+    static constexpr dim_t num_slices_in_idxs =
+        (0 + ... + meta::is_same_v<Idxs, Slice>);
+    static constexpr dim_t new_dim = N - sizeof...(Idxs) + num_slices_in_idxs;
     const auto get_size = [&](auto sl, size_t size) {
       if constexpr (meta::is_same_v<decltype(sl), Slice>) {
         return sl.size(size);
@@ -73,10 +73,15 @@ private:
         return 0;
       }
     };
+    Shape<new_dim> new_shape;
+    dim_t i = 0;
     ((meta::is_same_v<Idxs, Slice> &&
       (new_shape[i++] = get_size(idxs, shape_[IdxsIdxs]))),
      ...);
-    return Constant<scalar_t, new_dim>(new_shape, value_);
+    for (; i < new_dim; ++i) {
+      new_shape[i] = shape_[sizeof...(Idxs) + i];
+    }
+    return Constant<scalar_t, new_dim>(new_shape, value_, memory_type_);
   }
 };
 

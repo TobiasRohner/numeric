@@ -82,6 +82,12 @@ unsigned Device::max_threads_per_block() const {
   return pi;
 }
 
+int Device::warp_size() const {
+  hipDeviceProp_t props;
+  NUMERIC_CHECK_HIP(hipGetDeviceProperties(&props, id_));
+  return props.warpSize;
+}
+
 LaunchParams Device::launch_params_for_grid(unsigned Nx, unsigned Ny,
                                             unsigned Nz) const {
   const unsigned max_threads = max_threads_per_block();

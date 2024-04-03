@@ -10,17 +10,21 @@ namespace detail {
 
 template <size_t I, typename T> struct TupleLeaf {
   TupleLeaf() = default;
-  TupleLeaf(const T &val) : value(val) {}
-  TupleLeaf(T &&val) : value(val) {}
+  NUMERIC_HOST_DEVICE TupleLeaf(const T &val) : value(val) {}
+  NUMERIC_HOST_DEVICE TupleLeaf(T &&val) : value(val) {}
   TupleLeaf(const TupleLeaf &) = default;
   TupleLeaf(TupleLeaf &&) = default;
   TupleLeaf &operator=(const TupleLeaf &) = default;
   TupleLeaf &operator=(TupleLeaf &&) = default;
 
   T value;
-  T element_type(meta::integral_constant<size_t, I>) const;
-  T &get(meta::integral_constant<size_t, I>) { return value; }
-  const T &get(meta::integral_constant<size_t, I>) const { return value; }
+  NUMERIC_HOST_DEVICE T element_type(meta::integral_constant<size_t, I>) const;
+  NUMERIC_HOST_DEVICE T &get(meta::integral_constant<size_t, I>) {
+    return value;
+  }
+  NUMERIC_HOST_DEVICE const T &get(meta::integral_constant<size_t, I>) const {
+    return value;
+  }
 };
 
 template <typename Idxs, typename... Ts> struct TupleBase;
@@ -32,7 +36,8 @@ struct TupleBase<meta::index_sequence<Idxs...>, Ts...>
   using TupleLeaf<Idxs, Ts>::element_type...;
 
   TupleBase() = default;
-  TupleBase(const Ts &...args) : TupleLeaf<Idxs, Ts>(args)... {}
+  NUMERIC_HOST_DEVICE TupleBase(const Ts &...args)
+      : TupleLeaf<Idxs, Ts>(args)... {}
   TupleBase(const TupleBase &) = default;
   TupleBase(TupleBase &&) = default;
   TupleBase &operator=(const TupleBase &) = default;
@@ -54,17 +59,17 @@ public:
   using super::get;
 
   Tuple() = default;
-  Tuple(const Ts &...args) : super(args...) {}
+  NUMERIC_HOST_DEVICE Tuple(const Ts &...args) : super(args...) {}
   Tuple(const Tuple &) = default;
   Tuple(Tuple &&) = default;
   Tuple &operator=(const Tuple &) = default;
   Tuple &operator=(Tuple &&) = default;
 
-  template <size_t I> decltype(auto) get() {
+  template <size_t I> NUMERIC_HOST_DEVICE decltype(auto) get() {
     return get(meta::integral_constant<size_t, I>());
   }
 
-  template <size_t I> decltype(auto) get() const {
+  template <size_t I> NUMERIC_HOST_DEVICE decltype(auto) get() const {
     return get(meta::integral_constant<size_t, I>());
   }
 };
@@ -73,10 +78,15 @@ public:
 
 namespace std {
 
+#ifdef __HIP_DEVICE_COMPILE__
+template <typename T> struct tuple_size {};
+template <size_t I, typename T> struct tuple_element {};
+#endif
+
 template <typename... Ts> struct tuple_size<numeric::utils::Tuple<Ts...>> {
   static constexpr size_t value = sizeof...(Ts);
   using type = size_t;
-  constexpr operator size_t() { return value; }
+  NUMERIC_HOST_DEVICE constexpr operator size_t() { return value; }
 };
 
 template <size_t I, typename... Ts>

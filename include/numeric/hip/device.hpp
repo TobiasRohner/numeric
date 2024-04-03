@@ -26,6 +26,7 @@ public:
   unsigned max_grid_dim_y() const;
   unsigned max_grid_dim_z() const;
   unsigned max_threads_per_block() const;
+  int warp_size() const;
 
   LaunchParams launch_params_for_grid(unsigned Nx, unsigned Ny,
                                       unsigned Nz) const;

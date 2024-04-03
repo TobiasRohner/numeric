@@ -24,7 +24,8 @@ class CopyDeviceToDevice : public CopyerImpl<Scalar, N, Src> {
   using super = CopyerImpl<Scalar, N, Src>;
 
 public:
-  CopyDeviceToDevice(const hip::Device &device = hip::Device()) {
+  CopyDeviceToDevice(const hip::Device &device = hip::Device())
+      : device_(device) {
     static hip::Kernel shared_kernel =
         internal::copy_device_to_device_build_kernel(
             utils::type_name<Scalar>(), N,
@@ -46,7 +47,6 @@ public:
                                           dst.shape(0));
     }
     kernel_(lp, hip::Stream(device_), dst, src_derived);
-    device_.sync();
   }
 
 private:
