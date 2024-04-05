@@ -39,6 +39,30 @@ template <dim_t p, typename Scalar> NUMERIC_HOST_DEVICE Scalar pow(Scalar val) {
   }
 }
 
+NUMERIC_HOST_DEVICE inline float abs(float x) {
+#ifndef __HIP_DEVICE_COMPILE__
+  return std::fabs(x);
+#else
+  return fabsf(x);
+#endif
+}
+
+NUMERIC_HOST_DEVICE inline double abs(double x) {
+#ifndef __HIP_DEVICE_COMPILE__
+  return std::fabs(x);
+#else
+  return fabs(x);
+#endif
+}
+
+NUMERIC_HOST_DEVICE inline long double abs(long double x) {
+#ifndef __HIP_DEVICE_COMPILE__
+  return std::fabs(x);
+#else
+  return fabs(static_cast<double>(x));
+#endif
+}
+
 NUMERIC_HOST_DEVICE inline float exp(float x) {
 #ifndef __HIP_DEVICE_COMPILE__
   return std::exp(x);

@@ -212,6 +212,14 @@ template <dim_t p> struct OpUnaryPow {
   }
 };
 
+struct OpUnaryAbs {
+  template <typename Scalar>
+  NUMERIC_HOST_DEVICE auto operator()(Scalar val) const
+      noexcept(noexcept(math::abs(val))) {
+    return math::abs(val);
+  }
+};
+
 struct OpUnaryExp {
   template <typename Scalar>
   NUMERIC_HOST_DEVICE auto operator()(Scalar val) const
@@ -394,6 +402,13 @@ template <dim_t p, typename Arg,
 NUMERIC_HOST_DEVICE ArrayUnaryOp<OpUnaryPow<p>, Arg>
 pow(const ArrayBase<Arg> &arg) noexcept {
   return {OpUnaryPow<p>{}, arg.derived()};
+}
+
+template <typename Arg,
+          typename = meta::enable_if_t<ArrayTraits<Arg>::is_array>>
+NUMERIC_HOST_DEVICE ArrayUnaryOp<OpUnaryAbs, Arg>
+abs(const ArrayBase<Arg> &arg) noexcept {
+  return {OpUnaryAbs{}, arg.derived()};
 }
 
 template <typename Arg,

@@ -110,9 +110,13 @@ private:
   }
 
   unsigned reduce_src(const Src &src, scalar_t *buffer) {
-    std::cerr
-        << "WARNING: Sum on the device currently copies data to a buffer first!"
-        << std::endl;
+    static bool warned = false;
+    if (!warned) {
+      std::cerr << "WARNING: Sum on the device currently copies data to a "
+                   "buffer first!"
+                << std::endl;
+      warned = true;
+    }
     memory::Array<scalar_t, memory::ArrayTraits<Src>::dim> input(
         src.shape(), memory::MemoryType::DEVICE);
     input = src;
