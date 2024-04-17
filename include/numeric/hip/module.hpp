@@ -6,9 +6,12 @@
 
 namespace numeric::hip {
 
+/**
+ * @brief Struct representing a HIP module.
+ */
 struct Module {
-  hipModule_t module;
-  std::vector<char> binary;
+  hipModule_t module;       /**< Handle to the HIP module. */
+  std::vector<char> binary; /**< Module binary. */
 
   Module(const std::vector<char> &bin);
   Module(const Module &) = delete;

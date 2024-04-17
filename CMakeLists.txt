@@ -11,6 +11,7 @@ option(NUMERIC_ENABLE_HDF5 "Enable I/O using HDF5" ON)
 option(NUMERIC_ENABLE_NETCDF "Enable I/O using NetCDF4" ON)
 option(NUMERIC_ENABLE_MPI "Parallelize using MPI" ON)
 option(NUMERIC_ENABLE_CLANG_TIDY "Run clang-tidy while compiling" OFF)
+option(NUMERIC_BUILD_DOCS "Build the documentation" ON)
 
 
 if (NUMERIC_ENABLE_CLANG_TIDY)
@@ -147,4 +148,17 @@ endif()
 
 if (NUMERIC_BUILD_EXAMPLES)
   add_subdirectory(examples)
+endif()
+
+
+if (NUMERIC_BUILD_DOCS)
+  find_package(Doxygen REQUIRED)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+  add_custom_target(
+    doxygen
+    COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating API documentation with doxygen"
+    VERBATIM
+  )
 endif()

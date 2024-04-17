@@ -19,24 +19,63 @@ template <typename... Ts> struct ConvertTemplatePackDummy {};
 
 } // namespace detail
 
+/**
+ * @brief Class representing a HIP program.
+ */
 class Program {
   struct Header {
+    /**
+     * @brief Constructs a Header object with the provided name and source.
+     *
+     * @param name Name of the header.
+     * @param src Source code of the header.
+     */
     Header(std::string_view name_, std::string_view src_);
-    std::string name;
-    std::string src;
+    std::string name; /**< Name of the header. */
+    std::string src;  /**< Source code of the header. */
   };
 
 public:
+  /**
+   * @brief Constructs a Program object with the provided source code.
+   *
+   * @param src Source code of the program.
+   */
   Program(std::string src);
+
   Program(const Program &) = default;
   Program(Program &&) = default;
   Program &operator=(const Program &) = default;
   Program &operator=(Program &&) = default;
 
+  /**
+   * @brief Adds a header to the program.
+   *
+   * @param name Name of the header.
+   * @param src Source code of the header.
+   */
   void add_header(std::string_view name, std::string_view src);
+
+  /**
+   * @brief Adds a compile option to the program.
+   *
+   * @param option Compile option to add.
+   */
   void add_compile_option(std::string_view option);
 
+  /**
+   * @brief Instantiates a kernel with the given name.
+   *
+   * @param name Name of the kernel to instantiate.
+   */
   void instantiate_kernel(const std::string &name);
+
+  /**
+   * @brief Instantiates a templated kernel with the given name and types.
+   *
+   * @tparam Types Types to instantiate the kernel with.
+   * @param name Name of the kernel to instantiate.
+   */
   template <typename... Types>
   void instantiate_kernel(const std::string &name) {
     const std::string name_with_type =
@@ -44,8 +83,21 @@ public:
     instantiate_kernel(name_with_type);
   }
 
-  [[nodiscard]] Kernel get_kernel_extern_c(std::string_view name);
-  [[nodiscard]] Kernel get_kernel(const std::string &name);
+  /**
+   * @brief Gets a kernel from the program with extern "C" linkage.
+   *
+   * @param name Name of the kernel. (Mangled if the kernel has C++ linkage)
+   * @return Kernel object.
+   */
+  Kernel get_kernel_extern_c(std::string_view name);
+
+  /**
+   * @brief Gets a kernel from the program.
+   *
+   * @param name Name of the kernel.
+   * @return Kernel object.
+   */
+  Kernel get_kernel(const std::string &name);
   template <typename... Types>
   [[nodiscard]] Kernel get_kernel(const std::string &name) {
     const std::string name_with_type =

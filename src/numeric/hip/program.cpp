@@ -34,7 +34,9 @@ std::vector<std::string_view> Program::numeric_headers_ = {
     "numeric/memory/array_op.hpp",
     "numeric/utils/error.hpp",
     "numeric/utils/tuple.hpp",
+    "numeric/utils/forward.hpp",
     "numeric/meta/meta.hpp",
+    "numeric/meta/type_tag.hpp",
     "numeric/meta/integer_sequence.hpp"};
 
 Program::Header::Header(std::string_view name_, std::string_view src_)

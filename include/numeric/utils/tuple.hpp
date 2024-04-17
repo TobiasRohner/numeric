@@ -3,6 +3,8 @@
 
 #include <numeric/meta/integer_sequence.hpp>
 #include <numeric/meta/meta.hpp>
+#include <numeric/meta/type_tag.hpp>
+#include <numeric/utils/forward.hpp>
 
 namespace numeric::utils {
 
@@ -11,7 +13,7 @@ namespace detail {
 template <size_t I, typename T> struct TupleLeaf {
   TupleLeaf() = default;
   NUMERIC_HOST_DEVICE TupleLeaf(const T &val) : value(val) {}
-  NUMERIC_HOST_DEVICE TupleLeaf(T &&val) : value(val) {}
+  NUMERIC_HOST_DEVICE TupleLeaf(T &&val) : value(utils::forward<T>(val)) {}
   TupleLeaf(const TupleLeaf &) = default;
   TupleLeaf(TupleLeaf &&) = default;
   TupleLeaf &operator=(const TupleLeaf &) = default;
@@ -25,6 +27,8 @@ template <size_t I, typename T> struct TupleLeaf {
   NUMERIC_HOST_DEVICE const T &get(meta::integral_constant<size_t, I>) const {
     return value;
   }
+  NUMERIC_HOST_DEVICE T &get(meta::type_tag<T>) { return value; }
+  NUMERIC_HOST_DEVICE const T &get(meta::type_tag<T>) const { return value; }
 };
 
 template <typename Idxs, typename... Ts> struct TupleBase;
@@ -36,8 +40,8 @@ struct TupleBase<meta::index_sequence<Idxs...>, Ts...>
   using TupleLeaf<Idxs, Ts>::element_type...;
 
   TupleBase() = default;
-  NUMERIC_HOST_DEVICE TupleBase(const Ts &...args)
-      : TupleLeaf<Idxs, Ts>(args)... {}
+  NUMERIC_HOST_DEVICE TupleBase(Ts &&...args)
+      : TupleLeaf<Idxs, Ts>(utils::forward<Ts>(args))... {}
   TupleBase(const TupleBase &) = default;
   TupleBase(TupleBase &&) = default;
   TupleBase &operator=(const TupleBase &) = default;
@@ -59,7 +63,8 @@ public:
   using super::get;
 
   Tuple() = default;
-  NUMERIC_HOST_DEVICE Tuple(const Ts &...args) : super(args...) {}
+  explicit NUMERIC_HOST_DEVICE Tuple(Ts &&...args)
+      : super(utils::forward<Ts>(args)...) {}
   Tuple(const Tuple &) = default;
   Tuple(Tuple &&) = default;
   Tuple &operator=(const Tuple &) = default;
@@ -71,6 +76,20 @@ public:
 
   template <size_t I> NUMERIC_HOST_DEVICE decltype(auto) get() const {
     return get(meta::integral_constant<size_t, I>());
+  }
+
+  template <typename T> NUMERIC_HOST_DEVICE const T &get() const {
+    static constexpr int num_Ts = (meta::is_same_v<T, Ts> + ...);
+    static_assert(num_Ts <= 1, "Tuple contains given type multiple times");
+    static_assert(num_Ts > 0, "Tuple does not contain given type");
+    return get(meta::type_tag<T>());
+  }
+
+  template <typename T> NUMERIC_HOST_DEVICE T &get() {
+    static constexpr int num_Ts = (meta::is_same_v<T, Ts> + ...);
+    static_assert(num_Ts <= 1, "Tuple contains given type multiple times");
+    static_assert(num_Ts > 0, "Tuple does not contain given type");
+    return get(meta::type_tag<T>());
   }
 };
 

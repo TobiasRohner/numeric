@@ -12,6 +12,19 @@
 
 namespace numeric::memory {
 
+/**
+ * @brief Factory function to create a memory resource based on the specified
+ * memory type.
+ *
+ * This function creates and returns a shared pointer to a memory resource of
+ * type `MemoryResource<T>`. The memory type is specified by the enum
+ * `MemoryType`.
+ *
+ * @tparam T The type of data handled by the memory resource.
+ * @param mem_type The memory type.
+ * @return std::shared_ptr<MemoryResource<T>> A shared pointer to the created
+ * memory resource.
+ */
 template <typename T>
 [[nodiscard]] std::shared_ptr<MemoryResource<T>>
 make_memory_resource(MemoryType mem_type) noexcept {

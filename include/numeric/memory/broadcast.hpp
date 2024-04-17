@@ -79,8 +79,8 @@ Broadcast<Src, N>::sub_view(Idxs... idxs) const noexcept {
         meta::make_index_sequence<num_expanded_dims>();
     static constexpr auto idxs_src =
         meta::make_index_sequence<sizeof...(Idxs) - num_expanded_dims>();
-    return sub_view_impl(utils::Tuple<Idxs...>(idxs...), idxs_all,
-                         idxs_broadcast, idxs_src);
+    return sub_view_impl(utils::Tuple<Idxs...>(utils::forward<Idxs>(idxs)...),
+                         idxs_all, idxs_broadcast, idxs_src);
   }
 }
 

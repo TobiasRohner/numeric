@@ -8,14 +8,32 @@
 
 namespace numeric::memory {
 
+/**
+ * @brief Represents the shape of a multidimensional array.
+ *
+ * @tparam N Dimensionality of the shape.
+ */
 template <dim_t N> class Shape {
 public:
+  /**
+   * @brief Default constructor.
+   *
+   * Initializes the shape with zeros.
+   */
   NUMERIC_HOST_DEVICE Shape() {
     for (dim_t i = 0; i < N; ++i) {
       shape_[i] = 0;
     }
   }
 
+  /**
+   * @brief Constructor with variadic arguments.
+   *
+   * Constructs the shape with provided dimensions.
+   *
+   * @tparam Ints Parameter pack of dimensions.
+   * @param dims Dimensions for the shape.
+   */
   template <typename... Ints>
   NUMERIC_HOST_DEVICE Shape(Ints... dims)
       : shape_{static_cast<dim_t>(dims)...} {
@@ -25,17 +43,45 @@ public:
   Shape(const Shape &) = default;
   Shape &operator=(const Shape &) = default;
 
+  /**
+   * @brief Returns a pointer to the raw shape data.
+   *
+   * @return Pointer to the raw shape data.
+   */
   NUMERIC_HOST_DEVICE dim_t *raw() noexcept { return shape_; }
+
+  /**
+   * @brief Returns a const pointer to the raw shape data.
+   *
+   * @return Const pointer to the raw shape data.
+   */
   NUMERIC_HOST_DEVICE const dim_t *raw() const noexcept { return shape_; }
 
+  /**
+   * @brief Accesses the dimension at the specified index.
+   *
+   * @param idx Index of the dimension.
+   * @return Dimension at the specified index.
+   */
   NUMERIC_HOST_DEVICE dim_t &operator[](size_t idx) noexcept {
     return shape_[idx];
   }
 
+  /**
+   * @brief Accesses the dimension at the specified index (const version).
+   *
+   * @param idx Index of the dimension.
+   * @return Dimension at the specified index.
+   */
   NUMERIC_HOST_DEVICE dim_t operator[](size_t idx) const noexcept {
     return shape_[idx];
   }
 
+  /**
+   * @brief Calculates the total size of the shape.
+   *
+   * @return Total size of the shape.
+   */
   NUMERIC_HOST_DEVICE dim_t size() const noexcept {
     dim_t s = 1;
     for (size_t i = 0; i < N; ++i) {

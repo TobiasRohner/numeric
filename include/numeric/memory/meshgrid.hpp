@@ -14,6 +14,17 @@
 
 namespace numeric::memory {
 
+/**
+ * @brief Represents a meshgrid of a single-dimensional argument.
+ *
+ * Meshgrid generates coordinate arrays for multidimensional indexing.
+ * It is a grid of coordinates corresponding to every point in an N-dimensional
+ * space.
+ *
+ * @tparam Arg Type of the argument.
+ * @tparam N Dimensionality of the meshgrid.
+ * @tparam Idx Index of the dimension in the meshgrid.
+ */
 template <typename Arg, dim_t N, dim_t Idx>
 class Meshgrid : public ArrayBase<Meshgrid<Arg, N, Idx>> {
   static_assert(ArrayTraits<Arg>::dim == 1, "Meshgrid requires 1d arguments");
@@ -125,6 +136,15 @@ private:
   }
 };
 
+/**
+ * @brief Traits for the Meshgrid class.
+ *
+ * Specialization of ArrayTraits for Meshgrid class.
+ *
+ * @tparam Arg Type of the argument.
+ * @tparam N Dimensionality of the meshgrid.
+ * @tparam Idx Index of the dimension in the meshgrid.
+ */
 template <typename Arg, dim_t N, dim_t Idx>
 struct ArrayTraits<Meshgrid<Arg, N, Idx>> {
   static constexpr bool is_array = true;
@@ -145,6 +165,15 @@ NUMERIC_HOST_DEVICE auto meshgrid_impl(meta::index_sequence<Idxs...>,
 
 } // namespace detail
 
+/**
+ * @brief Generates meshgrids for given arguments.
+ *
+ * This function generates meshgrids for each argument provided.
+ *
+ * @tparam Args Types of arguments.
+ * @param args Arguments for generating meshgrids.
+ * @return Tuple containing meshgrids for each argument.
+ */
 template <typename... Args>
 NUMERIC_HOST_DEVICE auto meshgrid(const ArrayBase<Args> &...args) {
   return detail::meshgrid_impl(meta::make_index_sequence<sizeof...(Args)>(),

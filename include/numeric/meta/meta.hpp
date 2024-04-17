@@ -35,6 +35,17 @@ template <typename T> struct is_same<T, T> {
 template <typename T1, typename T2>
 static constexpr bool is_same_v = is_same<T1, T2>::value;
 
+template <typename T> struct is_lvalue_reference {
+  static constexpr bool value = false;
+};
+
+template <typename T> struct is_lvalue_reference<T &> {
+  static constexpr bool value = true;
+};
+
+template <typename T>
+static constexpr bool is_lvalue_reference_v = is_lvalue_reference<T>::value;
+
 template <typename T> struct remove_reference { using type = T; };
 
 template <typename T> struct remove_reference<T &> { using type = T; };

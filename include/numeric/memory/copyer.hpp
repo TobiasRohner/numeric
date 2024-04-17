@@ -15,19 +15,48 @@
 
 namespace numeric::memory {
 
+/**
+ * @brief Class for copying data between different memory locations.
+ *
+ * This class provides functionality to copy data between memory locations,
+ * such as host to host, host to device, device to host, and device to device.
+ *
+ * @tparam Scalar The type of the elements in the destination array.
+ * @tparam N The dimensionality of the destination array.
+ * @tparam Src The type of the source array.
+ */
 template <typename Scalar, dim_t N, typename Src> class Copyer {
   using impl_t = CopyerImpl<Scalar, N, Src>;
 
 public:
+  /**
+   * @brief Constructs a Copyer object with a specified implementation.
+   *
+   * @param impl The implementation of the copy operation.
+   */
   Copyer(const std::shared_ptr<impl_t> &impl) : impl_(impl) {}
+
+  /**
+   * @brief Constructs a Copyer object with destination and source arrays.
+   *
+   * @param dst The destination array view.
+   * @param src The source array.
+   */
   Copyer(ArrayView<Scalar, N> dst, const Src &src)
       : Copyer(make_copyer_impl(dst, src)) {}
+
   Copyer(const Copyer &) = default;
   Copyer(Copyer &&) = default;
   ~Copyer() = default;
   Copyer &operator=(const Copyer &) = default;
   Copyer &operator=(Copyer &&) = default;
 
+  /**
+   * @brief Performs the copy operation.
+   *
+   * @param dst The destination array view.
+   * @param src The source array.
+   */
   void operator()(ArrayView<Scalar, N> dst, const ArrayBase<Src> &src) {
     impl_->operator()(dst, src);
   }
@@ -60,6 +89,16 @@ private:
   }
 };
 
+/**
+ * @brief Helper function to create a Copyer object.
+ *
+ * @tparam Scalar The type of the elements in the arrays.
+ * @tparam N The dimensionality of the arrays.
+ * @tparam Src The type of the source array.
+ * @param dst The destination array view.
+ * @param src The source array.
+ * @return Copyer<Scalar, N, Src> The created Copyer object.
+ */
 template <typename Scalar, dim_t N, typename Src>
 Copyer<Scalar, N, Src> make_copyer(ArrayView<Scalar, N> dst, const Src &src) {
   return Copyer<Scalar, N, Src>(dst, src);

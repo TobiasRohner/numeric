@@ -9,6 +9,15 @@
 
 namespace numeric::memory {
 
+/**
+ * @brief Represents a 1-dimensional array of equally spaced values over a
+ * specified interval.
+ *
+ * This class generates an array of equally spaced values over a specified
+ * interval. It is similar to NumPy's linspace function.
+ *
+ * @tparam Scalar The scalar type of the values in the array.
+ */
 template <typename Scalar> class Linspace : public ArrayBase<Linspace<Scalar>> {
   using super = ArrayBase<Linspace<Scalar>>;
 
@@ -16,6 +25,16 @@ public:
   static constexpr dim_t dim = 1;
   using scalar_t = Scalar;
 
+  /**
+   * @brief Constructs a linspace array with the specified parameters.
+   *
+   * @param start The starting value of the interval.
+   * @param stop The ending value of the interval.
+   * @param N The number of samples to generate.
+   * @param endpoint If true, stop is the last sample. Otherwise, it is not
+   * included.
+   * @param memory_type The memory type of the array.
+   */
   NUMERIC_HOST_DEVICE Linspace(scalar_t start, scalar_t stop, dim_t N,
                                bool endpoint = true,
                                MemoryType memory_type = MemoryType::HOST)
@@ -59,6 +78,17 @@ private:
   bool endpoint_;
 };
 
+/**
+ * @brief Generates a linspace array with the specified parameters.
+ *
+ * @param start The starting value of the interval.
+ * @param stop The ending value of the interval.
+ * @param N The number of samples to generate.
+ * @param endpoint If true, stop is the last sample. Otherwise, it is not
+ * included.
+ * @param memory_type The memory type of the array.
+ * @return Linspace<Scalar> The generated linspace array.
+ */
 template <typename Scalar>
 NUMERIC_HOST_DEVICE Linspace<Scalar>
 linspace(Scalar start, Scalar stop, dim_t N, bool endpoint = true,
@@ -66,6 +96,11 @@ linspace(Scalar start, Scalar stop, dim_t N, bool endpoint = true,
   return Linspace<Scalar>(start, stop, N, endpoint, memory_type);
 }
 
+/**
+ * @brief Specialization of ArrayTraits for Linspace.
+ *
+ * Provides information about the Linspace array type.
+ */
 template <typename Scalar> struct ArrayTraits<Linspace<Scalar>> {
   static constexpr bool is_array = true;
   static constexpr dim_t dim = 1;

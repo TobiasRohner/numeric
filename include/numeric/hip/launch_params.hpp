@@ -7,6 +7,9 @@
 
 namespace numeric::hip {
 
+/**
+ * @brief Struct representing the launch parameters for a HIP kernel.
+ */
 struct LaunchParams {
   unsigned grid_dim_x, grid_dim_y, grid_dim_z;
   unsigned block_dim_x, block_dim_y, block_dim_z;

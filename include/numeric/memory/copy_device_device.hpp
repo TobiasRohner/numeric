@@ -14,16 +14,41 @@ namespace numeric::memory {
 
 namespace internal {
 
+/**
+ * @brief Builds the kernel for copying data from device to device.
+ *
+ * This function constructs the kernel for copying data from device to device.
+ *
+ * @param scalar The type name of the scalar of the destination array.
+ * @param N The dimensionality of the data.
+ * @param src The type name of the source array.
+ * @return hip::Kernel The constructed kernel.
+ */
 hip::Kernel copy_device_to_device_build_kernel(std::string_view scalar, dim_t N,
                                                std::string_view src);
 
-}
+} // namespace internal
 
+/**
+ * @brief Class for copying data between two arrays on a device.
+ *
+ * This class provides functionality to copy data between two arrays on a
+ * device.
+ *
+ * @tparam Scalar The type of the elements in the destination array.
+ * @tparam N The dimensionality of the destination array.
+ * @tparam Src The type of the source array.
+ */
 template <typename Scalar, dim_t N, typename Src>
 class CopyDeviceToDevice : public CopyerImpl<Scalar, N, Src> {
   using super = CopyerImpl<Scalar, N, Src>;
 
 public:
+  /**
+   * @brief Constructs a CopyDeviceToDevice object.
+   *
+   * @param device The device to use for the copy operation.
+   */
   CopyDeviceToDevice(const hip::Device &device = hip::Device())
       : device_(device) {
     static hip::Kernel shared_kernel =
@@ -34,6 +59,12 @@ public:
     kernel_ = shared_kernel;
   }
 
+  /**
+   * @brief Performs the copy operation from device to device.
+   *
+   * @param dst The destination array view.
+   * @param src The source array.
+   */
   virtual void operator()(ArrayView<Scalar, N> dst,
                           const ArrayBase<Src> &src) override {
     const auto src_derived = src.derived().broadcast(dst.shape());

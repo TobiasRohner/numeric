@@ -7,6 +7,7 @@
 #include <numeric/memory/constant.hpp>
 #include <numeric/memory/linspace.hpp>
 #include <numeric/memory/meshgrid.hpp>
+#include <numeric/mesh/regular_grid.hpp>
 
 using namespace numeric;
 
@@ -15,14 +16,18 @@ using real_t = float;
 int main() {
   using sl = memory::Slice;
 
-  const memory::MemoryType memory_type = memory::MemoryType::DEVICE;
+  const memory::MemoryType memory_type = memory::MemoryType::HOST;
 
-  static constexpr dim_t N = 2048;
-  const real_t dx = 2. / (N - 1);
+  static constexpr dim_t N = 1024;
   const real_t tol = 1e-5;
 
-  const memory::Linspace<real_t> x(-1 - dx, 1 + dx, N + 2, true, memory_type);
-  const auto [X, Y] = memory::meshgrid(x, x);
+  mesh::RegularGrid<real_t, 2> mesh(memory::Shape<2>(N, N), 1, memory_type);
+  mesh.set_origin(-1, -1);
+  mesh.set_size(2, 2);
+  const real_t dx = mesh.dx(0);
+  const real_t dy = mesh.dx(1);
+
+  const auto [X, Y] = mesh.cell_positions();
   const memory::Array<real_t, 2> u_exact = X * X + Y * Y;
   const memory::Array<real_t, 2> f = memory::Constant<real_t, 2>(
       memory::Shape<2>(N + 2, N + 2), -4, memory_type);
@@ -37,7 +42,7 @@ int main() {
     return (4 * bd(sl(1, -2), sl(1, -2)) - bd(sl(1, -2), sl(0, -3)) -
             bd(sl(1, -2), sl(2, -1)) - bd(sl(0, -3), sl(1, -2)) -
             bd(sl(2, -1), sl(1, -2))) /
-           (dx * dx);
+           (dx * dy);
   };
   math::ConjugateGradient<real_t, decltype(negative_laplacian)> cg(
       negative_laplacian);
@@ -52,7 +57,8 @@ int main() {
     std::cout << "No convergence in " << num_iter
               << " iterations (error = " << error << ")" << std::endl;
   }
-  std::cout << "L2-err = " << math::norm::l2(u - u_exact) << std::endl;
+  std::cout << "L2-err = " << math::norm::l2(u - u_exact) / (N * N)
+            << std::endl;
 
   memory::Array<real_t, 2> f_host(f.shape());
   memory::Array<real_t, 2> u_host(u.shape());

@@ -10,15 +10,48 @@
 
 namespace numeric::hip {
 
+/**
+ * @brief Class representing a HIP compute kernel.
+ */
 class Kernel {
 public:
+  /**
+   * @brief Default constructor.
+   *
+   * Constructs an empty Kernel object.
+   */
   Kernel();
+
+  /**
+   * @brief Constructor with module and kernel name.
+   *
+   * Constructs a Kernel object with the specified module and kernel name.
+   *
+   * @param module Shared pointer to the module containing the kernel.
+   * @param name Name of the kernel function.
+   */
   Kernel(const std::shared_ptr<Module> &module, std::string_view name);
+
   Kernel(const Kernel &) = default;
   Kernel(Kernel &&) = default;
   Kernel &operator=(const Kernel &) = default;
   Kernel &operator=(Kernel &&) = default;
 
+  /**
+   * @brief Conversion operator to bool.
+   *
+   * @return True if the kernel is valid, false otherwise.
+   */
+  operator bool() const noexcept { return kernel_ != NULL; }
+
+  /**
+   * @brief Launches the kernel asynchronously.
+   *
+   * @tparam Args Argument types.
+   * @param params Launch parameters.
+   * @param stream Stream where the kernel will be launched.
+   * @param args Arguments to be passed to the kernel.
+   */
   template <typename... Args>
   void async(const LaunchParams &params, const Stream &stream,
              Args &&...args) const {
@@ -30,6 +63,14 @@ public:
         NULL));
   }
 
+  /**
+   * @brief Launches the kernel synchronously.
+   *
+   * @tparam Args Argument types.
+   * @param params Launch parameters.
+   * @param stream Stream where the kernel will be launched.
+   * @param args Arguments to be passed to the kernel.
+   */
   template <typename... Args>
   void operator()(const LaunchParams &params, const Stream &stream,
                   Args &&...args) const {

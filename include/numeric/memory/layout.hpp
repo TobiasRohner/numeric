@@ -10,17 +10,38 @@
 
 namespace numeric::memory {
 
+/**
+ * @brief Represents the layout information of an array.
+ *
+ * This class provides methods to access the shape and stride information
+ * of an array's layout.
+ *
+ * @tparam N The dimensionality of the array.
+ */
 template <dim_t N> class Layout {
 public:
   Layout() = default;
+
+  /**
+   * @brief Constructs a layout with the given dimensions.
+   *
+   * @param dims The dimensions of the array.
+   */
   template <typename... Ints>
   NUMERIC_HOST_DEVICE Layout(Ints... dims) : Layout(Shape<N>(dims...)) {}
+
+  /**
+   * @brief Constructs a layout with the given shape.
+   *
+   * @param shape The shape of the array.
+   */
   NUMERIC_HOST_DEVICE Layout(const Shape<N> &shape) : shape_(shape) {
     stride_[N - 1] = 1;
     for (dim_t i = 2; i <= N; ++i) {
       stride_[N - i] = shape_[N - i + 1] * stride_[N - i + 1];
     }
   }
+
   Layout(const Layout &) = default;
   Layout &operator=(const Layout &) = default;
 

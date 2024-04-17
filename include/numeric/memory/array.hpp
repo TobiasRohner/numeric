@@ -8,22 +8,50 @@
 
 namespace numeric::memory {
 
+/**
+ * @brief Class for representing a dynamically allocated array.
+ *
+ * This class provides functionality for managing dynamically allocated arrays
+ * with specified layout and memory type.
+ *
+ * @tparam Scalar The data type of the elements in the array.
+ * @tparam N The dimensionality of the array.
+ */
 template <typename Scalar, dim_t N> class Array : public ArrayView<Scalar, N> {
   using super = ArrayView<Scalar, N>;
 
 public:
-  using scalar_t = Scalar;
-  static constexpr dim_t dim = N;
+  using scalar_t = Scalar; /**< Data type of the elements in the array. */
+  static constexpr dim_t dim = N; /**< Dimensionality of the array. */
 
+  /**
+   * @brief Default constructor.
+   *
+   * Constructs an empty Array with no memory allocation.
+   */
   Array() : super(nullptr, {}, MemoryType::UNKNOWN), alloc_(nullptr) {}
 
+  /**
+   * @brief Constructs an Array with the given shape and allocator.
+   *
+   * @param shape The shape of the array.
+   * @param alloc The allocator used for memory allocation.
+   */
   Array(const Shape<dim> &shape, Allocator<scalar_t> alloc)
       : super(alloc.allocate(shape.size()), Layout<dim>(shape),
               alloc.memory_type()),
         alloc_(alloc) {}
+
+  /**
+   * @brief Constructs an Array with the given shape and memory type.
+   *
+   * @param shape The shape of the array.
+   * @param mem_type The memory type of the array.
+   */
   explicit Array(const Shape<dim> &shape,
                  MemoryType mem_type = MemoryType::HOST)
       : Array(shape, Allocator<scalar_t>(mem_type)) {}
+
   Array(const Array &other) : Array(other.shape(), other.memory_type_) {
     *this = other;
   }
@@ -85,7 +113,12 @@ public:
     }
   }
 
-  [[nodiscard]] ArrayView<Scalar, N> view() noexcept { return *this; }
+  /**
+   * @brief Gets a mutable view of the array.
+   *
+   * @return ArrayView representing a mutable view of the array.
+   */
+  ArrayView<Scalar, N> view() noexcept { return *this; }
 
   using super::const_view;
   using super::memory_type;
@@ -106,10 +139,19 @@ protected:
   using super::memory_index;
 };
 
+/**
+ * @brief Traits struct for Array.
+ *
+ * This struct provides information about Array types.
+ *
+ * @tparam Scalar The data type of the elements in the array.
+ * @tparam N The dimensionality of the array.
+ */
 template <typename Scalar, dim_t N> struct ArrayTraits<Array<Scalar, N>> {
-  static constexpr bool is_array = true;
-  static constexpr dim_t dim = N;
-  using scalar_t = Scalar;
+  static constexpr bool is_array =
+      true; /**< Indicates whether the type is an array. */
+  static constexpr dim_t dim = N; /**< Dimensionality of the array. */
+  using scalar_t = Scalar; /**< Data type of the elements in the array. */
 };
 
 } // namespace numeric::memory

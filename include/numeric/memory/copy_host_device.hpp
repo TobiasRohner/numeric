@@ -13,11 +13,29 @@
 
 namespace numeric::memory {
 
+/**
+ * @brief Class for copying data from host to device.
+ *
+ * This class provides functionality to copy data from host to device
+ * memory.
+ *
+ * @tparam Scalar The type of the elements in the destination array.
+ * @tparam N The dimensionality of the destination array.
+ * @tparam Src The type of the source array.
+ */
 template <typename Scalar, dim_t N, typename Src>
 class CopyHostToDevice : public CopyerImpl<Scalar, N, Src> {
   using super = CopyerImpl<Scalar, N, Src>;
 
 public:
+  /**
+   * @brief Constructs a CopyHostToDevice object.
+   *
+   * @param dst The destination array view.
+   * @param src The source array.
+   * @param allocate_workspace Whether to allocate workspace for copying.
+   * (Currently only a value of `true` is supported)
+   */
   CopyHostToDevice(const ArrayView<Scalar, N> &dst, const ArrayBase<Src> &src,
                    bool allocate_workspace = true)
       : allocate_workspace_(allocate_workspace) {
@@ -43,6 +61,15 @@ public:
     }
   }
 
+  /**
+   * @brief Performs the copy operation.
+   *
+   * Copies data from the source array in host memory to the destination
+   * array in device memory.
+   *
+   * @param dst The destination array view.
+   * @param src The source array.
+   */
   virtual void operator()(ArrayView<Scalar, N> dst,
                           const ArrayBase<Src> &src) override {
     cpy_h_h_(buffer_host_, src);

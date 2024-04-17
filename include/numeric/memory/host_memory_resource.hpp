@@ -6,6 +6,14 @@
 
 namespace numeric::memory {
 
+/**
+ * @brief Memory resource for allocating memory on the host.
+ *
+ * This class allocates memory on the host using std::malloc for allocation
+ * and std::free for deallocation.
+ *
+ * @tparam T The type of elements to allocate.
+ */
 template <typename T> class HostMemoryResource : public MemoryResource<T> {
   using super = MemoryResource<T>;
 
@@ -24,9 +32,22 @@ public:
   using super::memory_type;
 
 protected:
+  /**
+   * @brief Allocates memory on the host.
+   *
+   * @param n The number of elements to allocate.
+   * @return A pointer to the allocated memory.
+   */
   virtual pointer do_allocate(size_type n) override {
     return static_cast<T *>(malloc(n * sizeof(T)));
   }
+
+  /**
+   * @brief Deallocates memory on the host.
+   *
+   * @param p Pointer to the memory to deallocate.
+   * @param n The number of elements previously allocated (unused).
+   */
   virtual void do_deallocate(pointer p, size_type /*n*/) override { free(p); }
 };
 

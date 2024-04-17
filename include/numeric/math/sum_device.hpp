@@ -1,8 +1,8 @@
 #ifndef NUMERIC_MATH_SUM_DEVICE_HPP_
 #define NUMERIC_MATH_SUM_DEVICE_HPP_
 
-#include <hip/hip_runtime_api.h>
 #include <numeric/hip/kernel.hpp>
+#include <numeric/hip/runtime.hpp>
 #include <numeric/math/functions.hpp>
 #include <numeric/math/summer_impl.hpp>
 #include <numeric/memory/array.hpp>
