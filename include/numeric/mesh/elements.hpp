@@ -6,28 +6,40 @@
 namespace numeric::mesh {
 
 template <dim_t Order> struct Point {
+  static constexpr dim_t dim = 0;
+
   static constexpr dim_t num_nodes() { return 1; }
 };
 
 template <dim_t Order> struct Segment {
+  static constexpr dim_t dim = 1;
+
   static constexpr dim_t num_nodes() { return Order + 1; }
 };
 
 template <dim_t Order> struct Tria {
+  static constexpr dim_t dim = 2;
+
   static constexpr dim_t num_nodes() { return (Order + 1) * (Order + 2) / 2; }
 };
 
 template <dim_t Order> struct Quad {
+  static constexpr dim_t dim = 2;
+
   static constexpr dim_t num_nodes() { return (Order + 1) * (Order + 1); }
 };
 
 template <dim_t Order> struct Tetra {
+  static constexpr dim_t dim = 3;
+
   static constexpr dim_t num_nodes() {
-    return (Order + 1) * (Order + 2) * (Order + 3) / 2;
+    return (Order + 1) * (Order + 2) * (Order + 3) / 6;
   }
 };
 
 template <dim_t Order> struct Cube {
+  static constexpr dim_t dim = 3;
+
   static constexpr dim_t num_nodes() {
     return (Order + 1) * (Order + 1) * (Order + 1);
   }

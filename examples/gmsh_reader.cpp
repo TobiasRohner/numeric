@@ -21,11 +21,12 @@ int main(int argc, char *argv[]) {
 
   auto print_elements = [&]<typename Element>() {
     std::cout << to_string(io::to_gmsh_element_type_v<Element>) << std::endl;
-    const auto elements = mesh.template get_elements<Element>().elements();
-    for (dim_t element = 0; element < elements.shape(1); ++element) {
+    const auto &elements = mesh.template get_elements<Element>();
+    const auto idxs = elements.indices();
+    for (dim_t element = 0; element < elements.num_elements(); ++element) {
       std::cout << "  ";
-      for (dim_t i = 0; i < elements.shape(0); ++i) {
-        std::cout << elements(i, element) << ' ';
+      for (dim_t i = 0; i < elements.num_nodes_per_element(); ++i) {
+        std::cout << idxs(i, element) << ' ';
       }
       std::cout << std::endl;
     }

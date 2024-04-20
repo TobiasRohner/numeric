@@ -10,7 +10,7 @@ template <typename Derived> class ElementListBase {
 public:
   using element_t = typename ElementListTraits<Derived>::element_t;
 
-  dim_t num_elements() const noexcept { return derived().elements().shape(1); }
+  dim_t num_elements() const noexcept { return derived().indices().shape(1); }
   static constexpr dim_t num_nodes_per_element() noexcept {
     return element_t::num_nodes();
   }

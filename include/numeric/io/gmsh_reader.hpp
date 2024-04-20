@@ -121,7 +121,7 @@ protected:
               elements[element * (1 + num_nodes_per_element) + 0];
           const size_t idx = element;
           for (size_t i = 0; i < num_nodes_per_element; ++i) {
-            mesh_.template get_elements<Element>().elements()(i, idx) =
+            mesh_.template get_elements<Element>().indices()(i, idx) =
                 elements[element * (1 + num_nodes_per_element) + i + 1];
           }
         }

@@ -21,10 +21,10 @@ public:
   ElementList &operator=(const ElementList &) = delete;
   ElementList &operator=(ElementList &&) = default;
 
-  memory::ArrayConstView<dim_t, 2> elements() const noexcept {
+  memory::ArrayConstView<dim_t, 2> indices() const noexcept {
     return elements_;
   }
-  memory::ArrayView<dim_t, 2> elements() noexcept { return elements_; }
+  memory::ArrayView<dim_t, 2> indices() noexcept { return elements_; }
 
   using super::num_elements;
   using super::num_nodes_per_element;

@@ -13,7 +13,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-result"
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-#pragma clang diagnostic ignored "-Wreturn-local-addr"
+#pragma clang diagnostic ignored "-Wreturn-stack-address"
 #endif
 
 #ifndef __HIP_DEVICE_COMPILE__
