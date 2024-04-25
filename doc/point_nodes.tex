@@ -1,0 +1,10 @@
+\documentclass[tikz,convert]{standalone}
+
+\begin{document}
+\begin{tikzpicture}
+  \draw[->] (0,0,0) -- (0,0,1.5);
+  \draw[->] (0,0,0) -- (0,1.5,0);
+  \draw[->] (0,0,0) -- (1.5,0,0);
+  \draw plot[mark=*, mark size=1] coordinates{(0,0,0)};
+\end{tikzpicture}
+\end{document}

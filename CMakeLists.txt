@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.21)
 project(numeric VERSION 0.1 LANGUAGES C CXX)
 
 
+include(CMakeDependentOption)
+
+
 option(NUMERIC_ENABLE_HIP "Enable GPU support using HIP" ON)
 option(NUMERIC_BUILD_TESTS "Build Tests for the Library" ON)
 option(NUMERIC_BUILD_EXAMPLES "Build Examples" ON)
@@ -12,6 +15,7 @@ option(NUMERIC_ENABLE_NETCDF "Enable I/O using NetCDF4" ON)
 option(NUMERIC_ENABLE_MPI "Parallelize using MPI" ON)
 option(NUMERIC_ENABLE_CLANG_TIDY "Run clang-tidy while compiling" OFF)
 option(NUMERIC_BUILD_DOCS "Build the documentation" ON)
+cmake_dependent_option(NUMERIC_DOXYGEN_QUIET "Suppress doxygen output" OFF "NUMERIC_BUILD_DOCS" OFF)
 
 
 if (NUMERIC_ENABLE_CLANG_TIDY)
@@ -152,13 +156,5 @@ endif()
 
 
 if (NUMERIC_BUILD_DOCS)
-  find_package(Doxygen REQUIRED)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-  add_custom_target(
-    doxygen
-    COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating API documentation with doxygen"
-    VERBATIM
-  )
+  add_subdirectory(doc)
 endif()

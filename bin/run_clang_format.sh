@@ -7,3 +7,4 @@ find ${root}/src -regex '.*\.\(cpp\|hpp\|cu\|cuh\)' -exec clang-format -i {} \;
 find ${root}/test -regex '.*\.\(cpp\|hpp\|cu\|cuh\)' -exec clang-format -i {} \;
 find ${root}/benchmark -regex '.*\.\(cpp\|hpp\|cu\|cuh\)' -exec clang-format -i {} \;
 find ${root}/examples -regex '.*\.\(cpp\|hpp\|cu\|cuh\)' -exec clang-format -i {} \;
+find ${root}/doc -regex '.*\.\(cpp\|hpp\|cu\|cuh\)' -exec clang-format -i {} \;
