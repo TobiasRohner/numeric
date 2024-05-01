@@ -21,6 +21,7 @@ add_custom_target(
   COMMAND find -maxdepth 1 -name *.tex -exec ${PDFLATEX_COMPILER} --shell-escape {} ${NUMERIC_LATEX_OUTPUT_SUPPRESSION} \;
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS doxygen_latex_src
+  COMMENT "Generating Element Info Images"
   VERBATIM
 )
 

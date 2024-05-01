@@ -57,6 +57,7 @@ template <typename Derived> struct BasisL2Base : public BasisBase<Derived> {
   using super::gradient;
   using super::num_basis_functions;
   using super::num_interior_basis_functions;
+  using super::total_num_basis_functions;
 };
 
 template <dim_t Order> struct BasisL2 : public BasisL2Base<BasisL2<Order>> {
@@ -73,6 +74,7 @@ template <> struct BasisL2<0> : public BasisL2Base<BasisL2<0>> {
   using super::gradient;
   using super::num_basis_functions;
   using super::num_interior_basis_functions;
+  using super::total_num_basis_functions;
 
   template <typename Element, typename Scalar>
   static void eval(Scalar *out, const Scalar *x, meta::type_tag<Element>) {
@@ -98,6 +100,7 @@ template <> struct BasisL2<1> : public BasisL2Base<BasisL2<1>> {
   using super::gradient;
   using super::num_basis_functions;
   using super::num_interior_basis_functions;
+  using super::total_num_basis_functions;
 
   template <typename Scalar, dim_t Ord>
   static void eval(Scalar *out, const Scalar *x,

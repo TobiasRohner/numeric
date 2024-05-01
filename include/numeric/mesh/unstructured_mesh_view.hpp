@@ -3,7 +3,6 @@
 
 #include <numeric/config.hpp>
 #include <numeric/memory/array.hpp>
-#include <numeric/mesh/element_list_view.hpp>
 #include <numeric/mesh/unstructured_mesh.hpp>
 #include <numeric/mesh/unstructured_mesh_base.hpp>
 #include <numeric/utils/tuple.hpp>
@@ -12,16 +11,16 @@ namespace numeric::mesh {
 
 template <typename Scalar, typename... ElementTypes>
 class UnstructuredMeshView
-    : public UnstructuredMeshViewBase<
+    : public UnstructuredMeshBase<
           UnstructuredMeshView<Scalar, ElementTypes...>> {
   using super =
-      UnstructuredMeshViewBase<UnstructuredMeshView<Scalar, ElementTypes...>>;
+      UnstructuredMeshBase<UnstructuredMeshView<Scalar, ElementTypes...>>;
 
 public:
   UnstructuredMeshView() = default;
 
   template <typename... NumElementTs>
-  UnstructuredMeshView(UnstructuredMesh<Scalar, ElementTypes> &mesh)
+  UnstructuredMeshView(UnstructuredMesh<Scalar, ElementTypes...> &mesh)
       : vertices_(mesh.vertices()),
         elements_(mesh.template get_elements<ElementTypes>()...) {}
   UnstructuredMeshView(const UnstructuredMeshView &) = default;
@@ -35,27 +34,17 @@ public:
   memory::ArrayView<Scalar, 2> vertices() noexcept { return vertices_; }
 
   template <typename ElementType>
-  const ElementListView<ElementType> &get_elements() const noexcept {
-    return elements_.template get<ElementListView<ElementType>>();
+  memory::ArrayConstView<dim_t, 2> get_elements() const noexcept {
+    return elements_.template get<ElementType>();
   }
   template <typename ElementType>
-  ElementListView<ElementType> &get_elements() noexcept {
-    return elements_.template get<ElementListView<ElementType>>();
-  }
-
-  void set_vertices(memory::Array<Scalar, 2> &vertices) {
-    vertices_.set(vertices);
-  }
-
-  template <typename ElementType>
-  void set_elements(ElementListView<ElementType> &elements) {
-    elements_.template get<ElementListView<ElementType>>() =
-        std::move(elements);
+  memory::ArrayView<dim_t, 2> get_elements() noexcept {
+    return elements_.template get<ElementType>();
   }
 
 private:
   memory::ArrayView<Scalar, 2> vertices_;
-  utils::Tuple<ElementListView<ElementTypes>...> elements_;
+  utils::TypeIndexedMap<memory::ArrayView<dim_t, 2>, ElementTypes...> elements_;
 };
 
 } // namespace numeric::mesh

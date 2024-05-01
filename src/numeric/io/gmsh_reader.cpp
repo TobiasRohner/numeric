@@ -162,9 +162,9 @@ bool GmshReaderBase::parse_unknown(std::istream &is,
   return true;
 }
 
-size_t GmshReaderBase::node_tag_to_idx(size_t tag, size_t min_node_tag) {
+size_t GmshReaderBase::node_tag_to_idx(size_t tag) {
   if (nodes_are_contiguous_) {
-    return tag - min_node_tag;
+    return tag - min_node_tag_;
   } else {
     auto tag_to_idx = node_tag_to_idx_map_.find(tag);
     if (tag_to_idx == node_tag_to_idx_map_.end()) {
