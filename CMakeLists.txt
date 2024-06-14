@@ -39,6 +39,13 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
   GIT_TAG master
 )
+#set(BOOST_INCLUDE_LIBRARIES multiprecision math)
+FetchContent_Declare(
+  Boost
+  GIT_REPOSITORY https://github.com/boostorg/boost.git
+  GIT_TAG boost-1.85.0
+  GIT_PROGRESS TRUE
+)
 if (NUMERIC_ENABLE_EIGEN)
   FetchContent_Declare(
     Eigen
@@ -88,7 +95,7 @@ if (NUMERIC_BUILD_BENCHMARKS)
   )
 endif()
 
-FetchContent_MakeAvailable(fmt)
+FetchContent_MakeAvailable(fmt Boost)
 if (NUMERIC_ENABLE_EIGEN)
   FetchContent_MakeAvailable(Eigen)
   set(EIGEN_BUILD_DOC OFF)
@@ -109,6 +116,7 @@ endif()
 
 
 target_link_libraries(numeric PUBLIC fmt::fmt)
+target_link_libraries(numeric PUBLIC Boost::multiprecision Boost::math Boost::headers)
 if(NUMERIC_ENABLE_CLANG_TIDY)
   set_target_properties(numeric PROPERTIES CXX_CLANG_TIDY ${NUMERIC_CLANG_TIDY_CMD})
 endif()

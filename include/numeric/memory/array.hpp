@@ -1,10 +1,13 @@
 #ifndef NUMERIC_MEMORY_ARRAY_HPP_
 #define NUMERIC_MEMORY_ARRAY_HPP_
 
+#include <limits>
 #include <numeric/config.hpp>
 #include <numeric/memory/allocator.hpp>
 #include <numeric/memory/array_traits.hpp>
 #include <numeric/memory/array_view.hpp>
+#include <random>
+#include <type_traits>
 
 namespace numeric::memory {
 
@@ -23,6 +26,50 @@ template <typename Scalar, dim_t N> class Array : public ArrayView<Scalar, N> {
 public:
   using scalar_t = Scalar; /**< Data type of the elements in the array. */
   static constexpr dim_t dim = N; /**< Dimensionality of the array. */
+
+  /*
+   * @brief Generates an Array with uniformly distributed elements
+   *
+   * @param min Minimum value of the distribution
+   * @param max Maximum value (inclusive) of the distribution
+   * @param shape Shape of the generated Array
+   * @param rng Any random number generator
+   */
+  template <typename RNG>
+  static Array<Scalar, N> uniform(scalar_t min, scalar_t max,
+                                  const Shape<dim> &shape, RNG &rng) {
+    static_assert(
+        std::numeric_limits<scalar_t>::is_specialized,
+        "std::numeric_limits is not specialized for given scalar type");
+    using dist_t = std::conditional_t<std::numeric_limits<scalar_t>::is_integer,
+                                      std::uniform_int_distribution<scalar_t>,
+                                      std::uniform_real_distribution<scalar_t>>;
+    Array<Scalar, N> a(shape, MemoryType::HOST);
+    dist_t dist(min, max);
+    for (dim_t i = 0; i < shape.size(); ++i) {
+      a.raw()[i] = dist(rng);
+    }
+    return a;
+  }
+
+  /*
+   * @brief Generates an Array with normal distributed elements
+   *
+   * @param mu Mean of the distribution
+   * @param sigma Standard deviation of the distribution
+   * @param shape Shape of the generated Array
+   * @param rng Any random number generator
+   */
+  template <typename RNG>
+  static Array<Scalar, N> normal(scalar_t mu, scalar_t sigma,
+                                 const Shape<dim> &shape, RNG &rng) {
+    Array<Scalar, N> a(shape, MemoryType::HOST);
+    std::normal_distribution<scalar_t> dist(mu, sigma);
+    for (dim_t i = 0; i < shape.size(); ++i) {
+      a.raw()[i] = dist(rng);
+    }
+    return a;
+  }
 
   /**
    * @brief Default constructor.

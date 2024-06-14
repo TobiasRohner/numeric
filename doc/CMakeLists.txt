@@ -1,11 +1,14 @@
 add_executable(generate_element_info_src generate_element_info_src.cpp)
 target_link_libraries(generate_element_info_src PUBLIC numeric)
 
+add_executable(generate_quad_rule_info_src generate_quad_rule_info_src.cpp)
+target_link_libraries(generate_quad_rule_info_src PUBLIC numeric)
+
 add_custom_target(
   doxygen_latex_src
-  COMMAND generate_element_info_src
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/generate_element_info_src && ${CMAKE_CURRENT_BINARY_DIR}/generate_quad_rule_info_src
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS generate_element_info_src
+  DEPENDS generate_element_info_src generate_quad_rule_info_src
   COMMENT "Generating LaTeX Source for Documentation"
   VERBATIM
 )

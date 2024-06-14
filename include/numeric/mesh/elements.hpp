@@ -39,7 +39,7 @@ template <typename Derived> struct ElementBase {
 /**
  * @brief Mesh Point of arbitrary order
  *
- * @image html reference_element_Point.png "Reference Element"
+ * ![Reference Element](reference_element_Point.png "Reference Element")
  */
 template <dim_t Order> struct Point : public ElementBase<Point<Order>> {
   using super = ElementBase<Point<Order>>;
@@ -52,13 +52,22 @@ template <dim_t Order> struct Point : public ElementBase<Point<Order>> {
 
   using super::num_subelements;
   using super::subelement_node_idxs;
+
+  template <typename Scalar>
+  static constexpr void local_to_global(Scalar *nodes[1], Scalar *x,
+                                        Scalar *out, dim_t world_dim) {
+    for (dim_t i = 0; i < world_dim; ++i) {
+      out[i] = nodes[i][0];
+    }
+  }
 };
 
 /**
  * @brief Mesh Segment of arbitrary order
  *
- * @image html reference_element_Segment.png "Reference Element"
- * @image html subelement_indexing_Segment_Point.png "Ordering of Points"
+ * ![Reference Element](reference_element_Segment.png "Reference Element")
+ * ![Ordering of Points](subelement_indexing_Segment_Point.png "Ordering of
+ * Points")
  */
 template <dim_t Order> struct Segment : public ElementBase<Segment<Order>> {
   using super = ElementBase<Segment<Order>>;
@@ -79,14 +88,30 @@ template <dim_t Order> struct Segment : public ElementBase<Segment<Order>> {
     idxs[0] = subelement;
   }
   using super::subelement_node_idxs;
+
+  template <typename Scalar>
+  static constexpr void local_to_global(Scalar *nodes[num_nodes()], Scalar *x,
+                                        Scalar *out, dim_t world_dim) {
+    if constexpr (order == 1) {
+      const Scalar x1 = x[0];
+      for (dim_t i = 0; i < world_dim; ++i) {
+        out[i] = nodes[i][1] * x1 + nodes[i][0] * (1 - x1);
+      }
+    } else {
+      static_assert(
+          order != order,
+          "local to global map of segment not implemented for the given order");
+    }
+  }
 };
 
 /**
  * @brief Mesh Triangle of arbitrary order
  *
- * @image html reference_element_Tria.png "Reference Element"
- * @image html subelement_indexing_Tria_Point.png "Ordering o Points"
- * @image html subelement_indexing_Tria_Segment.png "Ordering of Segments"
+ * ![Reference Element](reference_element_Tria.png "Reference Element")
+ * ![Ordering of Points](subelement_indexing_Tria_Point.png "Ordering o Points")
+ * ![Ordering of Segments](subelement_indexing_Tria_Segment.png "Ordering of
+ * Segments")
  */
 template <dim_t Order> struct Tria : public ElementBase<Tria<Order>> {
   using super = ElementBase<Tria<Order>>;
@@ -118,14 +143,35 @@ template <dim_t Order> struct Tria : public ElementBase<Tria<Order>> {
     }
   }
   using super::subelement_node_idxs;
+
+  template <typename Scalar>
+  static constexpr void local_to_global(Scalar *nodes[num_nodes()], Scalar *x,
+                                        Scalar *out, dim_t world_dim) {
+    if constexpr (order == 1) {
+      const Scalar x1 = x[0];
+      const Scalar x2 = x[1];
+      const Scalar l1 = 1 - x1 - x2;
+      const Scalar l2 = x1;
+      const Scalar l3 = x2;
+      for (dim_t i = 0; i < world_dim; ++i) {
+        out[i] = l1 * nodes[i][0] + l2 * nodes[i][1] + l3 * nodes[i][2];
+      }
+    } else {
+      static_assert(
+          order != order,
+          "local to global map of segment not implemented for the given order");
+    }
+  }
 };
 
 /**
  * @brief Mesh Quadrilateral of arbitrary order
  *
- * @image html reference_element_Quad.png "Reference Element"
- * @image html subelement_indexing_Quad_Point.png "Ordering of Points"
- * @image html subelement_indexing_Quad_Segment.png "Ordering of Segments"
+ * ![Reference Element]( reference_element_Quad.png "Reference Element")
+ * ![Ordering of Points](subelement_indexing_Quad_Point.png "Ordering of
+ * Points")
+ * ![Ordering of Segments](subelement_indexing_Quad_Segment.png "Ordering of
+ * Segments")
  */
 template <dim_t Order> struct Quad : public ElementBase<Quad<Order>> {
   using super = ElementBase<Quad<Order>>;
@@ -162,10 +208,13 @@ template <dim_t Order> struct Quad : public ElementBase<Quad<Order>> {
 /**
  * @brief Mesh Tetrahedron of arbitrary order
  *
- * @image html reference_element_Tetra.png "Reference Element"
- * @image html subelement_indexing_Tetra_Point.png "Ordering of Points"
- * @image html subelement_indexing_Tetra_Segment.png "Ordering of Segments"
- * @image html subelement_indexing_Tetra_Tria.png "Ordering of Triangles"
+ * ![Reference Element](reference_element_Tetra.png "Reference Element")
+ * ![Ordering of Points](subelement_indexing_Tetra_Point.png "Ordering of
+ * Points")
+ * ![Ordering of Segments](subelement_indexing_Tetra_Segment.png "Ordering of
+ * Segments")
+ * ![Ordering of Triangles](subelement_indexing_Tetra_Tria.png "Ordering of
+ * Triangles")
  */
 template <dim_t Order> struct Tetra : public ElementBase<Tetra<Order>> {
   using super = ElementBase<Tetra<Order>>;
@@ -305,10 +354,12 @@ template <dim_t Order> struct Tetra : public ElementBase<Tetra<Order>> {
 /**
  * @brief Mesh Cube of arbitrary order
  *
- * @image html reference_element_Cube.png "Reference Element"
- * @image html subelement_indexing_Cube_Point.png "Ordering of Points"
- * @image html subelement_indexing_Cube_Segment.png "Ordering of Segments"
- * @image html subelement_indexing_Cube_Quad.png "Ordering of Quads"
+ * ![Reference Element](reference_element_Cube.png "Reference Element")
+ * ![Ordering of Points](subelement_indexing_Cube_Point.png "Ordering of
+ * Points")
+ * ![Ordering of Segments](subelement_indexing_Cube_Segment.png "Ordering of
+ * Segments")
+ * ![Ordering of Quads](subelement_indexing_Cube_Quad.png "Ordering of Quads")
  */
 template <dim_t Order> struct Cube : public ElementBase<Cube<Order>> {
   using super = ElementBase<Cube<Order>>;

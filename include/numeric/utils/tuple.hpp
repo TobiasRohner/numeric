@@ -5,6 +5,9 @@
 #include <numeric/meta/meta.hpp>
 #include <numeric/meta/type_tag.hpp>
 #include <numeric/utils/forward.hpp>
+#ifndef __HIP_DEVICE_COMPILE__
+#include <tuple>
+#endif
 
 namespace numeric::utils {
 

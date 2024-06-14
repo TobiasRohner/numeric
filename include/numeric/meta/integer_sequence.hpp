@@ -2,6 +2,9 @@
 #define NUMERIC_META_INTEGER_SEQUENCE_HPP_
 
 #include <numeric/config.hpp>
+#ifndef __HIP_DEVICE_COMPILE__
+#include <cstddef>
+#endif
 
 namespace numeric::meta {
 
