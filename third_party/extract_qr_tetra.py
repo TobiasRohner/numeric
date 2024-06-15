@@ -31,7 +31,7 @@ def transform_to_standard(xs, ys, zs, ws):
     yo = [x/2-y/(2*mp.sqrt(3))-z/(2*mp.sqrt(6)) for x,y,z in zip(xt,yt,zt)]
     zo = [mp.sqrt(3)*z/(2*mp.sqrt(2)) for z in zt]
     wtot = sum(ws)
-    wo = [w/(2*wtot) for w in ws]
+    wo = [w/(6*wtot) for w in ws]
     return xo, yo, zo, wo
 
 
