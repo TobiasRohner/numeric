@@ -12,8 +12,8 @@ std::string subelement_tikz_src() {
   using ref = ReferenceVertices<Element>;
   using point_t = mesh::Point<Element::order>;
   std::string src;
-  dim_t node_idxs[Subelement::num_nodes()];
-  dim_t point_idxs[point_t::num_nodes()];
+  dim_t node_idxs[Subelement::num_nodes];
+  dim_t point_idxs[point_t::num_nodes];
   for (int sub = 0; sub < Element::template num_subelements<Subelement>();
        ++sub) {
     Element::template subelement_node_idxs<Subelement>(sub, node_idxs);

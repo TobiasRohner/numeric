@@ -14,7 +14,7 @@ namespace numeric::mesh {
 namespace detail {
 
 template <typename Element> struct NodeBag {
-  static constexpr dim_t N = Element::num_nodes();
+  static constexpr dim_t N = Element::num_nodes;
   std::array<dim_t, N> idxs;
 
   NodeBag(const std::array<dim_t, N> &nodes) {
@@ -34,9 +34,9 @@ template <typename Element> struct NodeBag {
 template <typename Element, typename Subelement>
 memory::Array<dim_t, 2> subelement_relation(
     const memory::ArrayConstView<dim_t, 2> &elements,
-    std::vector<std::array<dim_t, Subelement::num_nodes()>> &subelements,
+    std::vector<std::array<dim_t, Subelement::num_nodes>> &subelements,
     std::map<NodeBag<Subelement>, dim_t> &subelement_idxs) {
-  static constexpr dim_t N_nodes = Subelement::num_nodes();
+  static constexpr dim_t N_nodes = Subelement::num_nodes;
   static constexpr dim_t N_sub =
       Element::template num_subelements<Subelement>();
   memory::Array<dim_t, 2> relation(memory::Shape<2>(N_sub, elements.shape(1)));
@@ -72,7 +72,7 @@ std::tuple<memory::Array<dim_t, 2>,
            utils::TypeIndexedMap<memory::Array<dim_t, 2>, ElementTypes...>>
 subelement_relation(
     const UnstructuredMeshConstView<Scalar, ElementTypes...> &mesh) {
-  static constexpr dim_t N_nodes = Subelement::num_nodes();
+  static constexpr dim_t N_nodes = Subelement::num_nodes;
 
   utils::TypeIndexedMap<memory::Array<dim_t, 2>, ElementTypes...> relations;
   std::vector<std::array<dim_t, N_nodes>> subelements;
@@ -87,10 +87,10 @@ subelement_relation(
   (compute_relations.template operator()<ElementTypes>(), ...);
 
   memory::Array<dim_t, 2> subs(
-      memory::Shape<2>(Subelement::num_nodes(), subelements.size()),
+      memory::Shape<2>(Subelement::num_nodes, subelements.size()),
       memory::MemoryType::HOST);
   for (dim_t subelement = 0; subelement < subs.shape(1); ++subelement) {
-    for (dim_t node = 0; node < Subelement::num_nodes(); ++node) {
+    for (dim_t node = 0; node < Subelement::num_nodes; ++node) {
       subs(node, subelement) = subelements[subelement][node];
     }
   }

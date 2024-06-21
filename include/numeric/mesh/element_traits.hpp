@@ -8,6 +8,7 @@ template <typename Element> struct ElementTraits {
   // static constexpr dim_t order;
   // static constexpr bool is_affine;
   // static constexpr char name[];
+  // static constexpr dim_t num_nodes;
 };
 
 } // namespace numeric::mesh

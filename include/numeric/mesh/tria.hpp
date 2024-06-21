@@ -24,8 +24,7 @@ template <dim_t Order> struct Tria : public ElementBase<Tria<Order>> {
   static constexpr dim_t order = traits_t::order;
   static constexpr bool is_affine = traits_t::is_affine;
   static constexpr const char *name = traits_t::name;
-
-  static constexpr dim_t num_nodes() { return (Order + 1) * (Order + 2) / 2; }
+  static constexpr dim_t num_nodes = traits_t::num_nodes;
 
   static constexpr dim_t num_subelements(meta::type_tag<Point<Order>>) {
     return 3;
@@ -50,7 +49,7 @@ template <dim_t Order> struct Tria : public ElementBase<Tria<Order>> {
   using super::subelement_node_idxs;
 
   template <typename Scalar>
-  static constexpr void local_to_global(const Scalar *nodes[num_nodes()],
+  static constexpr void local_to_global(const Scalar (*nodes)[num_nodes],
                                         const Scalar *x, Scalar *out,
                                         dim_t world_dim) {
     if constexpr (order == 1) {
@@ -69,8 +68,8 @@ template <dim_t Order> struct Tria : public ElementBase<Tria<Order>> {
   }
 
   template <typename Scalar>
-  static constexpr void jacobian(const Scalar *nodes[num_nodes()],
-                                 const Scalar *x, Scalar *out[dim],
+  static constexpr void jacobian(const Scalar (*nodes)[num_nodes],
+                                 const Scalar *x, Scalar (*out)[dim],
                                  dim_t world_dim) {
     if constexpr (order == 1) {
       const Scalar x1 = x[0];
@@ -91,6 +90,7 @@ template <dim_t Order> struct ElementTraits<Tria<Order>> {
   static constexpr dim_t order = Order;
   static constexpr bool is_affine = true;
   static constexpr char name[] = "Tria";
+  static constexpr dim_t num_nodes = (Order + 1) * (Order + 2) / 2;
 };
 
 } // namespace numeric::mesh

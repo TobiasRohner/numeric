@@ -59,7 +59,7 @@ public:
 
   template <typename ElementType> void reset_elements(dim_t num_elements) {
     elements_.template get<ElementType>() = memory::Array<dim_t, 2>(
-        memory::Shape<2>(ElementType::num_nodes(), num_elements),
+        memory::Shape<2>(ElementType::num_nodes, num_elements),
         memory::MemoryType::HOST);
   }
 

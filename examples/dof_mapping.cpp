@@ -12,7 +12,7 @@ using namespace numeric;
 template <typename Element>
 void print_elements(const memory::ArrayConstView<dim_t, 2> &elements) {
   std::cout << Element::name << '\n';
-  for (dim_t node = 0; node < Element::num_nodes(); ++node) {
+  for (dim_t node = 0; node < Element::num_nodes; ++node) {
     for (dim_t element = 0; element < elements.shape(1); ++element) {
       std::cout << '\t' << elements(node, element);
     }

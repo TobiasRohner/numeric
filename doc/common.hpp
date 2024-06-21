@@ -88,7 +88,7 @@ template <typename Element> std::string reference_element_vertices_tikz_src() {
   if constexpr (numeric::meta::is_same_v<Element, point_t>) {
     src += "\n\\draw plot[mark=*, mark size=1] coordinates{" + points[0] + "};";
   }
-  numeric::dim_t node_idxs[point_t::num_nodes()];
+  numeric::dim_t node_idxs[point_t::num_nodes];
   for (int point = 0; point < Element::template num_subelements<point_t>();
        ++point) {
     Element::template subelement_node_idxs<point_t>(point, node_idxs);
@@ -119,7 +119,7 @@ std::string reference_element_edges_tikz_src(bool indicate_direction = true) {
     }
     src += points[0] + " -- " + points[1] + ";";
   }
-  numeric::dim_t node_idxs[segment_t::num_nodes()];
+  numeric::dim_t node_idxs[segment_t::num_nodes];
   for (int segment = 0;
        segment < Element::template num_subelements<segment_t>(); ++segment) {
     Element::template subelement_node_idxs<segment_t>(segment, node_idxs);

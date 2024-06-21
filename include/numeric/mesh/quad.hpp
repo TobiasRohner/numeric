@@ -25,8 +25,7 @@ template <dim_t Order> struct Quad : public ElementBase<Quad<Order>> {
   static constexpr dim_t order = traits_t::order;
   static constexpr bool is_affine = traits_t::is_affine;
   static constexpr const char *name = traits_t::name;
-
-  static constexpr dim_t num_nodes() { return (Order + 1) * (Order + 1); }
+  static constexpr dim_t num_nodes = traits_t::num_nodes;
 
   static constexpr dim_t num_subelements(meta::type_tag<Point<Order>>) {
     return 4;
@@ -51,7 +50,7 @@ template <dim_t Order> struct Quad : public ElementBase<Quad<Order>> {
   using super::subelement_node_idxs;
 
   template <typename Scalar>
-  static constexpr void local_to_global(const Scalar *nodes[num_nodes()],
+  static constexpr void local_to_global(const Scalar (*nodes)[num_nodes],
                                         const Scalar *x, Scalar *out,
                                         dim_t world_dim) {
     if constexpr (order == 1) {
@@ -70,8 +69,8 @@ template <dim_t Order> struct Quad : public ElementBase<Quad<Order>> {
   }
 
   template <typename Scalar>
-  static constexpr void jacobian(const Scalar *nodes[num_nodes()],
-                                 const Scalar *x, Scalar *out[dim],
+  static constexpr void jacobian(const Scalar (*nodes)[num_nodes],
+                                 const Scalar *x, Scalar (*out)[dim],
                                  dim_t world_dim) {
     if constexpr (order == 1) {
       const Scalar x1 = x[0];
@@ -94,6 +93,7 @@ template <dim_t Order> struct ElementTraits<Quad<Order>> {
   static constexpr dim_t order = Order;
   static constexpr bool is_affine = false;
   static constexpr char name[] = "Quad";
+  static constexpr dim_t num_nodes = (Order + 1) * (Order + 1);
 };
 
 } // namespace numeric::mesh
