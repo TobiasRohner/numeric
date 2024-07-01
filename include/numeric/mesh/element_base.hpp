@@ -1,12 +1,12 @@
 #ifndef NUMERIC_MESH_ELEMENT_BASE_HPP_
 #define NUMERIC_MESH_ELEMENT_BASE_HPP_
 
+#include <iostream>
 #include <numeric/config.hpp>
+#include <numeric/math/functions.hpp>
 #include <numeric/mesh/element_traits.hpp>
 #include <numeric/meta/meta.hpp>
 #include <numeric/meta/type_tag.hpp>
-#include <numeric/math/functions.hpp>
-#include <iostream>
 
 namespace numeric::mesh {
 
@@ -44,6 +44,12 @@ template <typename Derived> struct ElementBase {
     }
   }
 
+  template <typename Scalar>
+  static dim_t integration_element_work_size(dim_t world_dim) {
+    static constexpr dim_t dim = ElementTraits<Derived>::dim;
+    return sizeof(Scalar) * (dim * dim + world_dim * dim);
+  }
+
   /**
    * @brief Computes the integration element (determinant of the Jacobian
    * matrix) for a given set of nodes and coordinates.
@@ -65,14 +71,15 @@ template <typename Derived> struct ElementBase {
    * function returns 1.
    */
   template <typename Scalar>
-  static Scalar integration_element(const Scalar (*nodes)[ElementTraits<Derived>::num_nodes],
-                                    const Scalar *x, dim_t world_dim,
-                                    Scalar *work) {
+  static Scalar
+  integration_element(const Scalar (*nodes)[ElementTraits<Derived>::num_nodes],
+                      const Scalar *x, dim_t world_dim, void *work) {
     if constexpr (dim == 0) {
       return 1;
     } else {
       Scalar(&JTJres)[dim][dim] = *reinterpret_cast<Scalar(*)[dim][dim]>(work);
-      Scalar (*JTJwork)[dim] = reinterpret_cast<Scalar (*)[dim]>(work + dim * dim);
+      Scalar(*JTJwork)[dim] = reinterpret_cast<Scalar(*)[dim]>(
+          static_cast<Scalar *>(work) + dim * dim);
       JTJ<Scalar>(nodes, x, JTJres, world_dim, JTJwork);
       Scalar det;
       if constexpr (dim == 1) {
@@ -101,29 +108,40 @@ template <typename Derived> struct ElementBase {
   }
 
   template <typename Scalar>
-  static void
-  jacobian_inverse_gramian(const Scalar *nodes[Derived::num_nodes()],
-                           const Scalar *x, Scalar *out[dim], dim_t world_dim,
-                           Scalar *work) {
-    Scalar *J = static_cast<Scalar *[dim]>(work);
+  static dim_t jacobian_inverse_gramian_work_size(dim_t world_dim) {
+    static constexpr dim_t dim = ElementTraits<Derived>::dim;
+    if (world_dim == dim) {
+      return sizeof(Scalar) * dim * dim;
+    } else {
+      return sizeof(Scalar) * (world_dim * dim + dim * dim);
+    }
+  }
+
+  template <typename Scalar>
+  static void jacobian_inverse_gramian(
+      const Scalar (*nodes)[ElementTraits<Derived>::num_nodes], const Scalar *x,
+      Scalar (*out)[dim], dim_t world_dim, void *work) {
+    Scalar(*J)[dim] = reinterpret_cast<Scalar(*)[dim]>(work);
     Derived::jacobian(nodes, x, J, world_dim);
     if (world_dim == dim) {
+      Scalar(&out_dim)[dim][dim] = *reinterpret_cast<Scalar(*)[dim][dim]>(out);
       if constexpr (dim == 0) {
         // Nothing to do here
       } else if constexpr (dim == 1) {
-	inverse(out, J[0][0]);
+        inverse(out_dim, J[0][0]);
       } else if constexpr (dim == 2) {
-	inverse(out, J[0][0], J[1][0], J[0][1], J[1][1]);
+        inverse(out_dim, J[0][0], J[1][0], J[0][1], J[1][1]);
       } else if constexpr (dim == 3) {
-	inverse(out, J[0][0], J[1][0], J[2][0], J[0][1], J[1][1], J[2][1], J[0][2], J[1][2], J[2][2]);
+        inverse(out_dim, J[0][0], J[1][0], J[2][0], J[0][1], J[1][1], J[2][1],
+                J[0][2], J[1][2], J[2][2]);
       } else {
         static_assert(!meta::is_same_v<Scalar, Scalar>,
                       "jacobian inverse gramian, is only supported up to three "
                       "dimensions");
       }
     } else {
-      Scalar(&JTJ)[dim][dim] =
-          static_cast<Scalar(&)[dim][dim]>(work * world_dim * dim);
+      Scalar(&JTJ)[dim][dim] = *reinterpret_cast<Scalar(*)[dim][dim]>(
+          static_cast<Scalar *>(work) + world_dim * dim);
       for (dim_t i = 0; i < dim; ++i) {
         for (dim_t j = 0; j < dim; ++j) {
           JTJ[i][j] = 0;
@@ -135,11 +153,12 @@ template <typename Derived> struct ElementBase {
       if constexpr (dim == 0) {
         // Nothing to do here
       } else if constexpr (dim == 1) {
-	inverse(JTJ, JTJ[0][0]);
+        inverse(JTJ, JTJ[0][0]);
       } else if constexpr (dim == 2) {
-	inverse(JTJ, JTJ[0][0], JTJ[0][1], JTJ[1][0], JTJ[1][1]);
+        inverse(JTJ, JTJ[0][0], JTJ[0][1], JTJ[1][0], JTJ[1][1]);
       } else if constexpr (dim == 3) {
-	inverse(JTJ, JTJ[0][0], JTJ[0][1], JTJ[0][2], JTJ[1][0], JTJ[1][1], JTJ[1][2], JTJ[2][0], JTJ[2][1], JTJ[2][2]);
+        inverse(JTJ, JTJ[0][0], JTJ[0][1], JTJ[0][2], JTJ[1][0], JTJ[1][1],
+                JTJ[1][2], JTJ[2][0], JTJ[2][1], JTJ[2][2]);
       } else {
         static_assert(!meta::is_same_v<Scalar, Scalar>,
                       "jacobian inverse gramian, is only supported up to three "
@@ -158,8 +177,9 @@ template <typename Derived> struct ElementBase {
 
 private:
   template <typename Scalar>
-  static void JTJ(const Scalar (*nodes)[ElementTraits<Derived>::num_nodes], const Scalar *x,
-                  Scalar (&out)[dim][dim], dim_t world_dim, Scalar (*work)[dim]) {
+  static void JTJ(const Scalar (*nodes)[ElementTraits<Derived>::num_nodes],
+                  const Scalar *x, Scalar (&out)[dim][dim], dim_t world_dim,
+                  Scalar (*work)[dim]) {
     Derived::template jacobian<Scalar>(nodes, x, work, world_dim);
     for (dim_t i = 0; i < dim; ++i) {
       for (dim_t j = 0; j < dim; ++j) {
@@ -171,13 +191,14 @@ private:
     }
   }
 
-  template<typename Scalar>
+  template <typename Scalar>
   static void inverse(Scalar (&out)[1][1], Scalar a) {
     out[0][0] = 1 / a;
   }
 
-  template<typename Scalar>
-  static void inverse(Scalar (&out)[2][2], Scalar a, Scalar b, Scalar c, Scalar d) {
+  template <typename Scalar>
+  static void inverse(Scalar (&out)[2][2], Scalar a, Scalar b, Scalar c,
+                      Scalar d) {
     const Scalar invdet = 1 / (a * d - b * c);
     out[0][0] = invdet * d;
     out[0][1] = -invdet * b;
@@ -185,10 +206,12 @@ private:
     out[1][1] = invdet * a;
   }
 
-  template<typename Scalar>
-  static void inverse(Scalar (&out)[3][3], Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f, Scalar g, Scalar h, Scalar i) {
-    const Scalar invdet = 1 / (a * e * i + b * f * g + c * d * h -
-			       c * e * g - b * d * i - a * f * h);
+  template <typename Scalar>
+  static void inverse(Scalar (&out)[3][3], Scalar a, Scalar b, Scalar c,
+                      Scalar d, Scalar e, Scalar f, Scalar g, Scalar h,
+                      Scalar i) {
+    const Scalar invdet = 1 / (a * e * i + b * f * g + c * d * h - c * e * g -
+                               b * d * i - a * f * h);
     out[0][0] = invdet * (e * i - f * h);
     out[0][1] = invdet * -(b * i - c * h);
     out[0][2] = invdet * (b * f - c * e);

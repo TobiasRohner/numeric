@@ -25,8 +25,9 @@ template <dim_t Order> struct Point : public ElementBase<Point<Order>> {
   using super::subelement_node_idxs;
 
   template <typename Scalar>
-  static constexpr void local_to_global(const Scalar (*nodes)[1], const Scalar *x,
-                                        Scalar *out, dim_t world_dim) {
+  static constexpr void local_to_global(const Scalar (*nodes)[1],
+                                        const Scalar *x, Scalar *out,
+                                        dim_t world_dim) {
     for (dim_t i = 0; i < world_dim; ++i) {
       out[i] = nodes[i][0];
     }

@@ -84,7 +84,7 @@ protected:
           read_values<size_t>(is, num_nodes_in_block);
       const std::vector<double> node_pos = read_values<double>(
           is, num_nodes_in_block * (3 + parametric * entity_dim));
-      for (size_t node = 0; node < num_nodes; ++node) {
+      for (size_t node = 0; node < num_nodes_in_block; ++node) {
         const size_t tag = node_tags[node];
         const size_t idx = node_tag_to_idx(tag);
         for (dim_t i = 0; i < world_dim_; ++i) {

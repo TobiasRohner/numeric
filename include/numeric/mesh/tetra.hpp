@@ -200,7 +200,8 @@ template <dim_t Order> struct ElementTraits<Tetra<Order>> {
   static constexpr dim_t order = Order;
   static constexpr bool is_affine = true;
   static constexpr char name[] = "Tetra";
-  static constexpr dim_t num_nodes = (Order + 1) * (Order + 2) * (Order + 3) / 6;
+  static constexpr dim_t num_nodes =
+      (Order + 1) * (Order + 2) * (Order + 3) / 6;
 };
 
 } // namespace numeric::mesh

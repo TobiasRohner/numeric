@@ -1,6 +1,7 @@
 #ifndef NUMERIC_MATH_FES_FE_SPACE_HPP_
 #define NUMERIC_MATH_FES_FE_SPACE_HPP_
 
+#include <numeric/mesh/elements.hpp>
 #include <numeric/mesh/subelement_relation.hpp>
 
 namespace numeric::math::fes {
@@ -28,6 +29,8 @@ public:
         num_dofs_(0) {
     init_dofs();
   }
+
+  const mesh_t &mesh() const { return mesh_; }
 
   dim_t num_dofs() const { return num_dofs_; }
 
