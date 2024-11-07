@@ -46,11 +46,11 @@ template <typename Element> void write_quad_rule(dim_t order) {
 int main(int argc, char *argv[]) {
   static constexpr dim_t max_order = 6;
   for (dim_t order = 1; order <= max_order; ++order) {
-    write_quad_rule<mesh::Segment<1>>(order);
-    write_quad_rule<mesh::Tria<1>>(order);
-    write_quad_rule<mesh::Quad<1>>(order);
-    write_quad_rule<mesh::Tetra<1>>(order);
-    write_quad_rule<mesh::Cube<1>>(order);
+    write_quad_rule<mesh::RefElSegment>(order);
+    write_quad_rule<mesh::RefElTria>(order);
+    write_quad_rule<mesh::RefElQuad>(order);
+    write_quad_rule<mesh::RefElTetra>(order);
+    write_quad_rule<mesh::RefElCube>(order);
   }
   return 0;
 }

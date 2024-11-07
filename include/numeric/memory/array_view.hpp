@@ -2,6 +2,7 @@
 #define NUMERIC_MEMORY_ARRAY_VIEW_HPP_
 
 #include <numeric/memory/array_const_view.hpp>
+#include <numeric/memory/array_op.hpp>
 #include <numeric/memory/array_view_decl.hpp>
 #include <numeric/memory/slice.hpp>
 #include <numeric/meta/meta.hpp>

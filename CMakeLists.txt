@@ -34,12 +34,16 @@ set(NUMERIC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_subdirectory(${NUMERIC_SOURCE_DIR})
 target_include_directories(numeric PUBLIC ${NUMERIC_INCLUDE_DIR})
 
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_ref_el_source.cmake)
+
+
 FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
   GIT_TAG master
 )
-#set(BOOST_INCLUDE_LIBRARIES multiprecision math)
+set(BOOST_INCLUDE_LIBRARIES multiprecision math)
 FetchContent_Declare(
   Boost
   GIT_REPOSITORY https://github.com/boostorg/boost.git
@@ -75,7 +79,7 @@ if (NUMERIC_ENABLE_NETCDF)
 FetchContent_Declare(
   NetCDF
   GIT_REPOSITORY https://github.com/Unidata/netcdf-c.git
-  GIT_TAG main
+  GIT_TAG v4.9.2
   OVERRIDE_FIND_PACKAGE
 )
 endif()

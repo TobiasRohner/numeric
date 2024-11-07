@@ -4,6 +4,7 @@
 #include <numeric/mesh/element_base.hpp>
 #include <numeric/mesh/element_traits.hpp>
 #include <numeric/mesh/point.hpp>
+#include <numeric/mesh/ref_el_quad.hpp>
 #include <numeric/mesh/segment.hpp>
 
 namespace numeric::mesh {
@@ -21,6 +22,7 @@ template <dim_t Order> struct Quad : public ElementBase<Quad<Order>> {
   using super = ElementBase<Quad<Order>>;
 
   using traits_t = ElementTraits<Quad<Order>>;
+  using ref_el_t = typename traits_t::ref_el_t;
   static constexpr dim_t dim = traits_t::dim;
   static constexpr dim_t order = traits_t::order;
   static constexpr bool is_affine = traits_t::is_affine;
@@ -47,26 +49,8 @@ template <dim_t Order> struct Quad : public ElementBase<Quad<Order>> {
       idxs[i + 2] = 4 + (Order - 1) * i;
     }
   }
+  using super::local_to_global;
   using super::subelement_node_idxs;
-
-  template <typename Scalar>
-  static constexpr void local_to_global(const Scalar (*nodes)[num_nodes],
-                                        const Scalar *x, Scalar *out,
-                                        dim_t world_dim) {
-    if constexpr (order == 1) {
-      const Scalar x1 = x[0];
-      const Scalar x2 = x[1];
-      for (dim_t i = 0; i < world_dim; ++i) {
-        out[i] = (1 - x1) * (1 - x2) * nodes[i][0] +
-                 x1 * (1 - x2) * nodes[i][1] + x1 * x2 * nodes[i][2] +
-                 (1 - x1) * x2 * nodes[i][3];
-      }
-    } else {
-      static_assert(
-          order != order,
-          "local to global map of quad not implemented for the given order");
-    }
-  }
 
   template <typename Scalar>
   static constexpr void jacobian(const Scalar (*nodes)[num_nodes],
@@ -89,6 +73,7 @@ template <dim_t Order> struct Quad : public ElementBase<Quad<Order>> {
 };
 
 template <dim_t Order> struct ElementTraits<Quad<Order>> {
+  using ref_el_t = RefElQuad;
   static constexpr dim_t dim = 2;
   static constexpr dim_t order = Order;
   static constexpr bool is_affine = false;

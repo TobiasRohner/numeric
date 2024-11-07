@@ -3,7 +3,9 @@
 #include <numeric/math/functions.hpp>
 #include <numeric/math/quad/quad_rule.hpp>
 
-namespace numeric::math::quad::detail {
+namespace numeric::math::quad {
+
+namespace detail {
 
 extern std::tuple<size_t, const double *, const double *, const double *>
 get_qr_tria(size_t order);
@@ -51,15 +53,19 @@ gauss_legendre(dim_t num_points) {
       std::move(points), std::move(weights));
 }
 
+} // namespace detail
+
+template <>
 utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule_segment(dim_t order) {
+quad_rule<mesh::RefElSegment>(dim_t order) {
   const dim_t num_points = math::div_up(order + 1, 2);
-  return gauss_legendre(num_points);
+  return detail::gauss_legendre(num_points);
 }
 
+template <>
 utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule_tria(dim_t order) {
-  const auto [num_points, x, y, w] = get_qr_tria(order);
+quad_rule<mesh::RefElTria>(dim_t order) {
+  const auto [num_points, x, y, w] = detail::get_qr_tria(order);
   memory::Array<double, 2> points(memory::Shape<2>(num_points, 2),
                                   memory::MemoryType::HOST);
   memory::Array<double, 1> weights(memory::Shape<1>(num_points),
@@ -73,10 +79,11 @@ quad_rule_tria(dim_t order) {
       std::move(points), std::move(weights));
 }
 
+template <>
 utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule_quad(dim_t order) {
+quad_rule<mesh::RefElQuad>(dim_t order) {
   const dim_t num_points = math::div_up(order + 1, 2);
-  const auto [pgl, wgl] = gauss_legendre(num_points);
+  const auto [pgl, wgl] = detail::gauss_legendre(num_points);
   memory::Array<double, 2> points(memory::Shape<2>(num_points * num_points, 2),
                                   memory::MemoryType::HOST);
   memory::Array<double, 1> weights(memory::Shape<1>(num_points * num_points),
@@ -93,9 +100,10 @@ quad_rule_quad(dim_t order) {
       std::move(points), std::move(weights));
 }
 
+template <>
 utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule_tetra(dim_t order) {
-  const auto [num_points, x, y, z, w] = get_qr_tetra(order);
+quad_rule<mesh::RefElTetra>(dim_t order) {
+  const auto [num_points, x, y, z, w] = detail::get_qr_tetra(order);
   memory::Array<double, 2> points(memory::Shape<2>(num_points, 3),
                                   memory::MemoryType::HOST);
   memory::Array<double, 1> weights(memory::Shape<1>(num_points),
@@ -110,10 +118,11 @@ quad_rule_tetra(dim_t order) {
       std::move(points), std::move(weights));
 }
 
+template <>
 utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule_cube(dim_t order) {
+quad_rule<mesh::RefElCube>(dim_t order) {
   const dim_t num_points = math::div_up(order + 1, 2);
-  const auto [pgl, wgl] = gauss_legendre(num_points);
+  const auto [pgl, wgl] = detail::gauss_legendre(num_points);
   memory::Array<double, 2> points(
       memory::Shape<2>(num_points * num_points * num_points, 3),
       memory::MemoryType::HOST);
@@ -135,4 +144,4 @@ quad_rule_cube(dim_t order) {
       std::move(points), std::move(weights));
 }
 
-} // namespace numeric::math::quad::detail
+} // namespace numeric::math::quad

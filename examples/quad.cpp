@@ -5,7 +5,7 @@ int main(int argc, char *argv[]) {
   const int order = std::stoi(argv[1]);
 
   const auto [points, weights] =
-      numeric::math::quad::quad_rule<numeric::mesh::Tria<1>>(order);
+      numeric::math::quad::quad_rule<numeric::mesh::RefElTria>(order);
 
   const numeric::dim_t num_points = points.shape(0);
   std::cout << "points = [(" << points(0, 0) << ", " << points(0, 1) << ")";

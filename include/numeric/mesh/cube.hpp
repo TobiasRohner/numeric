@@ -5,6 +5,7 @@
 #include <numeric/mesh/element_traits.hpp>
 #include <numeric/mesh/point.hpp>
 #include <numeric/mesh/quad.hpp>
+#include <numeric/mesh/ref_el_cube.hpp>
 #include <numeric/mesh/segment.hpp>
 
 namespace numeric::mesh {
@@ -23,6 +24,7 @@ template <dim_t Order> struct Cube : public ElementBase<Cube<Order>> {
   using super = ElementBase<Cube<Order>>;
 
   using traits_t = ElementTraits<Cube<Order>>;
+  using ref_el_t = typename traits_t::ref_el_t;
   static constexpr dim_t dim = traits_t::dim;
   static constexpr dim_t order = traits_t::order;
   static constexpr bool is_affine = traits_t::is_affine;
@@ -285,6 +287,7 @@ template <dim_t Order> struct Cube : public ElementBase<Cube<Order>> {
 };
 
 template <dim_t Order> struct ElementTraits<Cube<Order>> {
+  using ref_el_t = RefElCube;
   static constexpr dim_t dim = 3;
   static constexpr dim_t order = Order;
   static constexpr bool is_affine = false;

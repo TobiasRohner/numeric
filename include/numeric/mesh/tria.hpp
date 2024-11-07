@@ -4,6 +4,7 @@
 #include <numeric/mesh/element_base.hpp>
 #include <numeric/mesh/element_traits.hpp>
 #include <numeric/mesh/point.hpp>
+#include <numeric/mesh/ref_el_tria.hpp>
 #include <numeric/mesh/segment.hpp>
 
 namespace numeric::mesh {
@@ -20,6 +21,7 @@ template <dim_t Order> struct Tria : public ElementBase<Tria<Order>> {
   using super = ElementBase<Tria<Order>>;
 
   using traits_t = ElementTraits<Tria<Order>>;
+  using ref_el_t = typename traits_t::ref_el_t;
   static constexpr dim_t dim = traits_t::dim;
   static constexpr dim_t order = traits_t::order;
   static constexpr bool is_affine = traits_t::is_affine;
@@ -46,26 +48,8 @@ template <dim_t Order> struct Tria : public ElementBase<Tria<Order>> {
       idxs[i + 2] = 3 + (Order - 1) * i;
     }
   }
+  using super::local_to_global;
   using super::subelement_node_idxs;
-
-  template <typename Scalar>
-  static constexpr void local_to_global(const Scalar (*nodes)[num_nodes],
-                                        const Scalar *x, Scalar *out,
-                                        dim_t world_dim) {
-    if constexpr (order == 1) {
-      const Scalar x1 = x[0];
-      const Scalar x2 = x[1];
-      const Scalar l1 = 1 - x1 - x2;
-      const Scalar l2 = x1;
-      const Scalar l3 = x2;
-      for (dim_t i = 0; i < world_dim; ++i) {
-        out[i] = l1 * nodes[i][0] + l2 * nodes[i][1] + l3 * nodes[i][2];
-      }
-    } else {
-      static_assert(order != order, "local to global map of triangle not "
-                                    "implemented for the given order");
-    }
-  }
 
   template <typename Scalar>
   static constexpr void jacobian(const Scalar (*nodes)[num_nodes],
@@ -86,6 +70,7 @@ template <dim_t Order> struct Tria : public ElementBase<Tria<Order>> {
 };
 
 template <dim_t Order> struct ElementTraits<Tria<Order>> {
+  using ref_el_t = RefElTria;
   static constexpr dim_t dim = 2;
   static constexpr dim_t order = Order;
   static constexpr bool is_affine = true;

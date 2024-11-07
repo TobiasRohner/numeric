@@ -1,6 +1,7 @@
 #ifndef NUMERIC_UTILS_DATATYPE_HPP_
 #define NUMERIC_UTILS_DATATYPE_HPP_
 
+#include <cstdint>
 #include <numeric/meta/meta.hpp>
 #include <string_view>
 
@@ -67,19 +68,39 @@ template <Datatype type> struct from_datatype {
   static_assert(type != type, "Unsupported Datatype");
 };
 
-template <> struct from_datatype<Datatype::FLOAT> { using type = float; };
-template <> struct from_datatype<Datatype::DOUBLE> { using type = double; };
+template <> struct from_datatype<Datatype::FLOAT> {
+  using type = float;
+};
+template <> struct from_datatype<Datatype::DOUBLE> {
+  using type = double;
+};
 template <> struct from_datatype<Datatype::LONG_DOUBLE> {
   using type = long double;
 };
-template <> struct from_datatype<Datatype::INT8_T> { using type = int8_t; };
-template <> struct from_datatype<Datatype::UINT8_T> { using type = uint8_t; };
-template <> struct from_datatype<Datatype::INT16_T> { using type = int16_t; };
-template <> struct from_datatype<Datatype::UINT16_T> { using type = uint16_t; };
-template <> struct from_datatype<Datatype::INT32_T> { using type = int32_t; };
-template <> struct from_datatype<Datatype::UINT32_T> { using type = uint32_t; };
-template <> struct from_datatype<Datatype::INT64_T> { using type = int64_t; };
-template <> struct from_datatype<Datatype::UINT64_T> { using type = uint64_t; };
+template <> struct from_datatype<Datatype::INT8_T> {
+  using type = int8_t;
+};
+template <> struct from_datatype<Datatype::UINT8_T> {
+  using type = uint8_t;
+};
+template <> struct from_datatype<Datatype::INT16_T> {
+  using type = int16_t;
+};
+template <> struct from_datatype<Datatype::UINT16_T> {
+  using type = uint16_t;
+};
+template <> struct from_datatype<Datatype::INT32_T> {
+  using type = int32_t;
+};
+template <> struct from_datatype<Datatype::UINT32_T> {
+  using type = uint32_t;
+};
+template <> struct from_datatype<Datatype::INT64_T> {
+  using type = int64_t;
+};
+template <> struct from_datatype<Datatype::UINT64_T> {
+  using type = uint64_t;
+};
 
 template <Datatype type>
 using from_datatype_t = typename from_datatype<type>::type;

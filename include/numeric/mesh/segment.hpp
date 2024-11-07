@@ -4,6 +4,7 @@
 #include <numeric/mesh/element_base.hpp>
 #include <numeric/mesh/element_traits.hpp>
 #include <numeric/mesh/point.hpp>
+#include <numeric/mesh/ref_el_segment.hpp>
 
 namespace numeric::mesh {
 
@@ -18,6 +19,7 @@ template <dim_t Order> struct Segment : public ElementBase<Segment<Order>> {
   using super = ElementBase<Segment<Order>>;
 
   using traits_t = ElementTraits<Segment<Order>>;
+  using ref_el_t = typename traits_t::ref_el_t;
   static constexpr dim_t dim = traits_t::dim;
   static constexpr dim_t order = traits_t::order;
   static constexpr bool is_affine = traits_t::is_affine;
@@ -33,23 +35,8 @@ template <dim_t Order> struct Segment : public ElementBase<Segment<Order>> {
                                    meta::type_tag<Point<Order>>) {
     idxs[0] = subelement;
   }
+  using super::local_to_global;
   using super::subelement_node_idxs;
-
-  template <typename Scalar>
-  static constexpr void local_to_global(const Scalar (*nodes)[num_nodes],
-                                        const Scalar *x, Scalar *out,
-                                        dim_t world_dim) {
-    if constexpr (order == 1) {
-      const Scalar x1 = x[0];
-      for (dim_t i = 0; i < world_dim; ++i) {
-        out[i] = nodes[i][1] * x1 + nodes[i][0] * (1 - x1);
-      }
-    } else {
-      static_assert(
-          order != order,
-          "local to global map of segment not implemented for the given order");
-    }
-  }
 
   template <typename Scalar>
   static constexpr void jacobian(const Scalar (*nodes)[num_nodes],
@@ -68,6 +55,7 @@ template <dim_t Order> struct Segment : public ElementBase<Segment<Order>> {
 };
 
 template <dim_t Order> struct ElementTraits<Segment<Order>> {
+  using ref_el_t = RefElSegment;
   static constexpr dim_t dim = 1;
   static constexpr dim_t order = Order;
   static constexpr bool is_affine = true;

@@ -9,31 +9,33 @@ using namespace numeric;
 
 template <typename Element, typename Subelement>
 std::string subelement_tikz_src() {
-  using ref = ReferenceVertices<Element>;
-  using point_t = mesh::Point<Element::order>;
   std::string src;
+  double ref_nodes[Element::num_nodes][Element::dim];
+  Element::get_nodes(ref_nodes);
   dim_t node_idxs[Subelement::num_nodes];
-  dim_t point_idxs[point_t::num_nodes];
+  dim_t point_idxs[mesh::RefElPoint::num_nodes];
   for (int sub = 0; sub < Element::template num_subelements<Subelement>();
        ++sub) {
     Element::template subelement_node_idxs<Subelement>(sub, node_idxs);
     double x = 0;
     double y = 0;
     double z = 0;
-    if constexpr (meta::is_same_v<Subelement, point_t>) {
-      x = ref::verts[node_idxs[0]][0];
-      y = ref::verts[node_idxs[0]][1];
-      z = ref::verts[node_idxs[0]][2];
+    if constexpr (meta::is_same_v<Subelement, mesh::RefElPoint>) {
+      x = ref_nodes[node_idxs[0]][0];
+      y = ref_nodes[node_idxs[0]][1];
+      z = ref_nodes[node_idxs[0]][2];
     } else {
-      for (int vert = 0; vert < Subelement::template num_subelements<point_t>();
+      for (int vert = 0;
+           vert < Subelement::template num_subelements<mesh::RefElPoint>();
            ++vert) {
-        Subelement::template subelement_node_idxs<point_t>(vert, point_idxs);
-        x += ref::verts[node_idxs[point_idxs[0]]][0] /
-             Subelement::template num_subelements<point_t>();
-        y += ref::verts[node_idxs[point_idxs[0]]][1] /
-             Subelement::template num_subelements<point_t>();
-        z += ref::verts[node_idxs[point_idxs[0]]][2] /
-             Subelement::template num_subelements<point_t>();
+        Subelement::template subelement_node_idxs<mesh::RefElPoint>(vert,
+                                                                    point_idxs);
+        x += ref_nodes[node_idxs[point_idxs[0]]][0] /
+             Subelement::template num_subelements<mesh::RefElPoint>();
+        y += ref_nodes[node_idxs[point_idxs[0]]][1] /
+             Subelement::template num_subelements<mesh::RefElPoint>();
+        z += ref_nodes[node_idxs[point_idxs[0]]][2] /
+             Subelement::template num_subelements<mesh::RefElPoint>();
       }
     }
     const std::string pt = "(" + std::to_string(x) + "," + std::to_string(y) +
@@ -69,24 +71,24 @@ void write_subelement_indexing() {
 }
 
 template <typename Element> void write_all_subelement_indexing() {
-  write_subelement_indexing<Element, mesh::Point<Element::order>>();
-  write_subelement_indexing<Element, mesh::Segment<Element::order>>();
-  write_subelement_indexing<Element, mesh::Tria<Element::order>>();
-  write_subelement_indexing<Element, mesh::Quad<Element::order>>();
+  write_subelement_indexing<Element, mesh::RefElPoint>();
+  write_subelement_indexing<Element, mesh::RefElSegment>();
+  write_subelement_indexing<Element, mesh::RefElTria>();
+  write_subelement_indexing<Element, mesh::RefElQuad>();
 }
 
 int main(int argc, char *argv[]) {
-  write_reference_element<mesh::Point<1>>();
-  write_reference_element<mesh::Segment<1>>();
-  write_reference_element<mesh::Tria<1>>();
-  write_reference_element<mesh::Quad<1>>();
-  write_reference_element<mesh::Tetra<1>>();
-  write_reference_element<mesh::Cube<1>>();
-  write_all_subelement_indexing<mesh::Point<1>>();
-  write_all_subelement_indexing<mesh::Segment<1>>();
-  write_all_subelement_indexing<mesh::Tria<1>>();
-  write_all_subelement_indexing<mesh::Quad<1>>();
-  write_all_subelement_indexing<mesh::Tetra<1>>();
-  write_all_subelement_indexing<mesh::Cube<1>>();
+  write_reference_element<mesh::RefElPoint>();
+  write_reference_element<mesh::RefElSegment>();
+  write_reference_element<mesh::RefElTria>();
+  write_reference_element<mesh::RefElQuad>();
+  write_reference_element<mesh::RefElTetra>();
+  write_reference_element<mesh::RefElCube>();
+  write_all_subelement_indexing<mesh::RefElPoint>();
+  write_all_subelement_indexing<mesh::RefElSegment>();
+  write_all_subelement_indexing<mesh::RefElTria>();
+  write_all_subelement_indexing<mesh::RefElQuad>();
+  write_all_subelement_indexing<mesh::RefElTetra>();
+  write_all_subelement_indexing<mesh::RefElCube>();
   return 0;
 }

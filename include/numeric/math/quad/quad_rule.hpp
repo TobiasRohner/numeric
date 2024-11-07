@@ -13,47 +13,6 @@ namespace detail {
 utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
 gauss_legendre(dim_t num_points);
 
-utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule_segment(dim_t order);
-utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule_tria(dim_t order);
-utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule_quad(dim_t order);
-utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule_tetra(dim_t order);
-utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule_cube(dim_t order);
-
-template <dim_t Ord>
-utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule(dim_t order, meta::type_tag<mesh::Segment<Ord>>) {
-  return detail::quad_rule_segment(order);
-}
-
-template <dim_t Ord>
-utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule(dim_t order, meta::type_tag<mesh::Tria<Ord>>) {
-  return detail::quad_rule_tria(order);
-}
-
-template <dim_t Ord>
-utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule(dim_t order, meta::type_tag<mesh::Quad<Ord>>) {
-  return detail::quad_rule_quad(order);
-}
-
-template <dim_t Ord>
-utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule(dim_t order, meta::type_tag<mesh::Tetra<Ord>>) {
-  return detail::quad_rule_tetra(order);
-}
-
-template <dim_t Ord>
-utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
-quad_rule(dim_t order, meta::type_tag<mesh::Cube<Ord>>) {
-  return detail::quad_rule_cube(order);
-}
-
 } // namespace detail
 
 /**
@@ -78,11 +37,33 @@ quad_rule(dim_t order, meta::type_tag<mesh::Cube<Ord>>) {
  *   - A `memory::Array<double, 1>` representing the corresponding weights for
  * the quadrature points.
  */
-template <typename Element>
+template <typename RefEl>
 utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
 quad_rule(dim_t order) {
-  return detail::quad_rule(order, meta::type_tag<Element>());
+  static_assert(!meta::is_same_v<RefEl, RefEl>,
+                "Numerical quadrature is not supported for the given element");
+  return utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>();
 }
+
+template <>
+utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
+quad_rule<mesh::RefElSegment>(dim_t order);
+
+template <>
+utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
+quad_rule<mesh::RefElTria>(dim_t order);
+
+template <>
+utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
+quad_rule<mesh::RefElQuad>(dim_t order);
+
+template <>
+utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
+quad_rule<mesh::RefElTetra>(dim_t order);
+
+template <>
+utils::Tuple<memory::Array<double, 2>, memory::Array<double, 1>>
+quad_rule<mesh::RefElCube>(dim_t order);
 
 } // namespace numeric::math::quad
 

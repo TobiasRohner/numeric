@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <numeric/config.hpp>
+#include <numeric/math/basis_lagrange.hpp>
 #include <numeric/math/functions.hpp>
 #include <numeric/mesh/element_traits.hpp>
 #include <numeric/meta/meta.hpp>
@@ -12,6 +13,7 @@ namespace numeric::mesh {
 
 template <typename Derived> struct ElementBase {
   using traits_t = ElementTraits<Derived>;
+  using ref_el_t = typename traits_t::ref_el_t;
   static constexpr dim_t dim = traits_t::dim;
   static constexpr dim_t order = traits_t::order;
   static constexpr bool is_affine = traits_t::is_affine;
@@ -41,6 +43,15 @@ template <typename Derived> struct ElementBase {
                                       Element>) {
       Derived::subelement_node_idxs(subelement, idxs,
                                     meta::type_tag<Element>());
+    }
+  }
+
+  template <typename Scalar>
+  static constexpr void
+  local_to_global(const Scalar (*nodes)[dim > 0 ? dim : 1], const Scalar *x,
+                  Scalar *out, dim_t world_dim) {
+    for (dim_t i = 0; i < world_dim; ++i) {
+      out[i] = math::BasisLagrange<ref_el_t, order>::eval(x, nodes[i]);
     }
   }
 

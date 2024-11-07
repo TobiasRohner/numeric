@@ -5,7 +5,7 @@
 TEST(quad, segment) {
   for (numeric::dim_t order = 1; order <= 10; ++order) {
     const auto [points, weights] =
-        numeric::math::quad::quad_rule<numeric::mesh::Segment<1>>(order);
+        numeric::math::quad::quad_rule<numeric::mesh::RefElSegment>(order);
     const numeric::dim_t num_points = points.shape(0);
     for (numeric::dim_t a = 0; a <= order; ++a) {
       const auto f = [&](double x) { return std::pow(x, a); };
@@ -22,7 +22,7 @@ TEST(quad, segment) {
 TEST(quad, quad) {
   for (numeric::dim_t order = 1; order <= 10; ++order) {
     const auto [points, weights] =
-        numeric::math::quad::quad_rule<numeric::mesh::Quad<1>>(order);
+        numeric::math::quad::quad_rule<numeric::mesh::RefElQuad>(order);
     const numeric::dim_t num_points = points.shape(0);
     for (numeric::dim_t a = 0; a <= order; ++a) {
       for (numeric::dim_t b = 0; b <= order; ++b) {
@@ -43,7 +43,7 @@ TEST(quad, quad) {
 TEST(quad, cube) {
   for (numeric::dim_t order = 1; order <= 10; ++order) {
     const auto [points, weights] =
-        numeric::math::quad::quad_rule<numeric::mesh::Cube<1>>(order);
+        numeric::math::quad::quad_rule<numeric::mesh::RefElCube>(order);
     const numeric::dim_t num_points = points.shape(0);
     for (numeric::dim_t a = 0; a <= order; ++a) {
       for (numeric::dim_t b = 0; b <= order; ++b) {

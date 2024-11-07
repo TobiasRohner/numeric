@@ -3,7 +3,9 @@
 
 namespace numeric::meta {
 
-template <typename T> struct type_tag { using type = T; };
+template <typename T> struct type_tag {
+  using type = T;
+};
 
 } // namespace numeric::meta
 

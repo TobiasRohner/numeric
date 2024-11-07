@@ -369,7 +369,7 @@ struct OpBinaryMinus {
 struct OpBinaryMultiply {
   template <typename Lhs, typename Rhs>
   NUMERIC_HOST_DEVICE auto operator()(Lhs lhs, Rhs rhs) const
-      noexcept(noexcept(lhs *rhs)) {
+      noexcept(noexcept(lhs * rhs)) {
     return lhs * rhs;
   }
 };
@@ -393,7 +393,7 @@ struct OpBinaryModulo {
 struct OpBinaryBitwiseAnd {
   template <typename Lhs, typename Rhs>
   NUMERIC_HOST_DEVICE auto operator()(Lhs lhs, Rhs rhs) const
-      noexcept(noexcept(lhs &rhs)) {
+      noexcept(noexcept(lhs & rhs)) {
     return lhs & rhs;
   }
 };
@@ -417,7 +417,7 @@ struct OpBinaryBitwiseXor {
 struct OpBinaryLogicalAnd {
   template <typename Lhs, typename Rhs>
   NUMERIC_HOST_DEVICE auto operator()(Lhs lhs, Rhs rhs) const
-      noexcept(noexcept(lhs &&rhs)) {
+      noexcept(noexcept(lhs && rhs)) {
     return lhs && rhs;
   }
 };

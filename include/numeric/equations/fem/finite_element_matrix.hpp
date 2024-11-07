@@ -73,7 +73,8 @@ private:
         utils::TypeIndexedMap<memory::Array<scalar_t, 1>, ElementTypes...>>
         qr;
     const auto init_qr = [&]<typename Element>() {
-      auto [p, w] = math::quad::quad_rule<Element>(order);
+      auto [p, w] = math::quad::quad_rule<typename Element::ref_el_t>(
+          Element::order * order);
       qr.template get<0>().template get<Element>() = std::move(p);
       qr.template get<1>().template get<Element>() = std::move(w);
     };

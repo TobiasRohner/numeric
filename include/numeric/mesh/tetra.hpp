@@ -4,6 +4,7 @@
 #include <numeric/mesh/element_base.hpp>
 #include <numeric/mesh/element_traits.hpp>
 #include <numeric/mesh/point.hpp>
+#include <numeric/mesh/ref_el_tetra.hpp>
 #include <numeric/mesh/segment.hpp>
 #include <numeric/mesh/tria.hpp>
 
@@ -24,6 +25,7 @@ template <dim_t Order> struct Tetra : public ElementBase<Tetra<Order>> {
   using super = ElementBase<Tetra<Order>>;
 
   using traits_t = ElementTraits<Tetra<Order>>;
+  using ref_el_t = typename traits_t::ref_el_t;
   static constexpr dim_t dim = traits_t::dim;
   static constexpr dim_t order = traits_t::order;
   static constexpr bool is_affine = traits_t::is_affine;
@@ -196,6 +198,7 @@ template <dim_t Order> struct Tetra : public ElementBase<Tetra<Order>> {
 };
 
 template <dim_t Order> struct ElementTraits<Tetra<Order>> {
+  using ref_el_t = RefElTetra;
   static constexpr dim_t dim = 3;
   static constexpr dim_t order = Order;
   static constexpr bool is_affine = true;

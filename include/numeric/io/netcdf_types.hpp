@@ -49,16 +49,36 @@ template <nc_type type> struct from_netcdf_type {
   static_assert(type != type, "Unsupported Datatype");
 };
 
-template <> struct from_netcdf_type<NC_FLOAT> { using type = float; };
-template <> struct from_netcdf_type<NC_DOUBLE> { using type = double; };
-template <> struct from_netcdf_type<NC_BYTE> { using type = int8_t; };
-template <> struct from_netcdf_type<NC_UBYTE> { using type = uint8_t; };
-template <> struct from_netcdf_type<NC_SHORT> { using type = int16_t; };
-template <> struct from_netcdf_type<NC_USHORT> { using type = uint16_t; };
-template <> struct from_netcdf_type<NC_INT> { using type = int32_t; };
-template <> struct from_netcdf_type<NC_UINT> { using type = uint32_t; };
-template <> struct from_netcdf_type<NC_INT64> { using type = int64_t; };
-template <> struct from_netcdf_type<NC_UINT64> { using type = uint64_t; };
+template <> struct from_netcdf_type<NC_FLOAT> {
+  using type = float;
+};
+template <> struct from_netcdf_type<NC_DOUBLE> {
+  using type = double;
+};
+template <> struct from_netcdf_type<NC_BYTE> {
+  using type = int8_t;
+};
+template <> struct from_netcdf_type<NC_UBYTE> {
+  using type = uint8_t;
+};
+template <> struct from_netcdf_type<NC_SHORT> {
+  using type = int16_t;
+};
+template <> struct from_netcdf_type<NC_USHORT> {
+  using type = uint16_t;
+};
+template <> struct from_netcdf_type<NC_INT> {
+  using type = int32_t;
+};
+template <> struct from_netcdf_type<NC_UINT> {
+  using type = uint32_t;
+};
+template <> struct from_netcdf_type<NC_INT64> {
+  using type = int64_t;
+};
+template <> struct from_netcdf_type<NC_UINT64> {
+  using type = uint64_t;
+};
 
 template <nc_type type>
 using from_netcdf_type_t = typename from_netcdf_type<type>::type;

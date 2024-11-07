@@ -46,34 +46,56 @@ template <typename T> struct is_lvalue_reference<T &> {
 template <typename T>
 static constexpr bool is_lvalue_reference_v = is_lvalue_reference<T>::value;
 
-template <typename T> struct remove_reference { using type = T; };
+template <typename T> struct remove_reference {
+  using type = T;
+};
 
-template <typename T> struct remove_reference<T &> { using type = T; };
+template <typename T> struct remove_reference<T &> {
+  using type = T;
+};
 
-template <typename T> struct remove_reference<T &&> { using type = T; };
+template <typename T> struct remove_reference<T &&> {
+  using type = T;
+};
 
 template <typename T>
 using remove_reference_t = typename remove_reference<T>::type;
 
-template <typename T> struct remove_cv { using type = T; };
+template <typename T> struct remove_cv {
+  using type = T;
+};
 
-template <typename T> struct remove_cv<const T> { using type = T; };
+template <typename T> struct remove_cv<const T> {
+  using type = T;
+};
 
-template <typename T> struct remove_cv<volatile T> { using type = T; };
+template <typename T> struct remove_cv<volatile T> {
+  using type = T;
+};
 
-template <typename T> struct remove_cv<const volatile T> { using type = T; };
+template <typename T> struct remove_cv<const volatile T> {
+  using type = T;
+};
 
 template <typename T> using remove_cv_t = typename remove_cv<T>::type;
 
-template <typename T> struct remove_const { using type = T; };
+template <typename T> struct remove_const {
+  using type = T;
+};
 
-template <typename T> struct remove_const<const T> { using type = T; };
+template <typename T> struct remove_const<const T> {
+  using type = T;
+};
 
 template <typename T> using remove_const_t = typename remove_const<T>::type;
 
-template <typename T> struct remove_volatile { using type = T; };
+template <typename T> struct remove_volatile {
+  using type = T;
+};
 
-template <typename T> struct remove_volatile<volatile T> { using type = T; };
+template <typename T> struct remove_volatile<volatile T> {
+  using type = T;
+};
 
 template <typename T>
 using remove_volatile_t = typename remove_volatile<T>::type;
@@ -85,7 +107,9 @@ template <typename T> struct remove_cvref {
 template <typename T> using remove_cvref_t = typename remove_cvref<T>::type;
 
 template <bool B> struct enable_if {};
-template <> struct enable_if<true> { using type = void; };
+template <> struct enable_if<true> {
+  using type = void;
+};
 template <bool B> using enable_if_t = typename enable_if<B>::type;
 
 namespace detail {
