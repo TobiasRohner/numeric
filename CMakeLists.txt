@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.24)
 project(numeric VERSION 0.1 LANGUAGES C CXX)
 
 
@@ -25,6 +25,7 @@ endif()
 
 
 include(FetchContent)
+set(FETCHCONTENT_QUIET OFF)
 
 
 add_library(numeric)
@@ -68,20 +69,20 @@ if (NUMERIC_ENABLE_NETCDF)
   set(BUILD_UTILITIES OFF)
   set(ENABLE_EXAMPLES OFF)
   set(ENABLE_TESTS OFF)
-  set(ENABLE_DAP OFF)
+  set(ENABLE_DAP ON)
   set(ENABLE_HDF5 ON)
   set(HDF5_PARALLEL ${NUMERIC_ENABLE_MPI})
   set(ENABLE_NETCDF4 ON)
-  set(ENABLE_PNETCDF ${NUMERIC_ENABLE_MPI})
+  set(ENABLE_PNETCDF OFF)
   set(ENABLE_PARALLEL4 ${NUMERIC_ENABLE_MPI})
   set(ENABLE_PARALLEL ${NUMERIC_ENABLE_MPI})
   set(USE_PARALLEL ${NUMERIC_ENABLE_MPI})
-FetchContent_Declare(
-  NetCDF
-  GIT_REPOSITORY https://github.com/Unidata/netcdf-c.git
-  GIT_TAG v4.9.2
-  OVERRIDE_FIND_PACKAGE
-)
+  FetchContent_Declare(
+    NetCDF
+    GIT_REPOSITORY https://github.com/Unidata/netcdf-c.git
+    GIT_TAG v4.9.3-rc1
+    OVERRIDE_FIND_PACKAGE
+  )
 endif()
 if (NUMERIC_BUILD_TESTS)
   FetchContent_Declare(
