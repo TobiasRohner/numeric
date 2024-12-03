@@ -1,12 +1,19 @@
-set(EIGEN_BUILD_DOC OFF)
-set(EIGEN_BUILD_PKGCONFIG OFF)
+numeric_register_dependency(Eigen)
 
-FetchContent_Declare(
-  Eigen
-  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-  GIT_TAG master
-  GIT_SHALLOW TRUE
-  GIT_PROGRESS TRUE
-)
 
-list(APPEND NUMERIC_DEPENDENCIES Eigen)
+if (NUMERIC_Eigen_REQUIRE_DOWNLOAD)
+
+  set(EIGEN_BUILD_DOC OFF)
+  set(EIGEN_BUILD_PKGCONFIG OFF)
+
+  FetchContent_Declare(
+    Eigen
+    GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+    GIT_TAG master
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
+  )
+
+  list(APPEND NUMERIC_DEPENDENCIES Eigen)
+
+endif()

@@ -39,13 +39,13 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_ref_el_source.cmake)
 
 
 target_link_libraries(numeric PUBLIC fmt::fmt)
-target_link_libraries(numeric PUBLIC Boost::multiprecision Boost::math Boost::headers)
+target_link_libraries(numeric PUBLIC Boost::headers)
 if(NUMERIC_ENABLE_CLANG_TIDY)
   set_target_properties(numeric PROPERTIES CXX_CLANG_TIDY ${NUMERIC_CLANG_TIDY_CMD})
 endif()
 
 if(NUMERIC_ENABLE_HIP)
-  include("cmake/setup_hip.cmake")
+  #include("cmake/setup_hip.cmake")
   target_link_libraries(numeric PUBLIC hip)
   target_compile_definitions(numeric PUBLIC "-DNUMERIC_ENABLE_HIP=1")
 else()
