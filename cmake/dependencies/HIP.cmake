@@ -3,6 +3,8 @@ numeric_register_dependency(HIP)
 
 if (NUMERIC_HIP_REQUIRE_DOWNLOAD)
 
+  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/dependencies/hipcc.cmake)
+
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/dependencies/HIP/CMakeLists.txt.in
     ${FETCHCONTENT_BASE_DIR}/hip-subbuild/CMakeLists.txt
@@ -11,19 +13,13 @@ if (NUMERIC_HIP_REQUIRE_DOWNLOAD)
   execute_process(
     COMMAND ${CMAKE_COMMAND} .
     WORKING_DIRECTORY ${FETCHCONTENT_BASE_DIR}/hip-subbuild
-    RESULT_VARIABLE output
+    COMMAND_ERROR_IS_FATAL ANY
   )
-  if (NOT output EQUAL 0)
-    message(FATAL_ERROR "Failed to download HIP")
-  endif ()
   execute_process(
     COMMAND ${CMAKE_COMMAND} --build .
     WORKING_DIRECTORY ${FETCHCONTENT_BASE_DIR}/hip-subbuild
-    RESULT_VARIABLE output
+    COMMAND_ERROR_IS_FATAL ANY
   )
-  if (NOT output EQUAL 0)
-    message(FATAL_ERROR "Failed to build HIP")
-  endif ()
 
   list(APPEND CMAKE_MODULE_PATH ${FETCHCONTENT_BASE_DIR}/hipother-install/lib/cmake/hip)
   find_package(HIP REQUIRED)
