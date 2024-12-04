@@ -3,6 +3,8 @@ numeric_register_dependency(NetCDF)
 
 if (NUMERIC_NetCDF_REQUIRE_DOWNLOAD)
 
+  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/dependencies/HDF5.cmake)
+
   if (NUMERIC_ENABLE_MPI)
     find_package(MPI REQUIRED COMPONENTS C)
     include_directories(${MPI_C_INCLUDE_PATH})
