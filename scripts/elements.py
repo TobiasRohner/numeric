@@ -27,9 +27,6 @@ class ReferenceElement:
     def verts(self):
         return self.vertices[self.idxs, :]
 
-    def to_global(self, points):
-        raise NotImplemented
-
     def num_subelements(self, element_type):
         return len(self.subelements.get(element_type, []))
 
@@ -93,7 +90,7 @@ class ReferenceElement:
 
 class RefElPoint(ReferenceElement):
 
-    VERTICES = np.array([[]])
+    VERTICES = np.array([[]], dtype=np.int32)
 
     def __init__(self, vertices=None, idxs=None):
         if vertices is None:
@@ -103,13 +100,10 @@ class RefElPoint(ReferenceElement):
         super().__init__(vertices, idxs, {})
         self.name = 'Point'
 
-    def to_global(self, points):
-        return np.repeat(self.verts, points.shape[0], axis=0)
-
 
 class RefElSegment(ReferenceElement):
 
-    VERTICES = np.array([[0], [1]])
+    VERTICES = np.array([[0], [1]], dtype=np.int32)
 
     def __init__(self, vertices=None, idxs=None):
         if vertices is None:
@@ -119,13 +113,10 @@ class RefElSegment(ReferenceElement):
         super().__init__(vertices, idxs, {RefElPoint:[[0],[1]]})
         self.name = 'Segment'
 
-    def to_global(self, points):
-        return self.verts[0] + points * (self.verts[1] - self.verts[0])
-
 
 class RefElTria(ReferenceElement):
 
-    VERTICES = np.array([[0,0], [1,0], [0,1]])
+    VERTICES = np.array([[0,0], [1,0], [0,1]], dtype=np.int32)
 
     def __init__(self, vertices=None, idxs=None):
         if vertices is None:
@@ -141,13 +132,10 @@ class RefElTria(ReferenceElement):
         )
         self.name = 'Tria'
 
-    def to_global(self, points):
-        return self.verts[0] + points[0] * (self.verts[1] - self.verts[0]) + points[1] * (self.verts[2] - self.verts[0])
-
 
 class RefElQuad(ReferenceElement):
 
-    VERTICES = np.array([[0,0], [1,0], [1,1], [0,1]])
+    VERTICES = np.array([[0,0], [1,0], [1,1], [0,1]], dtype=np.int32)
 
     def __init__(self, vertices=None, idxs=None):
         if vertices is None:
@@ -166,7 +154,7 @@ class RefElQuad(ReferenceElement):
 
 class RefElTetra(ReferenceElement):
 
-    VERTICES = np.array([[0,0,0], [1,0,0], [0,1,0], [0,0,1]])
+    VERTICES = np.array([[0,0,0], [1,0,0], [0,1,0], [0,0,1]], dtype=np.int32)
 
     def __init__(self, vertices=None, idxs=None):
         if vertices is None:
@@ -186,7 +174,7 @@ class RefElTetra(ReferenceElement):
 
 class RefElCube(ReferenceElement):
 
-    VERTICES = np.array([[0,0,0], [1,0,0], [1,1,0], [0,1,0], [0,0,1], [1,0,1], [1,1,1], [0,1,1]])
+    VERTICES = np.array([[0,0,0], [1,0,0], [1,1,0], [0,1,0], [0,0,1], [1,0,1], [1,1,1], [0,1,1]], dtype=np.int32)
 
     def __init__(self, vertices=None, idxs=None):
         if vertices is None:

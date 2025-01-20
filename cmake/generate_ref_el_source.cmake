@@ -3,6 +3,7 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(NUMERIC_REF_EL_NAMES "ref_el_point;ref_el_segment;ref_el_tria;ref_el_quad;ref_el_tetra;ref_el_cube")
 
 
+set(NUMERIC_GENERATED_FILES)
 foreach (REF_EL ${NUMERIC_REF_EL_NAMES})
   set(REF_EL_SOURCE_FILE ${NUMERIC_INCLUDE_DIR}/numeric/mesh/${REF_EL}.hpp)
   list(APPEND NUMERIC_GENERATED_FILES ${REF_EL_SOURCE_FILE})

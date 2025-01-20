@@ -15,7 +15,19 @@ class Element:
     def __init__(self, ref_el, order):
         self.ref_el = ref_el
         self.order = order
-        #self.coords = sympy.symbols(','.join([f'x[{i}]' for i in range(self.dim)])+',', real=True)
+        self.coords = sympy.symbols(' '.join([f'x[{i}]' for i in range(max(1, self.dim))]), real=True, seq=True)
+        if isinstance(self.ref_el, RefElPoint):
+            self.min_order_for_int_idxs = 0
+        elif isinstance(self.ref_el, RefElSegment):
+            self.min_order_for_int_idxs = 2
+        elif isinstance(self.ref_el, RefElTria):
+            self.min_order_for_int_idxs = 3
+        elif isinstance(self.ref_el, RefElQuad):
+            self.min_order_for_int_idxs = 2
+        elif isinstance(self.ref_el, RefElTetra):
+            self.min_order_for_int_idxs = 4
+        elif isinstance(self.ref_el, RefElCube):
+            self.min_order_for_int_idxs = 2
 
     @property
     def dim(self):
@@ -31,13 +43,42 @@ class Element:
     def subelement(self, element_type, idx):
         return Element(self.ref_el.subelement(element_type, idx), self.order)
 
+    def sub_to_parent_coord(self, element_type, idx, point):
+        if element_type is RefElPoint and self.num_subelements(RefElPoint) > 0:
+            subel = self.ref_el.subelement(RefElPoint, idx)
+            verts = subel.verts
+            return self.order * verts[0]
+        elif element_type is RefElSegment and self.num_subelements(RefElSegment) > 0:
+            subel = self.ref_el.subelement(RefElSegment, idx)
+            verts = subel.verts
+            origin = self.order * verts[0]
+            dir_x = verts[1] - verts[0]
+            return origin + point[0]*dir_x
+        elif element_type is RefElTria and self.num_subelements(RefElTria) > 0:
+            subel = self.ref_el.subelement(RefElTria, idx)
+            verts = subel.verts
+            origin = self.order * verts[0]
+            dir_x = verts[1] - verts[0]
+            dir_y = verts[2] - verts[0]
+            return origin + point[0]*dir_x + point[1]*dir_y
+        elif element_type is RefElQuad and self.num_subelements(RefElQuad) > 0:
+            subel = self.ref_el.subelement(RefElQuad, idx)
+            verts = subel.verts
+            origin = self.order * verts[0]
+            dir_x = verts[1] - verts[0]
+            dir_y = verts[3] - verts[0]
+            return origin + point[0]*dir_x + point[1]*dir_y
+        raise ValueError('Invalid subelement type')
+
     def has_interior_idxs(self):
-        raise NotImplementedError
+        return self.order >= self.min_order_for_int_idxs
 
     def interior_idxs(self):
+        if isinstance(self.ref_el, RefElPoint):
+            return np.zeros((1, self.dim), dtype=np.int32)
         if not self.has_interior_idxs():
-            return np.zeros((0, self.dim))
-        low_el = Element(self.ref_el, self.order - 2)
+            return np.zeros((0, self.dim), dtype=np.int32)
+        low_el = Element(self.ref_el, self.order - self.min_order_for_int_idxs)
         return 1 + low_el.idxs()
 
     def idxs(self):
@@ -51,11 +92,13 @@ class Element:
                 num_subel = self.num_subelements(subelement_type)
                 ref_sub = Element(subelement_type(), self.order)
                 ref_intidxs = ref_sub.interior_idxs()
-                print(f'{ref_sub.name} of order {ref_sub.order} has interior indices {ref_intidxs}')
                 for i in range(num_subel):
-                    sub = self.subelement(subelement_type, i)
-                    intidxs = sub.ref_el.to_global(self.order * ref_intidxs)
-                    idx_list.append(intidxs)
+                    intidxs = []
+                    for j in range(ref_intidxs.shape[0]):
+                        point = ref_intidxs[j]
+                        glob = self.sub_to_parent_coord(subelement_type, i, point)
+                        intidxs.append(glob.reshape((1, glob.size)))
+                    idx_list += intidxs
             idx_list.append(self.interior_idxs())
             return np.concatenate(idx_list, axis=0)
                     
@@ -77,7 +120,7 @@ class Element:
         points = self.idxs()
         code = 'switch (i) {\n'
         for i,pt in enumerate(points):
-            expr = self.lagrange(pt)
+            expr = sympy.simplify(self.lagrange(pt))
             repl, red = sympy.cse(expr, optimizations='basic')
             code += f'  case {i}:\n'
             for r in repl:
@@ -155,9 +198,9 @@ class Element:
         return code[:-1]
 
     def code(self):
-        code = ''
-        code += f'template <> struct BasisLagrange<mesh::ElementType::{self.name}, {self.order}> {{\n'
-        code += f'  static constexpr mesh::ElementType element = mesh::ElementType::{self.name};\n'
+        code = f''
+        code += f'template <> struct BasisLagrange<mesh::RefEl{self.name}, {self.order}> {{\n'
+        code += f'  using ref_el_t = mesh::RefEl{self.name};\n'
         code += f'  static constexpr dim_t order = {self.order};\n'
         code += f'  static constexpr dim_t num_basis_functions = {len(self.idxs())};\n'
         code += f'  \n'
@@ -200,8 +243,10 @@ class Element:
 
 class Segment(Element):
 
+    REF_EL = RefElSegment
+
     def __init__(self, order):
-        super().__init__(RefElSegment(), order)
+        super().__init__(Segment.REF_EL(), order)
 
     def lagrange(self, point):
         points = [sympy.Integer(i)/self.order for i in range(self.order+1)]
@@ -211,9 +256,16 @@ class Segment(Element):
 
 
 class Tria(Element):
+    """
+    These basis functions are taken from P. Silvester, High-Order Polynomial
+    Triangular Finite Elements for Potential Problems, Int. J. Engng Sci. Vol. 7,
+    pp 849-861
+    """
+
+    REF_EL = RefElTria
 
     def __init__(self, order):
-        super().__init__(RefElTria(), order)
+        super().__init__(Tria.REF_EL(), order)
 
     def lagrange(self, point):
         i, j = point
@@ -230,8 +282,10 @@ class Tria(Element):
 
 class Quad(Element):
 
+    REF_EL = RefElQuad
+
     def __init__(self, order):
-        super().__init__(RefElQuad(), order)
+        super().__init__(Quad.REF_EL(), order)
 
     def lagrange(self, point):
         points = [sympy.Integer(i)/self.order for i in range(self.order+1)]
@@ -246,8 +300,10 @@ class Quad(Element):
 
 class Tetra(Element):
 
+    REF_EL = RefElTetra
+
     def __init__(self, order):
-        super().__init__(RefElTetra(), order)
+        super().__init__(Tetra.REF_EL(), order)
     
     def lagrange(self, point):
         i, j, k = point
@@ -266,24 +322,67 @@ class Tetra(Element):
 
 class Cube(Element):
 
+    REF_EL = RefElCube
+
     def __init__(self, order):
-        super().__init__(RefElCube(), order)
+        super().__init__(Cube.REF_EL(), order)
+
+    def lagrange(self, point):
+        points = [sympy.Integer(i)/self.order for i in range(self.order+1)]
+        Y1 = [sympy.Integer(0) for _ in range(self.order+1)]
+        Y1[point[0]] = sympy.Integer(1)
+        Y2 = [sympy.Integer(0) for _ in range(self.order+1)]
+        Y2[point[1]] = sympy.Integer(1)
+        Y3 = [sympy.Integer(0) for _ in range(self.order+1)]
+        Y3[point[2]] = sympy.Integer(1)
+        poly_x = sympy.interpolating_poly(self.order+1, self.coords[0], points, Y1)
+        poly_y = sympy.interpolating_poly(self.order+1, self.coords[1], points, Y2)
+        poly_z = sympy.interpolating_poly(self.order+1, self.coords[2], points, Y3)
+        return poly_x * poly_y * poly_z
 
 
-def specialized_code(element_type, p_max):
-    code = ''
+def generate_code(element_name, p_max):
+    element_types = {
+        'segment': Segment,
+        'tria': Tria,
+        'quad': Quad,
+        'tetra': Tetra,
+        'cube': Cube
+    }
+    element_type = element_types[element_name]
+    ref_el = element_type.REF_EL()
+    guard = f'NUMERIC_MATH_BASIS_LAGRANGE_{ref_el.name.upper()}_HPP_'
+    code = f'#ifndef {guard}\n'
+    code += f'#define {guard}\n'
+    code += f'\n'
+    code += f'#include <numeric/meta/meta.hpp>\n'
+    code += f'#include <numeric/mesh/ref_el_point.hpp>\n'
+    code += f'#include <numeric/mesh/ref_el_segment.hpp>\n'
+    code += f'#include <numeric/mesh/ref_el_tria.hpp>\n'
+    code += f'#include <numeric/mesh/ref_el_quad.hpp>\n'
+    code += f'#include <numeric/mesh/ref_el_tetra.hpp>\n'
+    code += f'#include <numeric/mesh/ref_el_cube.hpp>\n'
+    code += f'\n'
+    code += f'namespace numeric::math {{\n'
+    code += f'\n'
     for p in range(1, p_max+1):
         element = element_type(p)
         code += element.code()
-        code += '\n\n\n'
+        code += f'\n'
+    code += f'}}\n'
+    code += f'\n'
+    code += f'#endif'
     return code
 
 
 
 if __name__ == '__main__':
-    for ref_el_type in ALL_REF_EL:
-        ref_el = ref_el_type()
-        for order in range(3):
-            print(ref_el.name, order)
-            el = Element(ref_el, order)
-            print(el.idxs())
+    import sys
+
+    if len(sys.argv) < 3:
+        for element_type in [Segment, Tria, Quad, Tetra, Cube]:
+            print(specialized_code(element_type, 3))
+    else:
+        element_name = sys.argv[1]
+        max_order = int(sys.argv[2])
+        print(generate_code(element_name, max_order))

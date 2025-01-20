@@ -36,6 +36,7 @@ target_include_directories(numeric PUBLIC ${NUMERIC_INCLUDE_DIR})
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/install_dependencies.cmake)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_ref_el_source.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_basis_lagrange_source.cmake)
 
 
 target_link_libraries(numeric PUBLIC fmt::fmt)
@@ -64,6 +65,12 @@ if (NUMERIC_ENABLE_NETCDF)
   target_compile_definitions(numeric PUBLIC "-DNUMERIC_ENABLE_NETCDF=1")
 else()
   target_compile_definitions(numeric PUBLIC "-DNUMERIC_ENABLE_NETCDF=0")
+endif()
+
+if (NUMERIC_ENABLE_MPI)
+  find_package(MPI REQUIRED COMPONENTS C)
+  target_compile_definitions(numeric PUBLIC ${MPI_C_COMPILE_FLAGS})
+  target_include_directories(numeric PUBLIC ${MPI_C_INCLUDE_PATH})
 endif()
 
 set(DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data CACHE STRING "Location of the \"data\" directory")
