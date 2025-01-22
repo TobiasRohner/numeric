@@ -22,6 +22,7 @@ template <dim_t Order> struct Tria : public ElementBase<Tria<Order>> {
 
   using traits_t = ElementTraits<Tria<Order>>;
   using ref_el_t = typename traits_t::ref_el_t;
+  using basis_t = typename traits_t::basis_t;
   static constexpr dim_t dim = traits_t::dim;
   static constexpr dim_t order = traits_t::order;
   static constexpr bool is_affine = traits_t::is_affine;
@@ -48,29 +49,14 @@ template <dim_t Order> struct Tria : public ElementBase<Tria<Order>> {
       idxs[i + 2] = 3 + (Order - 1) * i;
     }
   }
+  using super::jacobian;
   using super::local_to_global;
   using super::subelement_node_idxs;
-
-  template <typename Scalar>
-  static constexpr void jacobian(const Scalar (*nodes)[num_nodes],
-                                 const Scalar *x, Scalar (*out)[dim],
-                                 dim_t world_dim) {
-    if constexpr (order == 1) {
-      const Scalar x1 = x[0];
-      const Scalar x2 = x[1];
-      for (dim_t i = 0; i < world_dim; ++i) {
-        out[i][0] = nodes[i][1] - nodes[i][0];
-        out[i][1] = nodes[i][2] - nodes[i][0];
-      }
-    } else {
-      static_assert(order != order,
-                    "Jacobian of triangle not implemented for the given order");
-    }
-  }
 };
 
 template <dim_t Order> struct ElementTraits<Tria<Order>> {
   using ref_el_t = RefElTria;
+  using basis_t = math::BasisLagrange<ref_el_t, Order>;
   static constexpr dim_t dim = 2;
   static constexpr dim_t order = Order;
   static constexpr bool is_affine = true;

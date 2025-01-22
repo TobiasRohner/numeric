@@ -123,9 +123,11 @@ class Element:
             expr = sympy.simplify(self.lagrange(pt))
             repl, red = sympy.cse(expr, optimizations='basic')
             code += f'  case {i}:\n'
+            code += f'    {{\n'
             for r in repl:
-                code += f'    const Scalar {r[0]} = {sympy.ccode(r[1])};\n'
-            code += f'    return {sympy.ccode(red[0])};\n'
+                code += f'      const Scalar {r[0]} = {sympy.ccode(r[1])};\n'
+            code += f'      return {sympy.ccode(red[0])};\n'
+            code += f'    }}\n'
         code += '  default:\n'
         code += '    return 0;\n'
         code += '}'
@@ -159,11 +161,13 @@ class Element:
             expr = self.grad_lagrange(pt)
             repl, red = sympy.cse(expr, optimizations='basic')
             code += f'  case {i}:\n'
+            code += f'    {{\n'
             for r in repl:
-                code += f'    const Scalar {r[0]} = {sympy.ccode(r[1])};\n'
+                code += f'      const Scalar {r[0]} = {sympy.ccode(r[1])};\n'
             for d in range(self.dim):
-                code += f'    out[{d}] = {sympy.ccode(red[d])};\n'
-            code += f'    break;\n'
+                code += f'      out[{d}] = {sympy.ccode(red[d])};\n'
+            code += f'      break;\n'
+            code += f'    }}\n'
         code += '  default:\n'
         code += '    break;\n'
         code += '}'
@@ -203,18 +207,18 @@ class Element:
         code += f'  using ref_el_t = mesh::RefEl{self.name};\n'
         code += f'  static constexpr dim_t order = {self.order};\n'
         code += f'  static constexpr dim_t num_basis_functions = {len(self.idxs())};\n'
-        code += f'  \n'
-        code += f'  template <typename Scalar>\n'
-        code += f'  static constexpr Scalar eval_basis(dim_ti, const Scalar *x) {{\n'
-        code += f'    ' + self.lagrange_code().replace('\n', '\n    ')
-        code += f'\n'
-        code += f'  }}\n'
-        code += f'  \n'
-        code += f'  template <typename Scalar>\n'
-        code += f'  static constexpr void grad_basis(dim_t i, const Scalar *x, Scalar *out) {{\n'
-        code += f'    ' + self.grad_lagrange_code().replace('\n', '\n    ')
-        code += f'\n'
-        code += f'  }}\n'
+        #code += f'  \n'
+        #code += f'  template <typename Scalar>\n'
+        #code += f'  static constexpr Scalar eval_basis(dim_t i, const Scalar *x) {{\n'
+        #code += f'    ' + self.lagrange_code().replace('\n', '\n    ')
+        #code += f'\n'
+        #code += f'  }}\n'
+        #code += f'  \n'
+        #code += f'  template <typename Scalar>\n'
+        #code += f'  static constexpr void grad_basis(dim_t i, const Scalar *x, Scalar *out) {{\n'
+        #code += f'    ' + self.grad_lagrange_code().replace('\n', '\n    ')
+        #code += f'\n'
+        #code += f'  }}\n'
         code += f'  \n'
         code += f'  template <typename Scalar>\n'
         code += f'  static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {{\n'
@@ -237,7 +241,7 @@ class Element:
         code += f'    ' + self.idxs_code().replace('\n', '\n    ')
         code += f'\n'
         code += f'  }}\n'
-        code += f'}}\n'
+        code += f'}};\n'
         return code
 
 

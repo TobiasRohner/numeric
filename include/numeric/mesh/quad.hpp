@@ -23,6 +23,7 @@ template <dim_t Order> struct Quad : public ElementBase<Quad<Order>> {
 
   using traits_t = ElementTraits<Quad<Order>>;
   using ref_el_t = typename traits_t::ref_el_t;
+  using basis_t = typename traits_t::basis_t;
   static constexpr dim_t dim = traits_t::dim;
   static constexpr dim_t order = traits_t::order;
   static constexpr bool is_affine = traits_t::is_affine;
@@ -49,31 +50,14 @@ template <dim_t Order> struct Quad : public ElementBase<Quad<Order>> {
       idxs[i + 2] = 4 + (Order - 1) * i;
     }
   }
+  using super::jacobian;
   using super::local_to_global;
   using super::subelement_node_idxs;
-
-  template <typename Scalar>
-  static constexpr void jacobian(const Scalar (*nodes)[num_nodes],
-                                 const Scalar *x, Scalar (*out)[dim],
-                                 dim_t world_dim) {
-    if constexpr (order == 1) {
-      const Scalar x1 = x[0];
-      const Scalar x2 = x[1];
-      for (dim_t i = 0; i < world_dim; ++i) {
-        out[i][0] = (1 - x2) * (nodes[i][1] - nodes[i][0]) +
-                    x2 * (nodes[i][2] - nodes[i][3]);
-        out[i][1] = (1 - x1) * (nodes[i][3] - nodes[i][0]) +
-                    x1 * (nodes[i][2] - nodes[i][1]);
-      }
-    } else {
-      static_assert(order != order,
-                    "Jacobian of quad not implemented for the given order");
-    }
-  }
 };
 
 template <dim_t Order> struct ElementTraits<Quad<Order>> {
   using ref_el_t = RefElQuad;
+  using basis_t = math::BasisLagrange<ref_el_t, Order>;
   static constexpr dim_t dim = 2;
   static constexpr dim_t order = Order;
   static constexpr bool is_affine = false;

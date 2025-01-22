@@ -25,6 +25,7 @@ template <dim_t Order> struct Cube : public ElementBase<Cube<Order>> {
 
   using traits_t = ElementTraits<Cube<Order>>;
   using ref_el_t = typename traits_t::ref_el_t;
+  using basis_t = typename traits_t::basis_t;
   static constexpr dim_t dim = traits_t::dim;
   static constexpr dim_t order = traits_t::order;
   static constexpr bool is_affine = traits_t::is_affine;
@@ -231,63 +232,15 @@ template <dim_t Order> struct Cube : public ElementBase<Cube<Order>> {
           8 + 12 * (Order - 1) + subelement * (Order - 1) * (Order - 1) + i;
     }
   }
+
+  using super::jacobian;
+  using super::local_to_global;
   using super::subelement_node_idxs;
-
-  template <typename Scalar>
-  static constexpr void local_to_global(const Scalar (*nodes)[num_nodes],
-                                        const Scalar *x, Scalar *out,
-                                        dim_t world_dim) {
-    if constexpr (order == 1) {
-      const Scalar x1 = x[0];
-      const Scalar x2 = x[1];
-      const Scalar x3 = x[2];
-      for (dim_t i = 0; i < world_dim; ++i) {
-        out[i] = (1 - x1) * (1 - x2) * (1 - x3) * nodes[i][0] +
-                 x1 * (1 - x2) * (1 - x3) * nodes[i][1] +
-                 x1 * x2 * (1 - x3) * nodes[i][2] +
-                 (1 - x1) * x2 * (1 - x3) * nodes[i][3] +
-                 (1 - x1) * (1 - x2) * x3 * nodes[i][4] +
-                 x1 * (1 - x2) * x3 * nodes[i][5] + x1 * x2 * x3 * nodes[i][6] +
-                 (1 - x1) * x2 * x3 * nodes[i][7];
-      }
-    } else {
-      static_assert(
-          order != order,
-          "local to global map of cube not implemented for the given order");
-    }
-  }
-
-  template <typename Scalar>
-  static constexpr void jacobian(const Scalar (*nodes)[num_nodes],
-                                 const Scalar *x, Scalar (*out)[dim],
-                                 dim_t world_dim) {
-    if constexpr (order == 1) {
-      const Scalar x1 = x[0];
-      const Scalar x2 = x[1];
-      const Scalar x3 = x[2];
-      for (dim_t i = 0; i < world_dim; ++i) {
-        out[i][0] = (1 - x2) * ((1 - x3) * (nodes[i][1] - nodes[i][0]) +
-                                x3 * (nodes[i][5] - nodes[i][4])) +
-                    x2 * ((1 - x3) * (nodes[i][2] - nodes[i][3]) +
-                          x3 * (nodes[i][6] - nodes[i][7]));
-        out[i][1] = (1 - x1) * ((1 - x3) * (nodes[i][3] - nodes[i][0]) +
-                                x3 * (nodes[i][7] - nodes[i][4])) +
-                    x1 * ((1 - x3) * (nodes[i][2] - nodes[i][1]) +
-                          x3 * (nodes[i][6] - nodes[i][5]));
-        out[i][2] = (1 - x1) * ((1 - x2) * (nodes[i][4] - nodes[i][0]) +
-                                x2 * (nodes[i][7] - nodes[i][3])) +
-                    x1 * ((1 - x2) * (nodes[i][5] - nodes[i][1]) +
-                          x2 * (nodes[i][6] - nodes[i][2]));
-      }
-    } else {
-      static_assert(order != order,
-                    "Jacobian of cube not implemented for the given order");
-    }
-  }
 };
 
 template <dim_t Order> struct ElementTraits<Cube<Order>> {
   using ref_el_t = RefElCube;
+  using basis_t = math::BasisLagrange<ref_el_t, Order>;
   static constexpr dim_t dim = 3;
   static constexpr dim_t order = Order;
   static constexpr bool is_affine = false;

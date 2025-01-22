@@ -14,10 +14,12 @@ namespace numeric::mesh {
 template <typename Derived> struct ElementBase {
   using traits_t = ElementTraits<Derived>;
   using ref_el_t = typename traits_t::ref_el_t;
+  using basis_t = typename traits_t::basis_t;
   static constexpr dim_t dim = traits_t::dim;
   static constexpr dim_t order = traits_t::order;
   static constexpr bool is_affine = traits_t::is_affine;
   static constexpr const char *name = traits_t::name;
+  static constexpr dim_t num_nodes = traits_t::num_nodes;
 
   template <typename Base, typename Element>
   using has_subelement_t =
@@ -51,7 +53,16 @@ template <typename Derived> struct ElementBase {
   local_to_global(const Scalar (*nodes)[dim > 0 ? dim : 1], const Scalar *x,
                   Scalar *out, dim_t world_dim) {
     for (dim_t i = 0; i < world_dim; ++i) {
-      out[i] = math::BasisLagrange<ref_el_t, order>::eval(x, nodes[i]);
+      out[i] = basis_t::eval(x, nodes[i]);
+    }
+  }
+
+  template <typename Scalar>
+  static constexpr void jacobian(const Scalar (*nodes)[num_nodes],
+                                 const Scalar *x, Scalar (*out)[dim],
+                                 dim_t world_dim) {
+    for (dim_t i = 0; i < world_dim; ++i) {
+      basis_t::grad(x, nodes[i], out[i]);
     }
   }
 

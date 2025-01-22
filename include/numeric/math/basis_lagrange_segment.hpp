@@ -17,32 +17,6 @@ template <> struct BasisLagrange<mesh::RefElSegment, 1> {
   static constexpr dim_t num_basis_functions = 2;
 
   template <typename Scalar>
-  static constexpr Scalar eval_basis(dim_ti, const Scalar *x) {
-    switch (i) {
-    case 0:
-      return 1 - x[0];
-    case 1:
-      return x[0];
-    default:
-      return 0;
-    }
-  }
-
-  template <typename Scalar>
-  static constexpr void grad_basis(dim_t i, const Scalar *x, Scalar *out) {
-    switch (i) {
-    case 0:
-      out[0] = -1;
-      break;
-    case 1:
-      out[0] = 1;
-      break;
-    default:
-      break;
-    }
-  }
-
-  template <typename Scalar>
   static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {
     return -coeffs[0] * (x[0] - 1) + coeffs[1] * x[0];
   }
@@ -69,44 +43,12 @@ template <> struct BasisLagrange<mesh::RefElSegment, 1> {
       break;
     }
   }
-}
+};
 
-template <>
-struct BasisLagrange<mesh::RefElSegment, 2> {
+template <> struct BasisLagrange<mesh::RefElSegment, 2> {
   using ref_el_t = mesh::RefElSegment;
   static constexpr dim_t order = 2;
   static constexpr dim_t num_basis_functions = 3;
-
-  template <typename Scalar>
-  static constexpr Scalar eval_basis(dim_ti, const Scalar *x) {
-    switch (i) {
-    case 0:
-      return (x[0] - 1) * (2 * x[0] - 1);
-    case 1:
-      return x[0] * (2 * x[0] - 1);
-    case 2:
-      return -4 * x[0] * (x[0] - 1);
-    default:
-      return 0;
-    }
-  }
-
-  template <typename Scalar>
-  static constexpr void grad_basis(dim_t i, const Scalar *x, Scalar *out) {
-    switch (i) {
-    case 0:
-      out[0] = 4 * x[0] - 3;
-      break;
-    case 1:
-      out[0] = 4 * x[0] - 1;
-      break;
-    case 2:
-      out[0] = 4 * (1 - 2 * x[0]);
-      break;
-    default:
-      break;
-    }
-  }
 
   template <typename Scalar>
   static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {
@@ -144,65 +86,12 @@ struct BasisLagrange<mesh::RefElSegment, 2> {
       break;
     }
   }
-}
+};
 
-template <>
-struct BasisLagrange<mesh::RefElSegment, 3> {
+template <> struct BasisLagrange<mesh::RefElSegment, 3> {
   using ref_el_t = mesh::RefElSegment;
   static constexpr dim_t order = 3;
   static constexpr dim_t num_basis_functions = 4;
-
-  template <typename Scalar>
-  static constexpr Scalar eval_basis(dim_ti, const Scalar *x) {
-    switch (i) {
-    case 0:
-      const Scalar x0 = 3 * x[0];
-      return -1.0 / 2.0 * (x0 - 2) * (x0 - 1) * (x[0] - 1);
-    case 1:
-      const Scalar x0 = 3 * x[0];
-      return (1.0 / 2.0) * x[0] * (x0 - 2) * (x0 - 1);
-    case 2:
-      return (9.0 / 2.0) * x[0] * (x[0] - 1) * (3 * x[0] - 2);
-    case 3:
-      return -9.0 / 2.0 * x[0] * (x[0] - 1) * (3 * x[0] - 1);
-    default:
-      return 0;
-    }
-  }
-
-  template <typename Scalar>
-  static constexpr void grad_basis(dim_t i, const Scalar *x, Scalar *out) {
-    switch (i) {
-    case 0:
-      const Scalar x0 = 3 * x[0];
-      const Scalar x1 = x0 - 2;
-      const Scalar x2 = 3 * x[0] - 3;
-      const Scalar x3 = x0 - 1;
-      out[0] = -1.0 / 2.0 * x1 * x2 - 1.0 / 2.0 * x1 * x3 - 1.0 / 2.0 * x2 * x3;
-      break;
-    case 1:
-      const Scalar x0 = 3 * x[0];
-      const Scalar x1 = x0 - 2;
-      const Scalar x2 = x0 - 1;
-      out[0] =
-          (1.0 / 2.0) * x0 * x1 + (1.0 / 2.0) * x0 * x2 + (1.0 / 2.0) * x1 * x2;
-      break;
-    case 2:
-      const Scalar x0 = x[0] - 1;
-      const Scalar x1 = x[0] - 2.0 / 3.0;
-      out[0] = (27.0 / 2.0) * x0 * x1 + (27.0 / 2.0) * x0 * x[0] +
-               (27.0 / 2.0) * x1 * x[0];
-      break;
-    case 3:
-      const Scalar x0 = x[0] - 1;
-      const Scalar x1 = x[0] - 1.0 / 3.0;
-      out[0] = -27.0 / 2.0 * x0 * x1 - 27.0 / 2.0 * x0 * x[0] -
-               27.0 / 2.0 * x1 * x[0];
-      break;
-    default:
-      break;
-    }
-  }
 
   template <typename Scalar>
   static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {
@@ -255,93 +144,12 @@ struct BasisLagrange<mesh::RefElSegment, 3> {
       break;
     }
   }
-}
+};
 
-template <>
-struct BasisLagrange<mesh::RefElSegment, 4> {
+template <> struct BasisLagrange<mesh::RefElSegment, 4> {
   using ref_el_t = mesh::RefElSegment;
   static constexpr dim_t order = 4;
   static constexpr dim_t num_basis_functions = 5;
-
-  template <typename Scalar>
-  static constexpr Scalar eval_basis(dim_ti, const Scalar *x) {
-    switch (i) {
-    case 0:
-      const Scalar x0 = 4 * x[0];
-      return (1.0 / 3.0) * (x0 - 3) * (x0 - 1) * (x[0] - 1) * (2 * x[0] - 1);
-    case 1:
-      const Scalar x0 = 4 * x[0];
-      return (1.0 / 3.0) * x[0] * (x0 - 3) * (x0 - 1) * (2 * x[0] - 1);
-    case 2:
-      return -16.0 / 3.0 * x[0] * (x[0] - 1) * (2 * x[0] - 1) * (4 * x[0] - 3);
-    case 3:
-      return -16.0 / 3.0 * x[0] * (x[0] - 1) * (2 * x[0] - 1) * (4 * x[0] - 1);
-    case 4:
-      const Scalar x0 = 4 * x[0];
-      return x0 * (x0 - 3) * (x0 - 1) * (x[0] - 1);
-    default:
-      return 0;
-    }
-  }
-
-  template <typename Scalar>
-  static constexpr void grad_basis(dim_t i, const Scalar *x, Scalar *out) {
-    switch (i) {
-    case 0:
-      const Scalar x0 = 4 * x[0];
-      const Scalar x1 = x0 - 3;
-      const Scalar x2 = 2 * x[0] - 1;
-      const Scalar x3 = x[0] - 1;
-      const Scalar x4 = 4 * x2 * x3;
-      const Scalar x5 = x0 - 1;
-      const Scalar x6 = x1 * x5;
-      out[0] = (1.0 / 3.0) * x1 * x4 + (1.0 / 3.0) * x2 * x6 +
-               (2.0 / 3.0) * x3 * x6 + (1.0 / 3.0) * x4 * x5;
-      break;
-    case 1:
-      const Scalar x0 = 4 * x[0];
-      const Scalar x1 = x0 - 3;
-      const Scalar x2 = 2 * x[0];
-      const Scalar x3 = x2 - 1;
-      const Scalar x4 = x0 * x3;
-      const Scalar x5 = x0 - 1;
-      const Scalar x6 = x1 * x5;
-      out[0] = (1.0 / 3.0) * x1 * x4 + (1.0 / 3.0) * x2 * x6 +
-               (1.0 / 3.0) * x3 * x6 + (1.0 / 3.0) * x4 * x5;
-      break;
-    case 2:
-      const Scalar x0 = 2 * x[0];
-      const Scalar x1 = x0 - 1;
-      const Scalar x2 = x[0] - 1;
-      const Scalar x3 = 4 * x[0];
-      const Scalar x4 = x3 - 3;
-      const Scalar x5 = x1 * x4;
-      out[0] = -16.0 / 3.0 * x0 * x2 * x4 - 16.0 / 3.0 * x1 * x2 * x3 -
-               16.0 / 3.0 * x2 * x5 - 16.0 / 3.0 * x5 * x[0];
-      break;
-    case 3:
-      const Scalar x0 = 2 * x[0];
-      const Scalar x1 = x0 - 1;
-      const Scalar x2 = x[0] - 1;
-      const Scalar x3 = 4 * x[0];
-      const Scalar x4 = x3 - 1;
-      const Scalar x5 = x1 * x4;
-      out[0] = -16.0 / 3.0 * x0 * x2 * x4 - 16.0 / 3.0 * x1 * x2 * x3 -
-               16.0 / 3.0 * x2 * x5 - 16.0 / 3.0 * x5 * x[0];
-      break;
-    case 4:
-      const Scalar x0 = 4 * x[0];
-      const Scalar x1 = x0 - 3;
-      const Scalar x2 = x[0] - 1;
-      const Scalar x3 = x0 * x2;
-      const Scalar x4 = x0 - 1;
-      const Scalar x5 = x1 * x4;
-      out[0] = 4 * x1 * x3 + 4 * x2 * x5 + 4 * x3 * x4 + 4 * x5 * x[0];
-      break;
-    default:
-      break;
-    }
-  }
 
   template <typename Scalar>
   static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {
@@ -411,129 +219,12 @@ struct BasisLagrange<mesh::RefElSegment, 4> {
       break;
     }
   }
-}
+};
 
-template <>
-struct BasisLagrange<mesh::RefElSegment, 5> {
+template <> struct BasisLagrange<mesh::RefElSegment, 5> {
   using ref_el_t = mesh::RefElSegment;
   static constexpr dim_t order = 5;
   static constexpr dim_t num_basis_functions = 6;
-
-  template <typename Scalar>
-  static constexpr Scalar eval_basis(dim_ti, const Scalar *x) {
-    switch (i) {
-    case 0:
-      const Scalar x0 = 5 * x[0];
-      return -1.0 / 24.0 * (x0 - 4) * (x0 - 3) * (x0 - 2) * (x0 - 1) *
-             (x[0] - 1);
-    case 1:
-      const Scalar x0 = 5 * x[0];
-      return (1.0 / 24.0) * x[0] * (x0 - 4) * (x0 - 3) * (x0 - 2) * (x0 - 1);
-    case 2:
-      const Scalar x0 = 5 * x[0];
-      return (25.0 / 24.0) * x[0] * (x0 - 4) * (x0 - 3) * (x0 - 2) * (x[0] - 1);
-    case 3:
-      const Scalar x0 = 5 * x[0];
-      return -25.0 / 24.0 * x[0] * (x0 - 3) * (x0 - 2) * (x0 - 1) * (x[0] - 1);
-    case 4:
-      const Scalar x0 = 5 * x[0];
-      return -25.0 / 12.0 * x[0] * (x0 - 4) * (x0 - 3) * (x0 - 1) * (x[0] - 1);
-    case 5:
-      const Scalar x0 = 5 * x[0];
-      return (25.0 / 12.0) * x[0] * (x0 - 4) * (x0 - 2) * (x0 - 1) * (x[0] - 1);
-    default:
-      return 0;
-    }
-  }
-
-  template <typename Scalar>
-  static constexpr void grad_basis(dim_t i, const Scalar *x, Scalar *out) {
-    switch (i) {
-    case 0:
-      const Scalar x0 = 5 * x[0];
-      const Scalar x1 = x0 - 4;
-      const Scalar x2 = x0 - 3;
-      const Scalar x3 = x0 - 2;
-      const Scalar x4 = 5 * x[0] - 5;
-      const Scalar x5 = x0 - 1;
-      const Scalar x6 = x1 * x2 * x5;
-      const Scalar x7 = x3 * x4 * x5;
-      out[0] = -1.0 / 24.0 * x1 * x2 * x3 * x4 - 1.0 / 24.0 * x1 * x7 -
-               1.0 / 24.0 * x2 * x7 - 1.0 / 24.0 * x3 * x6 -
-               1.0 / 24.0 * x4 * x6;
-      break;
-    case 1:
-      const Scalar x0 = 5 * x[0];
-      const Scalar x1 = x0 - 4;
-      const Scalar x2 = x0 - 3;
-      const Scalar x3 = x0 - 2;
-      const Scalar x4 = x0 - 1;
-      const Scalar x5 = x1 * x2 * x4;
-      const Scalar x6 = x0 * x3 * x4;
-      out[0] = (1.0 / 24.0) * x0 * x1 * x2 * x3 + (1.0 / 24.0) * x0 * x5 +
-               (1.0 / 24.0) * x1 * x6 + (1.0 / 24.0) * x2 * x6 +
-               (1.0 / 24.0) * x3 * x5;
-      break;
-    case 2:
-      const Scalar x0 = 5 * x[0];
-      const Scalar x1 = x0 - 4;
-      const Scalar x2 = x0 - 3;
-      const Scalar x3 = x1 * x2;
-      const Scalar x4 = x[0] - 1;
-      const Scalar x5 = x0 * x4;
-      const Scalar x6 = x0 - 2;
-      const Scalar x7 = x5 * x6;
-      const Scalar x8 = x3 * x6;
-      out[0] = (25.0 / 24.0) * x1 * x7 + (25.0 / 24.0) * x2 * x7 +
-               (25.0 / 24.0) * x3 * x5 + (25.0 / 24.0) * x4 * x8 +
-               (25.0 / 24.0) * x8 * x[0];
-      break;
-    case 3:
-      const Scalar x0 = 5 * x[0];
-      const Scalar x1 = x0 - 3;
-      const Scalar x2 = x0 - 2;
-      const Scalar x3 = x[0] - 1;
-      const Scalar x4 = x0 * x3;
-      const Scalar x5 = x2 * x4;
-      const Scalar x6 = x0 - 1;
-      const Scalar x7 = x1 * x6;
-      const Scalar x8 = x2 * x7;
-      out[0] = -25.0 / 24.0 * x1 * x5 - 25.0 / 24.0 * x3 * x8 -
-               25.0 / 24.0 * x4 * x7 - 25.0 / 24.0 * x5 * x6 -
-               25.0 / 24.0 * x8 * x[0];
-      break;
-    case 4:
-      const Scalar x0 = 5 * x[0];
-      const Scalar x1 = x0 - 4;
-      const Scalar x2 = x0 - 3;
-      const Scalar x3 = x[0] - 1;
-      const Scalar x4 = x0 * x3;
-      const Scalar x5 = x2 * x4;
-      const Scalar x6 = x0 - 1;
-      const Scalar x7 = x1 * x6;
-      const Scalar x8 = x2 * x7;
-      out[0] = -25.0 / 12.0 * x1 * x5 - 25.0 / 12.0 * x3 * x8 -
-               25.0 / 12.0 * x4 * x7 - 25.0 / 12.0 * x5 * x6 -
-               25.0 / 12.0 * x8 * x[0];
-      break;
-    case 5:
-      const Scalar x0 = 5 * x[0];
-      const Scalar x1 = x0 - 4;
-      const Scalar x2 = x0 - 2;
-      const Scalar x3 = x[0] - 1;
-      const Scalar x4 = x0 * x3;
-      const Scalar x5 = x2 * x4;
-      const Scalar x6 = x0 - 1;
-      const Scalar x7 = x1 * x6;
-      const Scalar x8 = x2 * x7;
-      out[0] = (25.0 / 12.0) * x1 * x5 + (25.0 / 12.0) * x3 * x8 +
-               (25.0 / 12.0) * x4 * x7 + (25.0 / 12.0) * x5 * x6 +
-               (25.0 / 12.0) * x8 * x[0];
-      break;
-    default:
-      break;
-    }
-  }
 
   template <typename Scalar>
   static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {
@@ -619,7 +310,7 @@ struct BasisLagrange<mesh::RefElSegment, 5> {
       break;
     }
   }
-}
+};
 
 } // namespace numeric::math
 
