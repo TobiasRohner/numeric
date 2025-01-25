@@ -201,24 +201,37 @@ class Element:
             code += f'out[{i}] = static_cast<Scalar>(idxs[{i}]) / order;\n'
         return code[:-1]
 
+    def subelement_node_idxs_code(self):
+        code = ''
+        parent_idxs = self.idxs()
+        for subel in ALL_REF_EL:
+            code += '\n'
+            code += f'static void subelement_node_idxs(dim_t subelement, dim_t *idxs, meta::type_tag<mesh::RefEl{subel().name}>) {{\n'
+            code += f'  switch (subelement) {{\n'
+            for i in range(self.num_subelements(subel)):
+                child = Element(subel(), self.order)
+                child_idxs = child.idxs()
+                code += f'  case {i}:\n'
+                for j in range(child_idxs.shape[0]):
+                    rel_idx = 0
+                    for k in range(parent_idxs.shape[0]):
+                        if np.all(parent_idxs[k] == self.sub_to_parent_coord(subel, i, child_idxs[j])):
+                            rel_idx = k
+                            break
+                    code += f'    idxs[{j}] = {rel_idx};\n'
+                code += f'    break;\n'
+            code += f'  default:\n'
+            code += f'    break;\n'
+            code += f'  }}\n'
+            code += f'}}\n'
+        return code
+
     def code(self):
         code = f''
         code += f'template <> struct BasisLagrange<mesh::RefEl{self.name}, {self.order}> {{\n'
         code += f'  using ref_el_t = mesh::RefEl{self.name};\n'
         code += f'  static constexpr dim_t order = {self.order};\n'
         code += f'  static constexpr dim_t num_basis_functions = {len(self.idxs())};\n'
-        #code += f'  \n'
-        #code += f'  template <typename Scalar>\n'
-        #code += f'  static constexpr Scalar eval_basis(dim_t i, const Scalar *x) {{\n'
-        #code += f'    ' + self.lagrange_code().replace('\n', '\n    ')
-        #code += f'\n'
-        #code += f'  }}\n'
-        #code += f'  \n'
-        #code += f'  template <typename Scalar>\n'
-        #code += f'  static constexpr void grad_basis(dim_t i, const Scalar *x, Scalar *out) {{\n'
-        #code += f'    ' + self.grad_lagrange_code().replace('\n', '\n    ')
-        #code += f'\n'
-        #code += f'  }}\n'
         code += f'  \n'
         code += f'  template <typename Scalar>\n'
         code += f'  static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {{\n'
@@ -241,6 +254,12 @@ class Element:
         code += f'    ' + self.idxs_code().replace('\n', '\n    ')
         code += f'\n'
         code += f'  }}\n'
+        code += f'\n'
+        code += f'  template <typename Element>\n'
+        code += f'  static void subelement_node_idxs(dim_t subelement, dim_t *idxs) {{\n'
+        code += f'    subelement_node_idxs(subelement, idxs, meta::type_tag<Element>{{}});\n'
+        code += f'  }}\n'
+        code += f'  ' + self.subelement_node_idxs_code().replace('\n', '\n  ')
         code += f'}};\n'
         return code
 
@@ -360,6 +379,7 @@ def generate_code(element_name, p_max):
     code += f'#define {guard}\n'
     code += f'\n'
     code += f'#include <numeric/meta/meta.hpp>\n'
+    code += f'#include <numeric/meta/type_tag.hpp>\n'
     code += f'#include <numeric/mesh/ref_el_point.hpp>\n'
     code += f'#include <numeric/mesh/ref_el_segment.hpp>\n'
     code += f'#include <numeric/mesh/ref_el_tria.hpp>\n'

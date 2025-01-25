@@ -13,6 +13,14 @@ namespace numeric::mesh {
 
 namespace detail {
 
+/**
+ * @brief A helper structure for managing subelements.
+ *
+ * NodeBags of two subelements sharing the same nodes but with a different
+ * ordering will be considered to be equivalent.
+ *
+ * @tparam Element Type of the element.
+ */
 template <typename Element> struct NodeBag {
   static constexpr dim_t N = Element::num_nodes;
   std::array<dim_t, N> idxs;

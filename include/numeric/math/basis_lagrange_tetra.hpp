@@ -8,6 +8,7 @@
 #include <numeric/mesh/ref_el_tetra.hpp>
 #include <numeric/mesh/ref_el_tria.hpp>
 #include <numeric/meta/meta.hpp>
+#include <numeric/meta/type_tag.hpp>
 
 namespace numeric::math {
 
@@ -59,6 +60,115 @@ template <> struct BasisLagrange<mesh::RefElTetra, 1> {
       out[0] = 0;
       out[1] = 0;
       out[2] = 1;
+      break;
+    }
+  }
+
+  template <typename Element>
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs) {
+    subelement_node_idxs(subelement, idxs, meta::type_tag<Element>{});
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElPoint>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      break;
+    case 1:
+      idxs[0] = 1;
+      break;
+    case 2:
+      idxs[0] = 2;
+      break;
+    case 3:
+      idxs[0] = 3;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElSegment>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      idxs[1] = 1;
+      break;
+    case 1:
+      idxs[0] = 0;
+      idxs[1] = 2;
+      break;
+    case 2:
+      idxs[0] = 0;
+      idxs[1] = 3;
+      break;
+    case 3:
+      idxs[0] = 1;
+      idxs[1] = 2;
+      break;
+    case 4:
+      idxs[0] = 2;
+      idxs[1] = 3;
+      break;
+    case 5:
+      idxs[0] = 3;
+      idxs[1] = 1;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElTria>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      idxs[1] = 2;
+      idxs[2] = 1;
+      break;
+    case 1:
+      idxs[0] = 0;
+      idxs[1] = 3;
+      idxs[2] = 2;
+      break;
+    case 2:
+      idxs[0] = 0;
+      idxs[1] = 1;
+      idxs[2] = 3;
+      break;
+    case 3:
+      idxs[0] = 1;
+      idxs[1] = 2;
+      idxs[2] = 3;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElQuad>) {
+    switch (subelement) {
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElTetra>) {
+    switch (subelement) {
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElCube>) {
+    switch (subelement) {
+    default:
       break;
     }
   }
@@ -162,6 +272,133 @@ template <> struct BasisLagrange<mesh::RefElTetra, 2> {
       out[0] = 1;
       out[1] = 0;
       out[2] = 1;
+      break;
+    }
+  }
+
+  template <typename Element>
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs) {
+    subelement_node_idxs(subelement, idxs, meta::type_tag<Element>{});
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElPoint>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      break;
+    case 1:
+      idxs[0] = 1;
+      break;
+    case 2:
+      idxs[0] = 2;
+      break;
+    case 3:
+      idxs[0] = 3;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElSegment>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      idxs[1] = 1;
+      idxs[2] = 4;
+      break;
+    case 1:
+      idxs[0] = 0;
+      idxs[1] = 2;
+      idxs[2] = 5;
+      break;
+    case 2:
+      idxs[0] = 0;
+      idxs[1] = 3;
+      idxs[2] = 6;
+      break;
+    case 3:
+      idxs[0] = 1;
+      idxs[1] = 2;
+      idxs[2] = 7;
+      break;
+    case 4:
+      idxs[0] = 2;
+      idxs[1] = 3;
+      idxs[2] = 8;
+      break;
+    case 5:
+      idxs[0] = 3;
+      idxs[1] = 1;
+      idxs[2] = 9;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElTria>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      idxs[1] = 2;
+      idxs[2] = 1;
+      idxs[3] = 5;
+      idxs[4] = 7;
+      idxs[5] = 4;
+      break;
+    case 1:
+      idxs[0] = 0;
+      idxs[1] = 3;
+      idxs[2] = 2;
+      idxs[3] = 6;
+      idxs[4] = 8;
+      idxs[5] = 5;
+      break;
+    case 2:
+      idxs[0] = 0;
+      idxs[1] = 1;
+      idxs[2] = 3;
+      idxs[3] = 4;
+      idxs[4] = 9;
+      idxs[5] = 6;
+      break;
+    case 3:
+      idxs[0] = 1;
+      idxs[1] = 2;
+      idxs[2] = 3;
+      idxs[3] = 7;
+      idxs[4] = 8;
+      idxs[5] = 9;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElQuad>) {
+    switch (subelement) {
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElTetra>) {
+    switch (subelement) {
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElCube>) {
+    switch (subelement) {
+    default:
       break;
     }
   }
@@ -394,6 +631,155 @@ template <> struct BasisLagrange<mesh::RefElTetra, 3> {
       out[0] = 1;
       out[1] = 1;
       out[2] = 1;
+      break;
+    }
+  }
+
+  template <typename Element>
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs) {
+    subelement_node_idxs(subelement, idxs, meta::type_tag<Element>{});
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElPoint>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      break;
+    case 1:
+      idxs[0] = 1;
+      break;
+    case 2:
+      idxs[0] = 2;
+      break;
+    case 3:
+      idxs[0] = 3;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElSegment>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      idxs[1] = 1;
+      idxs[2] = 4;
+      idxs[3] = 5;
+      break;
+    case 1:
+      idxs[0] = 0;
+      idxs[1] = 2;
+      idxs[2] = 6;
+      idxs[3] = 7;
+      break;
+    case 2:
+      idxs[0] = 0;
+      idxs[1] = 3;
+      idxs[2] = 8;
+      idxs[3] = 9;
+      break;
+    case 3:
+      idxs[0] = 1;
+      idxs[1] = 2;
+      idxs[2] = 10;
+      idxs[3] = 11;
+      break;
+    case 4:
+      idxs[0] = 2;
+      idxs[1] = 3;
+      idxs[2] = 12;
+      idxs[3] = 13;
+      break;
+    case 5:
+      idxs[0] = 3;
+      idxs[1] = 1;
+      idxs[2] = 14;
+      idxs[3] = 15;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElTria>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      idxs[1] = 2;
+      idxs[2] = 1;
+      idxs[3] = 6;
+      idxs[4] = 7;
+      idxs[5] = 11;
+      idxs[6] = 10;
+      idxs[7] = 5;
+      idxs[8] = 4;
+      idxs[9] = 16;
+      break;
+    case 1:
+      idxs[0] = 0;
+      idxs[1] = 3;
+      idxs[2] = 2;
+      idxs[3] = 8;
+      idxs[4] = 9;
+      idxs[5] = 13;
+      idxs[6] = 12;
+      idxs[7] = 7;
+      idxs[8] = 6;
+      idxs[9] = 17;
+      break;
+    case 2:
+      idxs[0] = 0;
+      idxs[1] = 1;
+      idxs[2] = 3;
+      idxs[3] = 4;
+      idxs[4] = 5;
+      idxs[5] = 15;
+      idxs[6] = 14;
+      idxs[7] = 9;
+      idxs[8] = 8;
+      idxs[9] = 18;
+      break;
+    case 3:
+      idxs[0] = 1;
+      idxs[1] = 2;
+      idxs[2] = 3;
+      idxs[3] = 10;
+      idxs[4] = 11;
+      idxs[5] = 12;
+      idxs[6] = 13;
+      idxs[7] = 14;
+      idxs[8] = 15;
+      idxs[9] = 19;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElQuad>) {
+    switch (subelement) {
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElTetra>) {
+    switch (subelement) {
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElCube>) {
+    switch (subelement) {
+    default:
       break;
     }
   }
@@ -813,6 +1199,181 @@ template <> struct BasisLagrange<mesh::RefElTetra, 4> {
       out[0] = 1;
       out[1] = 1;
       out[2] = 1;
+      break;
+    }
+  }
+
+  template <typename Element>
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs) {
+    subelement_node_idxs(subelement, idxs, meta::type_tag<Element>{});
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElPoint>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      break;
+    case 1:
+      idxs[0] = 1;
+      break;
+    case 2:
+      idxs[0] = 2;
+      break;
+    case 3:
+      idxs[0] = 3;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElSegment>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      idxs[1] = 1;
+      idxs[2] = 4;
+      idxs[3] = 5;
+      idxs[4] = 6;
+      break;
+    case 1:
+      idxs[0] = 0;
+      idxs[1] = 2;
+      idxs[2] = 7;
+      idxs[3] = 8;
+      idxs[4] = 9;
+      break;
+    case 2:
+      idxs[0] = 0;
+      idxs[1] = 3;
+      idxs[2] = 10;
+      idxs[3] = 11;
+      idxs[4] = 12;
+      break;
+    case 3:
+      idxs[0] = 1;
+      idxs[1] = 2;
+      idxs[2] = 13;
+      idxs[3] = 14;
+      idxs[4] = 15;
+      break;
+    case 4:
+      idxs[0] = 2;
+      idxs[1] = 3;
+      idxs[2] = 16;
+      idxs[3] = 17;
+      idxs[4] = 18;
+      break;
+    case 5:
+      idxs[0] = 3;
+      idxs[1] = 1;
+      idxs[2] = 19;
+      idxs[3] = 20;
+      idxs[4] = 21;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElTria>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      idxs[1] = 2;
+      idxs[2] = 1;
+      idxs[3] = 7;
+      idxs[4] = 8;
+      idxs[5] = 9;
+      idxs[6] = 14;
+      idxs[7] = 13;
+      idxs[8] = 15;
+      idxs[9] = 5;
+      idxs[10] = 4;
+      idxs[11] = 6;
+      idxs[12] = 22;
+      idxs[13] = 23;
+      idxs[14] = 24;
+      break;
+    case 1:
+      idxs[0] = 0;
+      idxs[1] = 3;
+      idxs[2] = 2;
+      idxs[3] = 10;
+      idxs[4] = 11;
+      idxs[5] = 12;
+      idxs[6] = 17;
+      idxs[7] = 16;
+      idxs[8] = 18;
+      idxs[9] = 8;
+      idxs[10] = 7;
+      idxs[11] = 9;
+      idxs[12] = 25;
+      idxs[13] = 26;
+      idxs[14] = 27;
+      break;
+    case 2:
+      idxs[0] = 0;
+      idxs[1] = 1;
+      idxs[2] = 3;
+      idxs[3] = 4;
+      idxs[4] = 5;
+      idxs[5] = 6;
+      idxs[6] = 20;
+      idxs[7] = 19;
+      idxs[8] = 21;
+      idxs[9] = 11;
+      idxs[10] = 10;
+      idxs[11] = 12;
+      idxs[12] = 28;
+      idxs[13] = 29;
+      idxs[14] = 30;
+      break;
+    case 3:
+      idxs[0] = 1;
+      idxs[1] = 2;
+      idxs[2] = 3;
+      idxs[3] = 13;
+      idxs[4] = 14;
+      idxs[5] = 15;
+      idxs[6] = 16;
+      idxs[7] = 17;
+      idxs[8] = 18;
+      idxs[9] = 19;
+      idxs[10] = 20;
+      idxs[11] = 21;
+      idxs[12] = 31;
+      idxs[13] = 32;
+      idxs[14] = 33;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElQuad>) {
+    switch (subelement) {
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElTetra>) {
+    switch (subelement) {
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElCube>) {
+    switch (subelement) {
+    default:
       break;
     }
   }
@@ -1545,6 +2106,211 @@ template <> struct BasisLagrange<mesh::RefElTetra, 5> {
       out[0] = 1;
       out[1] = 1;
       out[2] = 2;
+      break;
+    }
+  }
+
+  template <typename Element>
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs) {
+    subelement_node_idxs(subelement, idxs, meta::type_tag<Element>{});
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElPoint>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      break;
+    case 1:
+      idxs[0] = 1;
+      break;
+    case 2:
+      idxs[0] = 2;
+      break;
+    case 3:
+      idxs[0] = 3;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElSegment>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      idxs[1] = 1;
+      idxs[2] = 4;
+      idxs[3] = 5;
+      idxs[4] = 6;
+      idxs[5] = 7;
+      break;
+    case 1:
+      idxs[0] = 0;
+      idxs[1] = 2;
+      idxs[2] = 8;
+      idxs[3] = 9;
+      idxs[4] = 10;
+      idxs[5] = 11;
+      break;
+    case 2:
+      idxs[0] = 0;
+      idxs[1] = 3;
+      idxs[2] = 12;
+      idxs[3] = 13;
+      idxs[4] = 14;
+      idxs[5] = 15;
+      break;
+    case 3:
+      idxs[0] = 1;
+      idxs[1] = 2;
+      idxs[2] = 16;
+      idxs[3] = 17;
+      idxs[4] = 18;
+      idxs[5] = 19;
+      break;
+    case 4:
+      idxs[0] = 2;
+      idxs[1] = 3;
+      idxs[2] = 20;
+      idxs[3] = 21;
+      idxs[4] = 22;
+      idxs[5] = 23;
+      break;
+    case 5:
+      idxs[0] = 3;
+      idxs[1] = 1;
+      idxs[2] = 24;
+      idxs[3] = 25;
+      idxs[4] = 26;
+      idxs[5] = 27;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElTria>) {
+    switch (subelement) {
+    case 0:
+      idxs[0] = 0;
+      idxs[1] = 2;
+      idxs[2] = 1;
+      idxs[3] = 8;
+      idxs[4] = 9;
+      idxs[5] = 10;
+      idxs[6] = 11;
+      idxs[7] = 17;
+      idxs[8] = 16;
+      idxs[9] = 19;
+      idxs[10] = 18;
+      idxs[11] = 5;
+      idxs[12] = 4;
+      idxs[13] = 7;
+      idxs[14] = 6;
+      idxs[15] = 28;
+      idxs[16] = 29;
+      idxs[17] = 30;
+      idxs[18] = 31;
+      idxs[19] = 32;
+      idxs[20] = 33;
+      break;
+    case 1:
+      idxs[0] = 0;
+      idxs[1] = 3;
+      idxs[2] = 2;
+      idxs[3] = 12;
+      idxs[4] = 13;
+      idxs[5] = 14;
+      idxs[6] = 15;
+      idxs[7] = 21;
+      idxs[8] = 20;
+      idxs[9] = 23;
+      idxs[10] = 22;
+      idxs[11] = 9;
+      idxs[12] = 8;
+      idxs[13] = 11;
+      idxs[14] = 10;
+      idxs[15] = 34;
+      idxs[16] = 35;
+      idxs[17] = 36;
+      idxs[18] = 37;
+      idxs[19] = 38;
+      idxs[20] = 39;
+      break;
+    case 2:
+      idxs[0] = 0;
+      idxs[1] = 1;
+      idxs[2] = 3;
+      idxs[3] = 4;
+      idxs[4] = 5;
+      idxs[5] = 6;
+      idxs[6] = 7;
+      idxs[7] = 25;
+      idxs[8] = 24;
+      idxs[9] = 27;
+      idxs[10] = 26;
+      idxs[11] = 13;
+      idxs[12] = 12;
+      idxs[13] = 15;
+      idxs[14] = 14;
+      idxs[15] = 40;
+      idxs[16] = 41;
+      idxs[17] = 42;
+      idxs[18] = 43;
+      idxs[19] = 44;
+      idxs[20] = 45;
+      break;
+    case 3:
+      idxs[0] = 1;
+      idxs[1] = 2;
+      idxs[2] = 3;
+      idxs[3] = 16;
+      idxs[4] = 17;
+      idxs[5] = 18;
+      idxs[6] = 19;
+      idxs[7] = 20;
+      idxs[8] = 21;
+      idxs[9] = 22;
+      idxs[10] = 23;
+      idxs[11] = 24;
+      idxs[12] = 25;
+      idxs[13] = 26;
+      idxs[14] = 27;
+      idxs[15] = 46;
+      idxs[16] = 47;
+      idxs[17] = 48;
+      idxs[18] = 49;
+      idxs[19] = 50;
+      idxs[20] = 51;
+      break;
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElQuad>) {
+    switch (subelement) {
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElTetra>) {
+    switch (subelement) {
+    default:
+      break;
+    }
+  }
+
+  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                                   meta::type_tag<mesh::RefElCube>) {
+    switch (subelement) {
+    default:
       break;
     }
   }

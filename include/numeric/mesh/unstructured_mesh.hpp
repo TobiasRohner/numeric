@@ -23,7 +23,7 @@ public:
       : vertices_(memory::Shape<2>(world_dim, num_vertices),
                   memory::MemoryType::HOST),
         elements_{memory::Array<dim_t, 2>(
-            memory::Shape<2>(ElementTypes::num_nodes(), num_elements),
+            memory::Shape<2>(ElementTypes::num_nodes, num_elements),
             memory::MemoryType::HOST)...} {
     static_assert(
         sizeof...(ElementTypes) == sizeof...(NumElementTs),
