@@ -16,6 +16,7 @@ option(NUMERIC_ENABLE_MPI "Parallelize using MPI" ON)
 option(NUMERIC_ENABLE_CLANG_TIDY "Run clang-tidy while compiling" OFF)
 option(NUMERIC_BUILD_DOCS "Build the documentation" ON)
 cmake_dependent_option(NUMERIC_DOXYGEN_QUIET "Suppress doxygen output" OFF "NUMERIC_BUILD_DOCS" OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 
 if (NUMERIC_ENABLE_CLANG_TIDY)
@@ -62,6 +63,8 @@ endif()
 
 if (NUMERIC_ENABLE_NETCDF)
   target_link_libraries(numeric PUBLIC netCDF::netcdf)
+  find_package(HDF5 REQUIRED COMPONENTS C HL)
+  target_link_libraries(numeric PUBLIC hdf5::hdf5_hl hdf5::hdf5)
   target_compile_definitions(numeric PUBLIC "-DNUMERIC_ENABLE_NETCDF=1")
 else()
   target_compile_definitions(numeric PUBLIC "-DNUMERIC_ENABLE_NETCDF=0")
