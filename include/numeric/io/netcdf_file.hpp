@@ -29,6 +29,25 @@ public:
   NetCDFDimension get_dim(std::string_view name) const;
   NetCDFDimension create_dim(std::string_view name, size_t len);
 
+  std::shared_ptr<NetCDFFile> open_group(std::string_view name);
+  std::shared_ptr<const NetCDFFile> open_group(std::string_view name) const;
+  std::shared_ptr<NetCDFFile> create_group(std::string_view name);
+
+  std::shared_ptr<NetCDFVariable> open_variable(std::string_view name);
+  std::shared_ptr<const NetCDFVariable>
+  open_variable(std::string_view name) const;
+  template <typename T, dim_t N>
+  std::shared_ptr<NetCDFVariable>
+  create_variable(std::string_view name, const memory::Shape<N> &shape) {
+    std::shared_ptr<NetCDFVariable> variable =
+        dynamic_pointer_cast<NetCDFVariable>(
+            HierarchicalFile::create_variable<T>(name, shape));
+    if (!variable) {
+      NUMERIC_ERROR("This should not have happened. Congratulations for "
+                    "breaking the code");
+    }
+    return variable;
+  }
   template <typename T>
   std::shared_ptr<NetCDFVariable>
   create_variable(std::string_view name,

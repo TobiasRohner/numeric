@@ -3,11 +3,14 @@
 
 #include <hdf5.h>
 #include <memory>
+#include <numeric/io/hdf5_attributable.hpp>
+#include <numeric/io/hdf5_variable.hpp>
 #include <numeric/io/hierarchical_file.hpp>
 
 namespace numeric::io {
 
 class HDF5Group : public HierarchicalFile,
+                  public HDF5Attributable,
                   public std::enable_shared_from_this<HDF5Group> {
   using super = HierarchicalFile;
 
@@ -17,6 +20,32 @@ public:
   HDF5Group &operator=(const HDF5Group &) = delete;
   HDF5Group &operator=(HDF5Group &&) = delete;
   virtual ~HDF5Group() override;
+
+  std::shared_ptr<HDF5Group> open_group(std::string_view name);
+  std::shared_ptr<const HDF5Group> open_group(std::string_view name) const;
+  std::shared_ptr<HDF5Group> create_group(std::string_view name);
+
+  std::shared_ptr<HDF5Variable> open_variable(std::string_view name);
+  std::shared_ptr<const HDF5Variable>
+  open_variable(std::string_view name) const;
+  template <typename T, dim_t N>
+  std::shared_ptr<HDF5Variable> create_variable(std::string_view name,
+                                                const memory::Shape<N> &shape) {
+    std::shared_ptr<HDF5Variable> variable = dynamic_pointer_cast<HDF5Variable>(
+        HierarchicalFile::create_variable<T>(name, shape));
+    if (!variable) {
+      NUMERIC_ERROR("This should not have happened. Congratulations for "
+                    "breaking the code");
+    }
+    return variable;
+  }
+
+  using HDF5Attributable::attribute_exists;
+  using HDF5Attributable::get_attribute_datatype;
+  using HDF5Attributable::get_attribute_length;
+  using HDF5Attributable::get_attribute_names;
+  using HDF5Attributable::read_attribute;
+  using HDF5Attributable::write_attribute;
 
 protected:
   hid_t id_;

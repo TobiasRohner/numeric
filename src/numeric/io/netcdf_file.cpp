@@ -49,6 +49,62 @@ NetCDFDimension NetCDFFile::create_dim(std::string_view name, size_t len) {
   return NetCDFDimension(ncid_, dimid, get_root_file());
 }
 
+std::shared_ptr<NetCDFFile> NetCDFFile::open_group(std::string_view name) {
+  std::shared_ptr<NetCDFFile> group =
+      dynamic_pointer_cast<NetCDFFile>(HierarchicalFile::open_group(name));
+  if (!group) {
+    NUMERIC_ERROR(
+        "This should not have happened. Congratulations for breaking the code");
+  }
+  return group;
+}
+
+std::shared_ptr<const NetCDFFile>
+NetCDFFile::open_group(std::string_view name) const {
+  std::shared_ptr<const NetCDFFile> group =
+      dynamic_pointer_cast<const NetCDFFile>(
+          HierarchicalFile::open_group(name));
+  if (!group) {
+    NUMERIC_ERROR(
+        "This should not have happened. Congratulations for breaking the code");
+  }
+  return group;
+}
+
+std::shared_ptr<NetCDFFile> NetCDFFile::create_group(std::string_view name) {
+  std::shared_ptr<NetCDFFile> group =
+      dynamic_pointer_cast<NetCDFFile>(HierarchicalFile::create_group(name));
+  if (!group) {
+    NUMERIC_ERROR(
+        "This should not have happened. Congratulations for breaking the code");
+  }
+  return group;
+}
+
+std::shared_ptr<NetCDFVariable>
+NetCDFFile::open_variable(std::string_view name) {
+  std::shared_ptr<NetCDFVariable> variable =
+      dynamic_pointer_cast<NetCDFVariable>(
+          HierarchicalFile::open_variable(name));
+  if (!variable) {
+    NUMERIC_ERROR(
+        "This should not have happened. Congratulations for breaking the code");
+  }
+  return variable;
+}
+
+std::shared_ptr<const NetCDFVariable>
+NetCDFFile::open_variable(std::string_view name) const {
+  std::shared_ptr<const NetCDFVariable> variable =
+      dynamic_pointer_cast<const NetCDFVariable>(
+          HierarchicalFile::open_variable(name));
+  if (!variable) {
+    NUMERIC_ERROR(
+        "This should not have happened. Congratulations for breaking the code");
+  }
+  return variable;
+}
+
 NetCDFFile::NetCDFFile(int ncid,
                        const std::shared_ptr<const NetCDFFile> &root_file)
     : root_file_(root_file), ncid_(ncid) {}

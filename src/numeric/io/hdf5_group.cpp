@@ -15,9 +15,62 @@ HDF5Group::~HDF5Group() {
   }
 }
 
+std::shared_ptr<HDF5Group> HDF5Group::open_group(std::string_view name) {
+  std::shared_ptr<HDF5Group> group =
+      dynamic_pointer_cast<HDF5Group>(HierarchicalFile::open_group(name));
+  if (!group) {
+    NUMERIC_ERROR(
+        "This should not have happened. Congratulations for breaking the code");
+  }
+  return group;
+}
+
+std::shared_ptr<const HDF5Group>
+HDF5Group::open_group(std::string_view name) const {
+  std::shared_ptr<const HDF5Group> group =
+      dynamic_pointer_cast<const HDF5Group>(HierarchicalFile::open_group(name));
+  if (!group) {
+    NUMERIC_ERROR(
+        "This should not have happened. Congratulations for breaking the code");
+  }
+  return group;
+}
+
+std::shared_ptr<HDF5Group> HDF5Group::create_group(std::string_view name) {
+  std::shared_ptr<HDF5Group> group =
+      dynamic_pointer_cast<HDF5Group>(HierarchicalFile::create_group(name));
+  if (!group) {
+    NUMERIC_ERROR(
+        "This should not have happened. Congratulations for breaking the code");
+  }
+  return group;
+}
+
+std::shared_ptr<HDF5Variable> HDF5Group::open_variable(std::string_view name) {
+  std::shared_ptr<HDF5Variable> variable =
+      dynamic_pointer_cast<HDF5Variable>(HierarchicalFile::open_variable(name));
+  if (!variable) {
+    NUMERIC_ERROR(
+        "This should not have happened. Congratulations for breaking the code");
+  }
+  return variable;
+}
+
+std::shared_ptr<const HDF5Variable>
+HDF5Group::open_variable(std::string_view name) const {
+  std::shared_ptr<const HDF5Variable> variable =
+      dynamic_pointer_cast<const HDF5Variable>(
+          HierarchicalFile::open_variable(name));
+  if (!variable) {
+    NUMERIC_ERROR(
+        "This should not have happened. Congratulations for breaking the code");
+  }
+  return variable;
+}
+
 HDF5Group::HDF5Group(hid_t id,
                      const std::shared_ptr<const HDF5Group> &root_file)
-    : id_(id), root_file_(root_file) {}
+    : HDF5Attributable(id), id_(id), root_file_(root_file) {}
 
 extern "C" {
 static herr_t push_back_variables(hid_t id, const char *name,
