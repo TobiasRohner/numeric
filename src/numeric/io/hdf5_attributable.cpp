@@ -61,4 +61,11 @@ void HDF5Attributable::do_write_attribute(std::string_view name,
   attribute.write(datatype, attr);
 }
 
+void HDF5Attributable::do_write_attribute(std::string_view name,
+                                          std::string_view attr) {
+  HDF5Attribute attribute =
+      HDF5Attribute::create_string(id_, name, attr.size());
+  attribute.write(attr);
+}
+
 } // namespace numeric::io

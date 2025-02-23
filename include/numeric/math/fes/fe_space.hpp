@@ -21,16 +21,15 @@ public:
   static_assert(((ElementTypes::order == mesh_order) && ...),
                 "FESpace assumes uniform order of mesh elements");
 
-  FESpace(mesh_t &&mesh)
-      : mesh_(std::move(mesh)),
-        dof_maps_(memory::Array<dim_t, 2>(memory::Shape<2>(
-            basis_t::template num_basis_functions<ElementTypes>(),
-            mesh_.template num_elements<ElementTypes>()))...),
+  FESpace(const std::shared_ptr<mesh_t> &mesh)
+      : mesh_(mesh), dof_maps_(memory::Array<dim_t, 2>(memory::Shape<2>(
+                         basis_t::template num_basis_functions<ElementTypes>(),
+                         mesh_->template num_elements<ElementTypes>()))...),
         num_dofs_(0) {
     init_dofs();
   }
 
-  const mesh_t &mesh() const { return mesh_; }
+  std::shared_ptr<const mesh_t> mesh() const { return mesh_; }
 
   dim_t num_dofs() const { return num_dofs_; }
 
@@ -39,7 +38,7 @@ public:
   }
 
 private:
-  mesh_t mesh_;
+  std::shared_ptr<mesh_t> mesh_;
   utils::TypeIndexedMap<memory::Array<dim_t, 2>, ElementTypes...> dof_maps_;
   dim_t num_dofs_;
 
@@ -63,7 +62,7 @@ private:
               0) ||
          ...);
     if (has_dofs_associated_with_subelement) {
-      const auto [elements, relations] = subelement_relation<Element>(mesh_);
+      const auto [elements, relations] = subelement_relation<Element>(*mesh_);
       (init_dofs_on_subelements<ElementTypes, Element>(
            relations.template get<ElementTypes>(),
            current_highest_dof_idx.template get<ElementTypes>()),

@@ -50,11 +50,11 @@ int main(int argc, char *argv[]) {
   const dim_t world_dim = 2;
   auto mesh = io::GmshReader<double, mesh::Tria<1>, mesh::Quad<1>>::load(
       argv[1], world_dim);
-  print_mesh(mesh);
+  print_mesh(*mesh);
 
   math::fes::FESpace<math::fes::BasisH1<2>,
-                     meta::remove_cvref_t<decltype(mesh)>>
-      fes(std::move(mesh));
+                     meta::remove_cvref_t<decltype(*mesh)>>
+      fes(mesh);
 
   std::cout << "Finite Element Space has " << fes.num_dofs()
             << " degrees of freedom.\n";

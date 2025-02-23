@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
   const auto mesh = io::GmshReader<double, mesh::Tria<1>, mesh::Quad<1>>::load(
       argv[1], world_dim);
 
-  const auto nodes = mesh.vertices();
+  const auto nodes = mesh->vertices();
   for (dim_t node = 0; node < nodes.shape(1); ++node) {
     for (dim_t i = 0; i < world_dim; ++i) {
       std::cout << nodes(i, node) << ' ';
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 
   auto print_elements = [&]<typename Element>() {
     std::cout << to_string(io::to_gmsh_element_type_v<Element>) << std::endl;
-    const auto elements = mesh.template get_elements<Element>();
+    const auto elements = mesh->template get_elements<Element>();
     for (dim_t element = 0; element < elements.shape(1); ++element) {
       std::cout << "  ";
       for (dim_t i = 0; i < elements.shape(0); ++i) {

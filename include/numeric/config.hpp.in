@@ -1,6 +1,10 @@
 #ifndef NUMERIC_CONFIG_HPP_
 #define NUMERIC_CONFIG_HPP_
 
+#ifndef __HIP_DEVICE_COMPILE__
+#include <cstdint>
+#endif
+
 
 namespace numeric {
 
@@ -64,7 +68,11 @@ namespace numeric {
  * General Config Data
  */
 
+#ifndef __HIP_DEVICE_COMPILE__
+using dim_t = int64_t;
+#else
 using dim_t = long long;
+#endif
 
 #ifndef __HIP_DEVICE_COMPILE__
 static constexpr char DATA_DIR[] = "@DATA_DIR@";

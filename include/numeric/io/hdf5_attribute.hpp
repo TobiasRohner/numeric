@@ -18,17 +18,22 @@ public:
   static HDF5Attribute open(hid_t id, std::string_view name);
   static HDF5Attribute create(hid_t id, std::string_view name,
                               utils::Datatype datatype, hsize_t size);
+  static HDF5Attribute create_string(hid_t id, std::string_view name,
+                                     hsize_t size);
 
   utils::Datatype datatype() const;
   size_t size() const;
   void read(utils::Datatype dtype, void *data) const;
   void write(utils::Datatype dtype, const void *data);
+  void write(std::string_view data);
 
 private:
   hid_t id_;
 
   HDF5Attribute();
   HDF5Attribute(hid_t id);
+
+  hid_t get_type() const;
 };
 
 } // namespace numeric::io

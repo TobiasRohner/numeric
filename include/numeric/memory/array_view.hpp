@@ -136,7 +136,7 @@ ArrayView<Scalar, N>::sub_view(ArrayView<Scalar, M> &view, dim_t d, Idx idx,
       new_layout.shape(i) = view.shape(i);
       new_layout.stride(i) = view.stride(i);
     }
-    new_layout.shape(d) = (idx.stop - idx.start) / idx.step;
+    new_layout.shape(d) = math::div_up(idx.stop - idx.start, idx.step);
     new_layout.stride(d) = view.stride(d) * idx.step;
     ArrayView<Scalar, M> slice(new_data, new_layout, view.memory_type());
     return ArrayView::sub_view(slice, d + 1, idxs...);

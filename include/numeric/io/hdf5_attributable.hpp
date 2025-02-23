@@ -26,21 +26,18 @@ public:
 
 protected:
   virtual std::vector<std::string> do_get_attribute_names() const override;
-
   virtual bool do_attribute_exists(std::string_view name) const override;
-
   virtual utils::Datatype
   do_get_attribute_datatype(std::string_view name) const override;
-
   virtual size_t do_get_attribute_length(std::string_view name) const override;
-
   virtual void do_read_attribute(std::string_view name,
                                  utils::Datatype datatype,
                                  void *attr) const override;
-
   virtual void do_write_attribute(std::string_view name, const void *attr,
                                   size_t len,
                                   utils::Datatype datatype) override;
+  virtual void do_write_attribute(std::string_view name,
+                                  std::string_view attr) override;
 
 private:
   hid_t id_;

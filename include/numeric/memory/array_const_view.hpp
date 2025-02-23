@@ -132,7 +132,7 @@ ArrayConstView<Scalar, N>::sub_view(const ArrayConstView<Scalar, M> &view,
       new_layout.shape(i) = view.shape(i);
       new_layout.stride(i) = view.stride(i);
     }
-    new_layout.shape(d) = (idx.stop - idx.start) / idx.step;
+    new_layout.shape(d) = math::div_up(idx.stop - idx.start, idx.step);
     new_layout.stride(d) = view.stride(d) * idx.step;
     return sub_view(
         ArrayConstView<Scalar, M>(new_data, new_layout, view.memory_type()),

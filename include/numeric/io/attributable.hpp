@@ -91,6 +91,14 @@ public:
     do_write_attribute(name, attr.data(), attr.size(), utils::to_datatype_v<T>);
   }
 
+  /**
+   * @brief Write a new string attribute
+   *
+   * @param name The name of the attribute
+   * @param attr The string to write into the attribute
+   */
+  void write_attribute(std::string_view name, std::string_view attr);
+
 protected:
   virtual std::vector<std::string> do_get_attribute_names() const = 0;
   virtual bool do_attribute_exists(std::string_view name) const = 0;
@@ -102,6 +110,8 @@ protected:
                                  void *attr) const = 0;
   virtual void do_write_attribute(std::string_view name, const void *attr,
                                   size_t len, utils::Datatype datatype) = 0;
+  virtual void do_write_attribute(std::string_view name,
+                                  std::string_view attr) = 0;
 };
 
 } // namespace numeric::io

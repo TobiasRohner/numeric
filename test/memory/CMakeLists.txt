@@ -1,3 +1,4 @@
+target_sources(test PUBLIC slice.cpp)
 target_sources(test PUBLIC resource.cpp)
 target_sources(test PUBLIC array.cpp)
 target_sources(test PUBLIC array_op.cpp)

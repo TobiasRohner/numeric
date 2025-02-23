@@ -56,9 +56,9 @@ template <typename Derived> struct ElementBase {
   }
 
   template <typename Scalar>
-  static constexpr void
-  local_to_global(const Scalar (*nodes)[dim > 0 ? dim : 1], const Scalar *x,
-                  Scalar *out, dim_t world_dim) {
+  static constexpr void local_to_global(const Scalar (*nodes)[num_nodes],
+                                        const Scalar *x, Scalar *out,
+                                        dim_t world_dim) {
     for (dim_t i = 0; i < world_dim; ++i) {
       out[i] = basis_t::eval(x, nodes[i]);
     }

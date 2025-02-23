@@ -298,7 +298,7 @@ TEST(array, stride) {
   const auto slice_0 = arr(numeric::memory::Slice(0, -1, 2),
                            numeric::memory::Slice(), numeric::memory::Slice());
   ASSERT_EQ(slice_0.dim, 3);
-  ASSERT_EQ(slice_0.shape(0), 2);
+  ASSERT_EQ(slice_0.shape(0), 3);
   ASSERT_EQ(slice_0.shape(1), shape[1]);
   ASSERT_EQ(slice_0.shape(2), shape[2]);
   for (numeric::dim_t i = 0; i < slice_0.shape(0); ++i) {

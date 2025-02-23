@@ -3,6 +3,7 @@ target_sources(numeric PRIVATE hierarchical_file.cpp)
 target_sources(numeric PRIVATE file_mode.cpp)
 target_sources(numeric PRIVATE gmsh_reader.cpp)
 target_sources(numeric PRIVATE gmsh_element_type.cpp)
+target_sources(numeric PRIVATE attributable.cpp)
 
 if (NUMERIC_ENABLE_HDF5)
   target_sources(numeric PRIVATE hdf5_type.cpp)

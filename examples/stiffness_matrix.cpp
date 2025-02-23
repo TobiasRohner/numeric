@@ -19,15 +19,15 @@ int main(int argc, char *argv[]) {
   std::cout << "Reading mesh " << mesh_file << std::endl;
   auto mesh = io::GmshReader<scalar_t, mesh::Tria<1>, mesh::Quad<1>>::load(
       mesh_file, world_dim);
-  std::cout << "Done reading " << mesh.num_vertices() << " vertices, "
-            << mesh.num_elements<mesh::Tria<1>>() << " triangles, and "
-            << mesh.num_elements<mesh::Quad<1>>() << " quads." << std::endl;
+  std::cout << "Done reading " << mesh->num_vertices() << " vertices, "
+            << mesh->num_elements<mesh::Tria<1>>() << " triangles, and "
+            << mesh->num_elements<mesh::Quad<1>>() << " quads." << std::endl;
 
   std::cout << "Constructing first-order H1 FE space" << std::endl;
   using mesh_t = mesh::UnstructuredMesh<scalar_t, mesh::Tria<1>, mesh::Quad<1>>;
   using basis_t = math::fes::BasisH1<1>;
   using fes_t = math::fes::FESpace<basis_t, mesh_t>;
-  fes_t fes(std::move(mesh));
+  fes_t fes(mesh);
   std::cout << "Done. Got " << fes.num_dofs() << " degrees of freedom."
             << std::endl;
 

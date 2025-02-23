@@ -145,61 +145,46 @@ int HDF5Type::get_array_ndims() const {
 }
 
 hid_t HDF5Type::datatype_to_hdf5_type(utils::Datatype type) {
+  hid_t orig_id;
   switch (type) {
   case utils::Datatype::FLOAT:
-    return H5T_NATIVE_FLOAT;
+    orig_id = H5T_NATIVE_FLOAT;
+    break;
   case utils::Datatype::DOUBLE:
-    return H5T_NATIVE_DOUBLE;
+    orig_id = H5T_NATIVE_DOUBLE;
+    break;
   case utils::Datatype::INT8_T:
-    return H5T_NATIVE_INT8;
+    orig_id = H5T_NATIVE_INT8;
+    break;
   case utils::Datatype::UINT8_T:
-    return H5T_NATIVE_UINT8;
+    orig_id = H5T_NATIVE_UINT8;
+    break;
   case utils::Datatype::INT16_T:
-    return H5T_NATIVE_INT16;
+    orig_id = H5T_NATIVE_INT16;
+    break;
   case utils::Datatype::UINT16_T:
-    return H5T_NATIVE_UINT16;
+    orig_id = H5T_NATIVE_UINT16;
+    break;
   case utils::Datatype::INT32_T:
-    return H5T_NATIVE_INT32;
+    orig_id = H5T_NATIVE_INT32;
+    break;
   case utils::Datatype::UINT32_T:
-    return H5T_NATIVE_UINT32;
+    orig_id = H5T_NATIVE_UINT32;
+    break;
   case utils::Datatype::INT64_T:
-    return H5T_NATIVE_INT64;
+    orig_id = H5T_NATIVE_INT64;
+    break;
   case utils::Datatype::UINT64_T:
-    return H5T_NATIVE_UINT64;
+    orig_id = H5T_NATIVE_UINT64;
+    break;
   default:
     NUMERIC_ERROR("Unsupported Datatype");
   }
-}
-
-template <> HDF5Type to_hdf5_type<float>() {
-  return HDF5Type(H5T_NATIVE_FLOAT);
-}
-template <> HDF5Type to_hdf5_type<double>() {
-  return HDF5Type(H5T_NATIVE_DOUBLE);
-}
-template <> HDF5Type to_hdf5_type<int8_t>() {
-  return HDF5Type(H5T_NATIVE_INT8);
-}
-template <> HDF5Type to_hdf5_type<uint8_t>() {
-  return HDF5Type(H5T_NATIVE_UINT8);
-}
-template <> HDF5Type to_hdf5_type<int16_t>() {
-  return HDF5Type(H5T_NATIVE_INT16);
-}
-template <> HDF5Type to_hdf5_type<uint16_t>() {
-  return HDF5Type(H5T_NATIVE_UINT16);
-}
-template <> HDF5Type to_hdf5_type<int32_t>() {
-  return HDF5Type(H5T_NATIVE_INT32);
-}
-template <> HDF5Type to_hdf5_type<uint32_t>() {
-  return HDF5Type(H5T_NATIVE_UINT32);
-}
-template <> HDF5Type to_hdf5_type<int64_t>() {
-  return HDF5Type(H5T_NATIVE_INT64);
-}
-template <> HDF5Type to_hdf5_type<uint64_t>() {
-  return HDF5Type(H5T_NATIVE_UINT64);
+  const hid_t id = H5Tcopy(orig_id);
+  if (id == H5I_INVALID_HID) {
+    NUMERIC_ERROR("Failed to copy datatype");
+  }
+  return id;
 }
 
 } // namespace numeric::io

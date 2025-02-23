@@ -45,18 +45,11 @@ private:
   static hid_t datatype_to_hdf5_type(utils::Datatype type);
 };
 
-template <typename T> HDF5Type to_hdf5_type();
-
-template <> HDF5Type to_hdf5_type<float>();
-template <> HDF5Type to_hdf5_type<double>();
-template <> HDF5Type to_hdf5_type<int8_t>();
-template <> HDF5Type to_hdf5_type<uint8_t>();
-template <> HDF5Type to_hdf5_type<int16_t>();
-template <> HDF5Type to_hdf5_type<uint16_t>();
-template <> HDF5Type to_hdf5_type<int32_t>();
-template <> HDF5Type to_hdf5_type<uint32_t>();
-template <> HDF5Type to_hdf5_type<int64_t>();
-template <> HDF5Type to_hdf5_type<uint64_t>();
+template <typename T> HDF5Type to_hdf5_type() {
+  constexpr utils::Datatype dtype = utils::to_datatype_v<T>;
+  const hid_t id = HDF5Type::datatype_to_hdf5_type(dtype);
+  return HDF5Type(id);
+}
 
 } // namespace numeric::io
 

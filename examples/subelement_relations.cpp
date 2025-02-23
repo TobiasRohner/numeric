@@ -51,11 +51,11 @@ int main(int argc, char *argv[]) {
       argv[1], world_dim);
 
   const auto [points, relations_points] =
-      mesh::subelement_relation<mesh::Point<1>>(mesh);
+      mesh::subelement_relation<mesh::Point<1>>(*mesh);
   const auto [segments, relations_segments] =
-      mesh::subelement_relation<mesh::Segment<1>>(mesh);
+      mesh::subelement_relation<mesh::Segment<1>>(*mesh);
 
-  print_mesh(mesh);
+  print_mesh(*mesh);
   std::cout << "Found the following " << points.shape(1) << " points\n";
   print_elements<mesh::Point<1>>(points);
   print_subelements<mesh::Tria<1>, mesh::Point<1>>(

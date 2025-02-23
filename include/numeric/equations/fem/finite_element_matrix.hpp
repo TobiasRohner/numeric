@@ -56,7 +56,7 @@ private:
           utils::TypeIndexedMap<memory::Array<scalar_t, 2>, ElementTypes...>,
           utils::TypeIndexedMap<memory::Array<scalar_t, 1>, ElementTypes...>>
           &&qr)
-      : work_(memory::Shape<1>(apply_work_size(fes.mesh().world_dim())),
+      : work_(memory::Shape<1>(apply_work_size(fes.mesh()->world_dim())),
               memory::MemoryType::HOST),
         qr_points_(std::move(qr.template get<0>())),
         qr_weights_(std::move(qr.template get<1>())),
@@ -106,7 +106,7 @@ private:
     static constexpr dim_t num_nodes = Element::num_nodes;
     static constexpr dim_t num_basis_functions =
         basis_t::template num_basis_functions<Element>();
-    const mesh_t &mesh = fes.mesh();
+    const mesh_t &mesh = *(fes.mesh());
     const dim_t num_elements = mesh.template num_elements<Element>();
     const dim_t world_dim = mesh.world_dim();
     const memory::ArrayConstView<scalar_mesh_t, 2> vertices = mesh.vertices();

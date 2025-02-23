@@ -2,6 +2,7 @@
 #define NUMERIC_MEMORY_SLICE_HPP_
 
 #include <numeric/config.hpp>
+#include <numeric/math/functions.hpp>
 #ifndef __HIP_DEVICE_COMPILE__
 #include <iostream>
 #endif
@@ -50,10 +51,13 @@ struct Slice {
    */
   NUMERIC_HOST_DEVICE dim_t size(dim_t N) const noexcept {
     dim_t real_stop = stop;
-    while (real_stop < 0) {
-      real_stop += N;
+    if (real_stop < 0) {
+      while (real_stop < 0) {
+        real_stop += N;
+      }
+      real_stop += 1;
     }
-    return (real_stop - start) / step;
+    return math::div_up((real_stop - start), step);
   }
 };
 
