@@ -21,6 +21,7 @@ template <typename RefEl, dim_t Order> struct BasisLagrange {
 template <dim_t Ord> struct BasisLagrange<mesh::RefElPoint, Ord> {
   using ref_el_t = mesh::RefElPoint;
   static constexpr dim_t order = Ord;
+  static constexpr dim_t num_basis_functions = 1;
 
   template <typename Scalar>
   static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {
@@ -28,8 +29,18 @@ template <dim_t Ord> struct BasisLagrange<mesh::RefElPoint, Ord> {
   }
 
   template <typename Scalar>
+  static constexpr void eval_basis(const Scalar *x, Scalar *out) {
+    out[0] = 1;
+  }
+
+  template <typename Scalar>
   static constexpr void grad(const Scalar *x, const Scalar *coeffs,
                              Scalar *out) {
+    // Nothing to do here
+  }
+
+  template <typename Scalar>
+  static constexpr void grad_basis(const Scalar *x, Scalar (*out)[1]) {
     // Nothing to do here
   }
 };

@@ -23,6 +23,7 @@ foreach (ELEMENT ${NUMERIC_ELEMENT_NAMES})
     COMMAND ${Python3_EXECUTABLE} basis_lagrange.py ${ELEMENT} ${NUMERIC_BASIS_LAGRANGE_MAX_ORDER} > ${ELEMENT_BASIS_SOURCE_FILE}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/scripts
     DEPENDS ${CMAKE_SOURCE_DIR}/scripts/basis_lagrange.py
+	    ${CMAKE_SOURCE_DIR}/scripts/elements.py
     COMMENT Generating ${ELEMENT_BASIS_SOURCE_FILE}
   )
   add_custom_target(generate_${ELEMENT} DEPENDS ${ELEMENT_BASIS_SOURCE_FILE})

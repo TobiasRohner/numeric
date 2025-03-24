@@ -6,9 +6,9 @@
 
 namespace numeric::io {
 
-template <typename ElementType> struct VTKLagrangeElement {
-  static constexpr dim_t order = ElementType::order;
-  using ref_el_t = typename ElementType::ref_el_t;
+template <typename RefEl, dim_t Order> struct VTKLagrangeElement {
+  static constexpr dim_t order = Order;
+  using ref_el_t = RefEl;
   static constexpr dim_t num_nodes =
       math::BasisLagrange<ref_el_t, order>::num_basis_functions;
   static constexpr unsigned char type = []() {

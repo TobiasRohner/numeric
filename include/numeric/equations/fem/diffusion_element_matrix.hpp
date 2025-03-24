@@ -24,12 +24,13 @@ public:
       Basis; ///< The basis function type used in the finite element space.
   using element_t = Element; ///< The element type defining the shape and
                              ///< properties of the finite element.
+  using ref_el_t = typename element_t::ref_el_t;
   template <typename OtherElement>
   using rebind = DiffusionElementMatrix<Scalar, Basis, OtherElement>;
 
   static constexpr dim_t num_nodes = element_t::num_nodes;
   static constexpr dim_t num_basis_functions =
-      basis_t::template num_basis_functions<element_t>();
+      basis_t::template num_basis_functions<ref_el_t>();
 
   /**
    * @brief Constructs a DiffusionElementMatrix with given quadrature points and
@@ -98,7 +99,7 @@ private:
                    scalar_t (&grads)[num_basis_functions][element_t::dim],
                    scalar_t (&grad)[element_t::dim], scalar_t *grad_trans,
                    const scalar_t (&x)[element_t::dim]) const {
-    basis_t::template gradient<element_t>(grads, x);
+    basis_t::template gradient<ref_el_t>(grads, x);
     for (dim_t j = 0; j < element_t::dim; ++j) {
       grad[j] = 0;
       for (dim_t k = 0; k < num_basis_functions; ++k) {

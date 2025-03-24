@@ -11,20 +11,21 @@
 
 namespace numeric::math {
 
-template <typename T> NUMERIC_HOST_DEVICE T min(T a, T b) {
+template <typename T> NUMERIC_HOST_DEVICE constexpr T min(T a, T b) {
   return a < b ? a : b;
 }
 
-template <typename T> NUMERIC_HOST_DEVICE T max(T a, T b) {
+template <typename T> NUMERIC_HOST_DEVICE constexpr T max(T a, T b) {
   return a < b ? b : a;
 }
 
 template <typename Lhs, typename Rhs>
-NUMERIC_HOST_DEVICE auto div_up(Lhs lhs, Rhs rhs) {
+NUMERIC_HOST_DEVICE auto constexpr div_up(Lhs lhs, Rhs rhs) {
   return (lhs + rhs - 1) / rhs;
 }
 
-template <dim_t p, typename Scalar> NUMERIC_HOST_DEVICE Scalar pow(Scalar val) {
+template <dim_t p, typename Scalar>
+NUMERIC_HOST_DEVICE constexpr Scalar pow(Scalar val) {
   if constexpr (p == 0) {
     return static_cast<Scalar>(1);
   } else if constexpr (p < 0) {

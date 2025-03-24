@@ -16,18 +16,6 @@ class Element:
         self.ref_el = ref_el
         self.order = order
         self.coords = sympy.symbols(' '.join([f'x[{i}]' for i in range(max(1, self.dim))]), real=True, seq=True)
-        if isinstance(self.ref_el, RefElPoint):
-            self.min_order_for_int_idxs = 0
-        elif isinstance(self.ref_el, RefElSegment):
-            self.min_order_for_int_idxs = 2
-        elif isinstance(self.ref_el, RefElTria):
-            self.min_order_for_int_idxs = 3
-        elif isinstance(self.ref_el, RefElQuad):
-            self.min_order_for_int_idxs = 2
-        elif isinstance(self.ref_el, RefElTetra):
-            self.min_order_for_int_idxs = 4
-        elif isinstance(self.ref_el, RefElCube):
-            self.min_order_for_int_idxs = 2
 
     @property
     def dim(self):
@@ -70,16 +58,42 @@ class Element:
             return origin + point[0]*dir_x + point[1]*dir_y
         raise ValueError('Invalid subelement type')
 
-    def has_interior_idxs(self):
-        return self.order >= self.min_order_for_int_idxs
-
     def interior_idxs(self):
         if isinstance(self.ref_el, RefElPoint):
-            return np.zeros((1, self.dim), dtype=np.int32)
-        if not self.has_interior_idxs():
-            return np.zeros((0, self.dim), dtype=np.int32)
-        low_el = Element(self.ref_el, self.order - self.min_order_for_int_idxs)
-        return 1 + low_el.idxs()
+            return np.zeros((1, self.dim))
+        elif isinstance(self.ref_el, RefElSegment):
+            if self.order < 2:
+                return np.zeros((0, self.dim), dtype=np.int32)
+            return np.arange(1, self.order).reshape((self.order-1, self.dim))
+        elif isinstance(self.ref_el, RefElTria):
+            if self.order < 3:
+                return np.zeros((0, self.dim), dtype=np.int32)
+            low_el = Element(self.ref_el, self.order - 3)
+            return 1 + low_el.idxs()
+        elif isinstance(self.ref_el, RefElQuad):
+            if self.order < 2:
+                return np.zeros((0, self.dim), dtype=np.int32)
+            idxs1d = np.arange(1, self.order)
+            idxs = np.zeros(((self.order-1)**2, self.dim), dtype=np.int32)
+            idxs[:,0] = np.tile(idxs1d, self.order-1)
+            idxs[:,1] = np.repeat(idxs1d, self.order-1)
+            return idxs
+        elif isinstance(self.ref_el, RefElTetra):
+            if self.order < 4:
+                return np.zeros((0, self.dim), dtype=np.int32)
+            low_el = Element(self.ref_el, self.order - 4)
+            return 1 + low_el.idxs()
+        elif isinstance(self.ref_el, RefElCube):
+            if self.order < 2:
+                return np.zeros((0, self.dim), dtype=np.int32)
+            idxs1d = np.arange(1, self.order)
+            idxs = np.zeros(((self.order-1)**3, self.dim), dtype=np.int32)
+            idxs[:,0] = np.tile(idxs1d, (self.order-1)**2)
+            idxs[:,1] = np.tile(np.repeat(idxs1d, self.order-1), self.order-1)
+            idxs[:,2] = np.repeat(idxs1d, (self.order-1)**2)
+            return idxs
+        else:
+            raise NotImplementedError
 
     def idxs(self):
         if self.order == 0:
@@ -150,6 +164,17 @@ class Element:
         code += f'return {sympy.ccode(red[0])};'
         return code
 
+    def eval_basis_code(self):
+        points = self.idxs()
+        code = ''
+        basis_functions = [sympy.simplify(self.lagrange(pt)) for pt in points]
+        repl, red = sympy.cse(basis_functions, optimizations='basic')
+        for r in repl:
+            code += f'const Scalar {r[0]} = {sympy.ccode(r[1])};\n'
+        for i,bf in enumerate(red):
+            code += f'out[{i}] = {sympy.ccode(bf)};\n'
+        return code
+
     def grad_lagrange(self, point):
         b = self.lagrange(point)
         return [sympy.diff(b, coord) for coord in self.coords]
@@ -193,6 +218,20 @@ class Element:
             code += f'out[{d}] = {sympy.ccode(red[d])};\n'
         return code[:-1]
 
+    def grad_basis_code(self):
+        points = self.idxs()
+        basis_functions = [sympy.simplify(self.lagrange(pt)) for pt in points]
+        gradients = sum([[sympy.diff(bf, coord) for coord in self.coords] for bf in basis_functions], start=[])
+        repl, red = sympy.cse(gradients, optimizations='basic')
+        code = ''
+        for r in repl:
+            code += f'const Scalar {r[0]} = {sympy.ccode(r[1])};\n'
+        dim = len(self.coords)
+        for i in range(len(basis_functions)):
+            for j in range(dim):
+                code += f'out[{i}][{j}] = {sympy.ccode(red[dim*i+j])};\n'
+        return code
+
     def node_code(self):
         code = ''
         code += f'dim_t idxs[{self.dim}];\n'
@@ -200,6 +239,13 @@ class Element:
         for i in range(self.dim):
             code += f'out[{i}] = static_cast<Scalar>(idxs[{i}]) / order;\n'
         return code[:-1]
+
+    def interpolation_nodes_code(self):
+        code = ''
+        for i,pt in enumerate(self.idxs()):
+            for j in range(self.dim):
+                code += f'out[{i}][{j}] = static_cast<Scalar>({pt[j]}) / order;\n'
+        return code
 
     def subelement_node_idxs_code(self):
         code = ''
@@ -232,10 +278,17 @@ class Element:
         code += f'  using ref_el_t = mesh::RefEl{self.name};\n'
         code += f'  static constexpr dim_t order = {self.order};\n'
         code += f'  static constexpr dim_t num_basis_functions = {len(self.idxs())};\n'
+        code += f'  static constexpr dim_t num_interpolation_nodes = {len(self.idxs())};\n'
         code += f'  \n'
         code += f'  template <typename Scalar>\n'
         code += f'  static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {{\n'
         code += f'    ' + self.eval_code().replace('\n', '\n    ')
+        code += f'\n'
+        code += f'  }}\n'
+        code += f'  \n'
+        code += f'  template <typename Scalar>\n'
+        code += f'  static constexpr void eval_basis(const Scalar *x, Scalar *out) {{\n'
+        code += f'    ' + self.eval_basis_code().replace('\n', '\n    ')
         code += f'\n'
         code += f'  }}\n'
         code += f'  \n'
@@ -245,9 +298,25 @@ class Element:
         code += f'\n'
         code += f'  }}\n'
         code += f'  \n'
+        code += f'  template <typename Scalar>\n'
+        code += f'  static constexpr void grad_basis(const Scalar *x, Scalar (*out)[{len(self.coords)}]) {{\n'
+        code += f'    ' + self.grad_basis_code().replace('\n', '\n    ')
+        code += f'\n'
+        code += f'  }}\n'
+        code += f'  \n'
         code += f'  template <typename Scalar> static constexpr void node(dim_t i, Scalar *out) {{\n'
         code += f'    ' + self.node_code().replace('\n', '\n    ')
         code += f'\n'
+        code += f'  }}\n'
+        code += f'  \n'
+        code += f'  template <typename Scalar> static constexpr void interpolation_nodes(Scalar (*out)[{self.dim}]) {{\n'
+        code += f'    ' + self.interpolation_nodes_code().replace('\n', '\n    ')
+        code += f'\n'
+        code += f'  }}\n'
+        code += f'  template <typename Scalar> static constexpr void interpolate(const Scalar *node_values, Scalar *coeffs) {{\n'
+        code += f'    for (dim_t i = 0 ; i < num_interpolation_nodes ; ++i) {{\n'
+        code += f'      coeffs[i] = node_values[i];\n'
+        code += f'    }}\n'
         code += f'  }}\n'
         code += f'  \n'
         code += f'  static constexpr void node_idxs(dim_t i, dim_t *out) {{\n'
@@ -327,7 +396,7 @@ class Tetra(Element):
 
     def __init__(self, order):
         super().__init__(Tetra.REF_EL(), order)
-    
+
     def lagrange(self, point):
         i, j, k = point
         l = self.order - i - j - k

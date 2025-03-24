@@ -36,22 +36,10 @@ template <dim_t Order> struct Quad : public ElementBase<Quad<Order>> {
   static constexpr dim_t num_subelements(meta::type_tag<Segment<Order>>) {
     return 4;
   }
-  using super::num_subelements;
 
-  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
-                                   meta::type_tag<Point<Order>>) {
-    idxs[0] = subelement;
-  }
-  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
-                                   meta::type_tag<Segment<Order>>) {
-    idxs[0] = subelement;
-    idxs[1] = (subelement + 1) % 4;
-    for (dim_t i = 0; i < Order - 1; ++i) {
-      idxs[i + 2] = 4 + (Order - 1) * i;
-    }
-  }
   using super::jacobian;
   using super::local_to_global;
+  using super::num_subelements;
   using super::subelement_node_idxs;
 };
 

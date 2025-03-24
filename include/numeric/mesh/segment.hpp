@@ -31,14 +31,10 @@ template <dim_t Order> struct Segment : public ElementBase<Segment<Order>> {
   static constexpr dim_t num_subelements(meta::type_tag<Point<Order>>) {
     return 2;
   }
-  using super::num_subelements;
 
-  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
-                                   meta::type_tag<Point<Order>>) {
-    idxs[0] = subelement;
-  }
   using super::jacobian;
   using super::local_to_global;
+  using super::num_subelements;
   using super::subelement_node_idxs;
 };
 

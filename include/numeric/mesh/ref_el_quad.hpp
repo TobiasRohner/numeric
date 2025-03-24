@@ -56,11 +56,11 @@ struct RefElQuad {
         out[0] = 1;
         out[1] = 2;
       case 2:
-        out[0] = 2;
-        out[1] = 3;
-      case 3:
         out[0] = 3;
-        out[1] = 0;
+        out[1] = 2;
+      case 3:
+        out[0] = 0;
+        out[1] = 3;
       }
     }
   }

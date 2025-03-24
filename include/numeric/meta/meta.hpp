@@ -141,6 +141,19 @@ template <template <typename...> typename Op, typename... Args>
 using is_detected_t =
     typename detail::Detector<nonesuch, void, Op, Args...>::type;
 
+template <bool Cond> struct conditional;
+
+template <> struct conditional<true> {
+  template <typename T1, typename T2> using type = T1;
+};
+
+template <> struct conditional<false> {
+  template <typename T1, typename T2> using type = T2;
+};
+
+template <bool Cond, typename T1, typename T2>
+using conditional_t = typename conditional<Cond>::template type<T1, T2>;
+
 } // namespace numeric::meta
 
 #endif

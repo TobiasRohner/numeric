@@ -5,6 +5,7 @@
 #include <numeric/memory/array.hpp>
 #include <numeric/mesh/unstructured_mesh.hpp>
 #include <numeric/mesh/unstructured_mesh_base.hpp>
+#include <numeric/meta/type_tag.hpp>
 #include <numeric/utils/tuple.hpp>
 
 namespace numeric::mesh {
@@ -27,6 +28,10 @@ public:
   UnstructuredMeshView(UnstructuredMeshView &&) = default;
   UnstructuredMeshView &operator=(const UnstructuredMeshView &) = default;
   UnstructuredMeshView &operator=(UnstructuredMeshView &&) = default;
+
+  template <typename Func> static void for_all_element_types(Func &&f) {
+    ((f(meta::type_tag<ElementTypes>{}), false) || ...);
+  }
 
   memory::ArrayConstView<Scalar, 2> vertices() const noexcept {
     return vertices_;

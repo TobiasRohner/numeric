@@ -4,6 +4,7 @@
 #include <numeric/config.hpp>
 #include <numeric/memory/array.hpp>
 #include <numeric/mesh/unstructured_mesh_base.hpp>
+#include <numeric/meta/type_tag.hpp>
 #include <numeric/utils/tuple.hpp>
 #include <numeric/utils/type_indexed_map.hpp>
 
@@ -33,6 +34,10 @@ public:
   UnstructuredMesh(UnstructuredMesh &&) = default;
   UnstructuredMesh &operator=(const UnstructuredMesh &) = delete;
   UnstructuredMesh &operator=(UnstructuredMesh &&) = default;
+
+  template <typename Func> static void for_all_element_types(Func &&f) {
+    ((f(meta::type_tag<ElementTypes>{}), false) || ...);
+  }
 
   using super::num_elements;
   using super::num_vertices;

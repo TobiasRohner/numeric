@@ -103,9 +103,10 @@ private:
   void apply_to_element(const fes_t &fes,
                         const memory::ArrayConstView<scalar_t, 1> &u,
                         memory::ArrayView<scalar_t, 1> out, void *work) const {
+    using ref_el_t = typename Element::ref_el_t;
     static constexpr dim_t num_nodes = Element::num_nodes;
     static constexpr dim_t num_basis_functions =
-        basis_t::template num_basis_functions<Element>();
+        basis_t::template num_basis_functions<ref_el_t>();
     const mesh_t &mesh = *(fes.mesh());
     const dim_t num_elements = mesh.template num_elements<Element>();
     const dim_t world_dim = mesh.world_dim();

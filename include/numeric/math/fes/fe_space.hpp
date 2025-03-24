@@ -21,9 +21,10 @@ public:
   static_assert(((ElementTypes::order == mesh_order) && ...),
                 "FESpace assumes uniform order of mesh elements");
 
-  FESpace(const std::shared_ptr<mesh_t> &mesh)
+  FESpace(const std::shared_ptr<const mesh_t> &mesh)
       : mesh_(mesh), dof_maps_(memory::Array<dim_t, 2>(memory::Shape<2>(
-                         basis_t::template num_basis_functions<ElementTypes>(),
+                         basis_t::template num_basis_functions<
+                             typename ElementTypes::ref_el_t>(),
                          mesh_->template num_elements<ElementTypes>()))...),
         num_dofs_(0) {
     init_dofs();
@@ -38,7 +39,7 @@ public:
   }
 
 private:
-  std::shared_ptr<mesh_t> mesh_;
+  std::shared_ptr<const mesh_t> mesh_;
   utils::TypeIndexedMap<memory::Array<dim_t, 2>, ElementTypes...> dof_maps_;
   dim_t num_dofs_;
 
@@ -58,7 +59,8 @@ private:
       utils::TypeIndexedMap<dim_t, ElementTypes...> &current_highest_dof_idx) {
     static constexpr bool has_dofs_associated_with_subelement =
         ((!meta::is_same_v<ElementTypes, Element> &&
-          basis_t::template total_num_basis_functions<ElementTypes, Element>() >
+          basis_t::template total_num_basis_functions<
+              typename ElementTypes::ref_el_t, typename Element::ref_el_t>() >
               0) ||
          ...);
     if (has_dofs_associated_with_subelement) {
@@ -69,12 +71,14 @@ private:
        ...);
       const dim_t num_elements = elements.shape(1);
       static constexpr dim_t num_dofs_per_element =
-          basis_t::template num_interior_basis_functions<Element>();
+          basis_t::template num_interior_basis_functions<
+              typename Element::ref_el_t>();
       num_dofs_ += num_elements * num_dofs_per_element;
     }
     static constexpr bool has_interior_dofs_associated_with_element =
         ((meta::is_same_v<Element, ElementTypes> &&
-          basis_t::template num_interior_basis_functions<Element>() > 0) ||
+          basis_t::template num_interior_basis_functions<
+              typename Element::ref_el_t>() > 0) ||
          ...);
     if constexpr (has_interior_dofs_associated_with_element) {
       init_interior_dofs_on<Element>(
@@ -91,7 +95,8 @@ private:
     auto &dof_map = dof_maps_.template get<Element>();
     for (dim_t subelement = 0; subelement < num_subelements; ++subelement) {
       const dim_t num_dofs_on_subelement =
-          basis_t::template num_basis_functions<Element, Subelement>(
+          basis_t::template num_basis_functions<typename Element::ref_el_t,
+                                                typename Subelement::ref_el_t>(
               subelement);
       for (dim_t element = 0; element < num_elements; ++element) {
         for (dim_t dof = 0; dof < num_dofs_on_subelement; ++dof) {
@@ -111,7 +116,8 @@ private:
     auto &dof_map = dof_maps_.template get<Element>();
     const dim_t num_elements = dof_map.shape(1);
     static constexpr dim_t num_interior_dofs =
-        basis_t::template num_interior_basis_functions<Element>();
+        basis_t::template num_interior_basis_functions<
+            typename Element::ref_el_t>();
     for (dim_t element = 0; element < num_elements; ++element) {
       for (dim_t dof = 0; dof < num_interior_dofs; ++dof) {
         const dim_t local_dof_idx = current_highest_dof_idx + dof;

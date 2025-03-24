@@ -32,27 +32,20 @@ template <typename Derived> struct ElementBase {
                                           meta::type_tag<Element>()));
 
   template <typename Element> static constexpr dim_t num_subelements() {
-    /*
-    if constexpr (meta::is_detected_v<has_subelement_t, Derived, Element>) {
-      return Derived::num_subelements(meta::type_tag<Element>());
-    } else {
-      return 0;
-    }
-    */
     return ref_el_t::template num_subelements<typename Element::ref_el_t>();
   }
 
   template <typename Element>
   static void subelement_node_idxs(dim_t subelement, dim_t *idxs) {
-    /*
-    if constexpr (meta::is_detected_v<has_subelement_node_idxs_t, Derived,
-                                      Element>) {
-      Derived::subelement_node_idxs(subelement, idxs,
-                                    meta::type_tag<Element>());
-    }
-    */
     basis_t::template subelement_node_idxs<typename Element::ref_el_t>(
         subelement, idxs);
+  }
+
+  template <typename Scalar>
+  static void get_ref_nodes(Scalar (&nodes)[num_nodes][dim]) {
+    for (dim_t node = 0; node < num_nodes; ++node) {
+      basis_t::node(node, nodes[node]);
+    }
   }
 
   template <typename Scalar>

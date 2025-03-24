@@ -6,30 +6,29 @@
 
 template <typename Element> struct EvalPoints;
 
-template <numeric::dim_t Order> struct EvalPoints<numeric::mesh::Point<Order>> {
+template <> struct EvalPoints<numeric::mesh::RefElPoint> {
   static constexpr numeric::dim_t num_points = 1;
   static constexpr double points[num_points][1] = {{0}};
 };
 
-template <numeric::dim_t Order>
-struct EvalPoints<numeric::mesh::Segment<Order>> {
+template <> struct EvalPoints<numeric::mesh::RefElSegment> {
   static constexpr numeric::dim_t num_points = 3;
   static constexpr double points[num_points][1] = {{0.}, {0.5}, {1.}};
 };
 
-template <numeric::dim_t Order> struct EvalPoints<numeric::mesh::Tria<Order>> {
+template <> struct EvalPoints<numeric::mesh::RefElTria> {
   static constexpr numeric::dim_t num_points = 4;
   static constexpr double points[num_points][2] = {
       {0., 0.}, {1., 0.}, {0., 1.}, {1. / 3, 1. / 3}};
 };
 
-template <numeric::dim_t Order> struct EvalPoints<numeric::mesh::Quad<Order>> {
+template <> struct EvalPoints<numeric::mesh::RefElQuad> {
   static constexpr numeric::dim_t num_points = 5;
   static constexpr double points[num_points][2] = {
       {0., 0.}, {1., 0.}, {1., 1.}, {0., 1.}, {0.5, 0.5}};
 };
 
-template <numeric::dim_t Order> struct EvalPoints<numeric::mesh::Tetra<Order>> {
+template <> struct EvalPoints<numeric::mesh::RefElTetra> {
   static constexpr numeric::dim_t num_points = 5;
   static constexpr double points[num_points][3] = {{0., 0., 0.},
                                                    {1., 0., 0.},
@@ -38,23 +37,23 @@ template <numeric::dim_t Order> struct EvalPoints<numeric::mesh::Tetra<Order>> {
                                                    {1. / 3, 1. / 3, 1. / 3}};
 };
 
-template <numeric::dim_t Order> struct EvalPoints<numeric::mesh::Cube<Order>> {
+template <> struct EvalPoints<numeric::mesh::RefElCube> {
   static constexpr numeric::dim_t num_points = 9;
   static constexpr double points[num_points][3] = {
       {0., 0., 0.}, {1., 0., 0.}, {1., 1., 0.}, {0., 1., 0.},   {0., 0., 1.},
       {1., 0., 1.}, {1., 1., 1.}, {0., 1., 0.}, {0.5, 0.5, 0.5}};
 };
 
-template <typename Basis, typename Element> static void test_element_sum() {
+template <typename Basis, typename RefEl> static void test_element_sum() {
   // TODO: Replace eval point by better points
-  static constexpr numeric::dim_t dim = Element::dim;
-  static constexpr numeric::dim_t num_points = EvalPoints<Element>::num_points;
+  static constexpr numeric::dim_t dim = RefEl::dim;
+  static constexpr numeric::dim_t num_points = EvalPoints<RefEl>::num_points;
   static constexpr numeric::dim_t num_basis_functs =
-      Basis::template num_basis_functions<Element>();
+      Basis::template num_basis_functions<RefEl>();
 
   double basis_functs[num_basis_functs];
   for (numeric::dim_t i = 0; i < num_points; ++i) {
-    Basis::template eval<Element>(basis_functs, EvalPoints<Element>::points[i]);
+    Basis::template eval<RefEl>(basis_functs, EvalPoints<RefEl>::points[i]);
     double sum = 0;
     for (numeric::dim_t j = 0; j < num_basis_functs; ++j) {
       sum += basis_functs[j];
@@ -106,136 +105,111 @@ static void test_element_num_basis_functions() {
   sum_of_interior_basis_functs +=
       Basis::template num_interior_basis_functions<Element>();
   for (numeric::dim_t subelement = 0;
-       subelement < Element::template num_subelements<
-                        numeric::mesh::Point<Element::order>>();
+       subelement <
+       Element::template num_subelements<numeric::mesh::RefElPoint>();
        ++subelement) {
-    sum_of_interior_basis_functs += Basis::template num_basis_functions<
-        Element, numeric::mesh::Point<Element::order>>(subelement);
-  }
-  for (numeric::dim_t subelement = 0;
-       subelement < Element::template num_subelements<
-                        numeric::mesh::Segment<Element::order>>();
-       ++subelement) {
-    sum_of_interior_basis_functs += Basis::template num_basis_functions<
-        Element, numeric::mesh::Segment<Element::order>>(subelement);
+    sum_of_interior_basis_functs +=
+        Basis::template num_basis_functions<Element, numeric::mesh::RefElPoint>(
+            subelement);
   }
   for (numeric::dim_t subelement = 0;
        subelement <
-       Element::template num_subelements<numeric::mesh::Tria<Element::order>>();
+       Element::template num_subelements<numeric::mesh::RefElSegment>();
        ++subelement) {
     sum_of_interior_basis_functs += Basis::template num_basis_functions<
-        Element, numeric::mesh::Tria<Element::order>>(subelement);
+        Element, numeric::mesh::RefElSegment>(subelement);
   }
   for (numeric::dim_t subelement = 0;
        subelement <
-       Element::template num_subelements<numeric::mesh::Quad<Element::order>>();
+       Element::template num_subelements<numeric::mesh::RefElTria>();
        ++subelement) {
-    sum_of_interior_basis_functs += Basis::template num_basis_functions<
-        Element, numeric::mesh::Quad<Element::order>>(subelement);
-  }
-  for (numeric::dim_t subelement = 0;
-       subelement < Element::template num_subelements<
-                        numeric::mesh::Tetra<Element::order>>();
-       ++subelement) {
-    sum_of_interior_basis_functs += Basis::template num_basis_functions<
-        Element, numeric::mesh::Tetra<Element::order>>(subelement);
+    sum_of_interior_basis_functs +=
+        Basis::template num_basis_functions<Element, numeric::mesh::RefElTria>(
+            subelement);
   }
   for (numeric::dim_t subelement = 0;
        subelement <
-       Element::template num_subelements<numeric::mesh::Cube<Element::order>>();
+       Element::template num_subelements<numeric::mesh::RefElQuad>();
        ++subelement) {
-    sum_of_interior_basis_functs += Basis::template num_basis_functions<
-        Element, numeric::mesh::Cube<Element::order>>(subelement);
+    sum_of_interior_basis_functs +=
+        Basis::template num_basis_functions<Element, numeric::mesh::RefElQuad>(
+            subelement);
+  }
+  for (numeric::dim_t subelement = 0;
+       subelement <
+       Element::template num_subelements<numeric::mesh::RefElTetra>();
+       ++subelement) {
+    sum_of_interior_basis_functs +=
+        Basis::template num_basis_functions<Element, numeric::mesh::RefElTetra>(
+            subelement);
+  }
+  for (numeric::dim_t subelement = 0;
+       subelement <
+       Element::template num_subelements<numeric::mesh::RefElCube>();
+       ++subelement) {
+    sum_of_interior_basis_functs +=
+        Basis::template num_basis_functions<Element, numeric::mesh::RefElCube>(
+            subelement);
   }
   ASSERT_EQ(num_basis_functs, sum_of_interior_basis_functs);
 }
 
-TEST(BasisL2, SumOrder0) {
-  using basis_t = numeric::math::fes::BasisL2<0>;
-  test_element_sum<basis_t, numeric::mesh::Point<1>>();
-  test_element_sum<basis_t, numeric::mesh::Segment<1>>();
-  test_element_sum<basis_t, numeric::mesh::Tria<1>>();
-  test_element_sum<basis_t, numeric::mesh::Quad<1>>();
-  test_element_sum<basis_t, numeric::mesh::Tetra<1>>();
-  test_element_sum<basis_t, numeric::mesh::Cube<1>>();
-}
-
-TEST(BasisL2, GradientOrder0) {
-  using basis_t = numeric::math::fes::BasisL2<0>;
-  test_element_gradient<basis_t, numeric::mesh::Point<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Segment<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Tria<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Quad<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Tetra<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Cube<1>>();
-}
-
-TEST(BasisL2, NumBasisFunctsOrder0) {
-  using basis_t = numeric::math::fes::BasisL2<0>;
-  test_element_num_basis_functions<basis_t, numeric::mesh::Point<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Segment<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Tria<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Quad<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Tetra<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Cube<1>>();
-}
-
 TEST(BasisL2, SumOrder1) {
   using basis_t = numeric::math::fes::BasisL2<1>;
-  test_element_sum<basis_t, numeric::mesh::Point<1>>();
-  test_element_sum<basis_t, numeric::mesh::Segment<1>>();
-  test_element_sum<basis_t, numeric::mesh::Tria<1>>();
-  test_element_sum<basis_t, numeric::mesh::Quad<1>>();
-  test_element_sum<basis_t, numeric::mesh::Tetra<1>>();
-  test_element_sum<basis_t, numeric::mesh::Cube<1>>();
+  test_element_sum<basis_t, numeric::mesh::RefElPoint>();
+  test_element_sum<basis_t, numeric::mesh::RefElSegment>();
+  test_element_sum<basis_t, numeric::mesh::RefElTria>();
+  test_element_sum<basis_t, numeric::mesh::RefElQuad>();
+  test_element_sum<basis_t, numeric::mesh::RefElTetra>();
+  test_element_sum<basis_t, numeric::mesh::RefElCube>();
 }
 
 TEST(BasisL2, GradientOrder1) {
   using basis_t = numeric::math::fes::BasisL2<1>;
-  test_element_gradient<basis_t, numeric::mesh::Point<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Segment<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Tria<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Quad<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Tetra<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Cube<1>>();
+  test_element_gradient<basis_t, numeric::mesh::RefElPoint>();
+  test_element_gradient<basis_t, numeric::mesh::RefElSegment>();
+  test_element_gradient<basis_t, numeric::mesh::RefElTria>();
+  test_element_gradient<basis_t, numeric::mesh::RefElQuad>();
+  test_element_gradient<basis_t, numeric::mesh::RefElTetra>();
+  test_element_gradient<basis_t, numeric::mesh::RefElCube>();
 }
 
 TEST(BasisL2, NumBasisFunctsOrder1) {
   using basis_t = numeric::math::fes::BasisL2<1>;
-  test_element_num_basis_functions<basis_t, numeric::mesh::Point<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Segment<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Tria<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Quad<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Tetra<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Cube<1>>();
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElPoint>();
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElSegment>();
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElTria>();
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElQuad>();
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElTetra>();
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElCube>();
 }
 
 TEST(BasisH1, SumOrder1) {
   using basis_t = numeric::math::fes::BasisH1<1>;
-  test_element_sum<basis_t, numeric::mesh::Point<1>>();
-  test_element_sum<basis_t, numeric::mesh::Segment<1>>();
-  test_element_sum<basis_t, numeric::mesh::Tria<1>>();
-  test_element_sum<basis_t, numeric::mesh::Quad<1>>();
-  test_element_sum<basis_t, numeric::mesh::Tetra<1>>();
-  test_element_sum<basis_t, numeric::mesh::Cube<1>>();
+  test_element_sum<basis_t, numeric::mesh::RefElPoint>();
+  test_element_sum<basis_t, numeric::mesh::RefElSegment>();
+  test_element_sum<basis_t, numeric::mesh::RefElTria>();
+  test_element_sum<basis_t, numeric::mesh::RefElQuad>();
+  test_element_sum<basis_t, numeric::mesh::RefElTetra>();
+  test_element_sum<basis_t, numeric::mesh::RefElCube>();
 }
 
 TEST(BasisH1, GradientOrder1) {
   using basis_t = numeric::math::fes::BasisH1<1>;
-  test_element_gradient<basis_t, numeric::mesh::Point<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Segment<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Tria<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Quad<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Tetra<1>>();
-  test_element_gradient<basis_t, numeric::mesh::Cube<1>>();
+  test_element_gradient<basis_t, numeric::mesh::RefElPoint>();
+  test_element_gradient<basis_t, numeric::mesh::RefElSegment>();
+  test_element_gradient<basis_t, numeric::mesh::RefElTria>();
+  test_element_gradient<basis_t, numeric::mesh::RefElQuad>();
+  test_element_gradient<basis_t, numeric::mesh::RefElTetra>();
+  test_element_gradient<basis_t, numeric::mesh::RefElCube>();
 }
 
 TEST(BasisH1, NumBasisFunctsOrder1) {
   using basis_t = numeric::math::fes::BasisH1<1>;
-  test_element_num_basis_functions<basis_t, numeric::mesh::Point<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Segment<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Tria<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Quad<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Tetra<1>>();
-  test_element_num_basis_functions<basis_t, numeric::mesh::Cube<1>>();
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElPoint>();
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElSegment>();
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElTria>();
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElQuad>();
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElTetra>();
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElCube>();
 }

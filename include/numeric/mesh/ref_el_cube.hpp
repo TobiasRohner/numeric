@@ -84,11 +84,11 @@ struct RefElCube {
         out[0] = 1;
         out[1] = 2;
       case 2:
-        out[0] = 2;
-        out[1] = 3;
-      case 3:
         out[0] = 3;
-        out[1] = 0;
+        out[1] = 2;
+      case 3:
+        out[0] = 0;
+        out[1] = 3;
       case 4:
         out[0] = 4;
         out[1] = 5;
@@ -96,11 +96,11 @@ struct RefElCube {
         out[0] = 5;
         out[1] = 6;
       case 6:
-        out[0] = 6;
-        out[1] = 7;
-      case 7:
         out[0] = 7;
-        out[1] = 4;
+        out[1] = 6;
+      case 7:
+        out[0] = 4;
+        out[1] = 7;
       case 8:
         out[0] = 0;
         out[1] = 4;
@@ -120,33 +120,33 @@ struct RefElCube {
       case 0:
         out[0] = 0;
         out[1] = 3;
-        out[2] = 2;
-        out[3] = 1;
-      case 1:
-        out[0] = 4;
-        out[1] = 5;
-        out[2] = 6;
-        out[3] = 7;
-      case 2:
-        out[0] = 0;
-        out[1] = 4;
         out[2] = 7;
-        out[3] = 3;
-      case 3:
+        out[3] = 4;
+      case 1:
         out[0] = 1;
         out[1] = 2;
         out[2] = 6;
         out[3] = 5;
-      case 4:
+      case 2:
         out[0] = 0;
         out[1] = 1;
         out[2] = 5;
         out[3] = 4;
+      case 3:
+        out[0] = 3;
+        out[1] = 2;
+        out[2] = 6;
+        out[3] = 7;
+      case 4:
+        out[0] = 0;
+        out[1] = 1;
+        out[2] = 2;
+        out[3] = 3;
       case 5:
-        out[0] = 2;
-        out[1] = 3;
-        out[2] = 7;
-        out[3] = 6;
+        out[0] = 4;
+        out[1] = 5;
+        out[2] = 6;
+        out[3] = 7;
       }
     }
   }

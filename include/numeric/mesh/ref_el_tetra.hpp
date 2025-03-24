@@ -61,40 +61,40 @@ struct RefElTetra {
         out[0] = 0;
         out[1] = 1;
       case 1:
-        out[0] = 0;
-        out[1] = 2;
-      case 2:
-        out[0] = 0;
-        out[1] = 3;
-      case 3:
         out[0] = 1;
         out[1] = 2;
-      case 4:
+      case 2:
         out[0] = 2;
+        out[1] = 0;
+      case 3:
+        out[0] = 0;
+        out[1] = 3;
+      case 4:
+        out[0] = 1;
         out[1] = 3;
       case 5:
-        out[0] = 3;
-        out[1] = 1;
+        out[0] = 2;
+        out[1] = 3;
       }
     }
     if constexpr (meta::is_same_v<Subelement, RefElTria>) {
       switch (idx) {
       case 0:
         out[0] = 0;
-        out[1] = 2;
-        out[2] = 1;
+        out[1] = 1;
+        out[2] = 3;
       case 1:
+        out[0] = 2;
+        out[1] = 3;
+        out[2] = 1;
+      case 2:
         out[0] = 0;
         out[1] = 3;
         out[2] = 2;
-      case 2:
-        out[0] = 0;
-        out[1] = 1;
-        out[2] = 3;
       case 3:
-        out[0] = 1;
+        out[0] = 0;
         out[1] = 2;
-        out[2] = 3;
+        out[2] = 1;
       }
     }
   }
