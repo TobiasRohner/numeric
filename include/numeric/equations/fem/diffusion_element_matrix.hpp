@@ -138,7 +138,7 @@ private:
     scalar_t grads[num_basis_functions][element_t::dim];
     scalar_t grad[element_t::dim];
     scalar_t *grad_trans = static_cast<scalar_t *>(work) + jinvt_size;
-    const scalar_t x[element_t::dim] = {0};
+    scalar_t x[element_t::dim] = {0};
     // TODO: Compute these two quantities in one function call
     const scalar_t ie =
         element_t::integration_element(nodes, x, world_dim, work);
@@ -149,6 +149,9 @@ private:
     }
     const dim_t num_points = qr_weights_.shape(0);
     for (dim_t i = 0; i < num_points; ++i) {
+      for (dim_t j = 0; j < element_t::dim; ++j) {
+        x[j] = qr_points_(i, j);
+      }
       apply_local(nodes, coeffs, world_dim, out, i, ie, JinvT, grads, grad,
                   grad_trans, x);
     }

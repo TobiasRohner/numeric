@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << "Constructing first-order H1 FE space" << std::endl;
   using mesh_t = mesh::UnstructuredMesh<scalar_t, mesh::Tria<1>, mesh::Quad<1>>;
-  using basis_t = math::fes::BasisH1<1>;
+  using basis_t = math::fes::BasisH1<2>;
   using fes_t = math::fes::FESpace<basis_t, mesh_t>;
   fes_t fes(mesh);
   std::cout << "Done. Got " << fes.num_dofs() << " degrees of freedom."

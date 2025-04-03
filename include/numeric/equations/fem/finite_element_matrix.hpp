@@ -121,7 +121,8 @@ private:
     void *elem_mat_work = static_cast<scalar_t *>(work) + world_dim * num_nodes;
     scalar_t elem_vec_in[num_basis_functions];
     scalar_t elem_vec_out[num_basis_functions];
-    // Compute matrix vector product
+// Compute matrix vector product
+#pragma omp parallel for
     for (dim_t element = 0; element < num_elements; ++element) {
       // Collect node positions of element
       for (dim_t node = 0; node < num_nodes; ++node) {
@@ -138,7 +139,8 @@ private:
       // Apply local element matrix
       elem_mat.apply(nodes, elem_vec_in, world_dim, elem_vec_out,
                      elem_mat_work);
-      // Scatter onto the global coefficient vector
+// Scatter onto the global coefficient vector
+#pragma omp critical
       for (dim_t bf = 0; bf < num_basis_functions; ++bf) {
         const dim_t dof_idx = dof_map(bf, element);
         out(dof_idx) += elem_vec_out[bf];
