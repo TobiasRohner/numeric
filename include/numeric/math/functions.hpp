@@ -88,6 +88,54 @@ NUMERIC_HOST_DEVICE inline long double exp(long double x) {
 #endif
 }
 
+NUMERIC_HOST_DEVICE inline float sin(float x) {
+#ifndef __HIP_DEVICE_COMPILE__
+  return std::sin(x);
+#else
+  return sinf(x);
+#endif
+}
+
+NUMERIC_HOST_DEVICE inline double sin(double x) {
+#ifndef __HIP_DEVICE_COMPILE__
+  return std::sin(x);
+#else
+  return sin(x);
+#endif
+}
+
+NUMERIC_HOST_DEVICE inline long double sin(long double x) {
+#ifndef __HIP_DEVICE_COMPILE__
+  return std::sin(x);
+#else
+  return sin(x);
+#endif
+}
+
+NUMERIC_HOST_DEVICE inline float cos(float x) {
+#ifndef __HIP_DEVICE_COMPILE__
+  return std::cos(x);
+#else
+  return cosf(x);
+#endif
+}
+
+NUMERIC_HOST_DEVICE inline double cos(double x) {
+#ifndef __HIP_DEVICE_COMPILE__
+  return std::cos(x);
+#else
+  return cos(x);
+#endif
+}
+
+NUMERIC_HOST_DEVICE inline long double cos(long double x) {
+#ifndef __HIP_DEVICE_COMPILE__
+  return std::cos(x);
+#else
+  return cos(x);
+#endif
+}
+
 } // namespace numeric::math
 
 #endif

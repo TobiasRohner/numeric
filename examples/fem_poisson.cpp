@@ -18,23 +18,9 @@ using namespace numeric;
 int main(int argc, char *argv[]) {
   using scalar_t = double;
   static constexpr dim_t world_dim = 2;
-
-  const std::string mesh_file = argv[1];
-
-  std::cout << "Reading mesh " << mesh_file << std::endl;
-  auto mesh =
-      io::GmshReader<scalar_t, mesh::Tria<1>>::load(mesh_file, world_dim);
-  std::cout << "Done reading " << mesh->num_vertices() << " vertices, "
-            << mesh->num_elements<mesh::Tria<1>>() << " triangles" << std::endl;
-
-  std::cout << "Constructing first-order H1 FE space" << std::endl;
   using mesh_t = mesh::UnstructuredMesh<scalar_t, mesh::Tria<1>>;
-  using basis_t = math::fes::BasisH1<3>;
+  using basis_t = math::fes::BasisH1<2>;
   using fes_t = math::fes::FESpace<basis_t, mesh_t>;
-  auto fes = std::make_shared<fes_t>(mesh);
-  std::cout << "Done. Got " << fes->num_dofs() << " degrees of freedom."
-            << std::endl;
-
   using element_matrix_factory_t =
       equations::fem::DiffusionElementMatrixFactory<scalar_t, basis_t>;
   using stiffness_matrix_t =
@@ -43,6 +29,20 @@ int main(int argc, char *argv[]) {
       equations::fem::LoadElementVectorFactory<scalar_t, basis_t>;
   using load_vector_t =
       equations::fem::FiniteElementVector<fes_t, element_vector_factory_t>;
+
+  const std::string mesh_file = argv[1];
+
+  std::cout << "Reading mesh " << mesh_file << std::endl;
+  std::shared_ptr<mesh_t> mesh =
+      io::GmshReader<scalar_t, mesh::Tria<1>>::load(mesh_file, world_dim);
+  std::cout << "Done reading " << mesh->num_vertices() << " vertices, "
+            << mesh->num_elements<mesh::Tria<1>>() << " triangles" << std::endl;
+
+  std::cout << "Constructing first-order H1 FE space" << std::endl;
+  auto fes = std::make_shared<fes_t>(mesh);
+  std::cout << "Done. Got " << fes->num_dofs() << " degrees of freedom."
+            << std::endl;
+
   stiffness_matrix_t lapl(*fes);
   load_vector_t load(*fes);
 

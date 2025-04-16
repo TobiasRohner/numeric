@@ -34,6 +34,12 @@ set(NUMERIC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_subdirectory(${NUMERIC_SOURCE_DIR})
 target_include_directories(numeric PUBLIC ${NUMERIC_INCLUDE_DIR})
 
+find_package(OpenMP COMPONENTS CXX)
+if(OpenMP_FOUND)
+  message(STATUS "Compiling with OpenMP support")
+  target_link_libraries(numeric PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/install_dependencies.cmake)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_ref_el_source.cmake)

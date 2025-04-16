@@ -350,6 +350,22 @@ struct OpUnaryExp {
   }
 };
 
+struct OpUnarySin {
+  template <typename Scalar>
+  NUMERIC_HOST_DEVICE auto operator()(Scalar val) const
+      noexcept(noexcept(math::sin(val))) {
+    return math::sin(val);
+  }
+};
+
+struct OpUnaryCos {
+  template <typename Scalar>
+  NUMERIC_HOST_DEVICE auto operator()(Scalar val) const
+      noexcept(noexcept(math::cos(val))) {
+    return math::cos(val);
+  }
+};
+
 struct OpBinaryPlus {
   template <typename Lhs, typename Rhs>
   NUMERIC_HOST_DEVICE auto operator()(Lhs lhs, Rhs rhs) const
@@ -598,6 +614,42 @@ template <typename Arg,
 NUMERIC_HOST_DEVICE ArrayUnaryOp<OpUnaryExp, Arg>
 exp(const ArrayBase<Arg> &arg) noexcept {
   return {OpUnaryExp{}, arg.derived()};
+}
+
+/**
+ * @brief Function to calculate the sine of each element in an array.
+ *
+ * This function applies a unary sine operation to each element of the
+ * input array.
+ *
+ * @tparam Arg The type of the argument array.
+ * @param arg The input array.
+ * @return ArrayUnaryOp<OpUnarySin, Arg> The resulting array after applying the
+ * unary sine operation.
+ */
+template <typename Arg,
+          typename = meta::enable_if_t<ArrayTraits<Arg>::is_array>>
+NUMERIC_HOST_DEVICE ArrayUnaryOp<OpUnarySin, Arg>
+sin(const ArrayBase<Arg> &arg) noexcept {
+  return {OpUnarySin{}, arg.derived()};
+}
+
+/**
+ * @brief Function to calculate the cosine of each element in an array.
+ *
+ * This function applies a unary cosine operation to each element of the
+ * input array.
+ *
+ * @tparam Arg The type of the argument array.
+ * @param arg The input array.
+ * @return ArrayUnaryOp<OpUnaryCos, Arg> The resulting array after applying the
+ * unary cosine operation.
+ */
+template <typename Arg,
+          typename = meta::enable_if_t<ArrayTraits<Arg>::is_array>>
+NUMERIC_HOST_DEVICE ArrayUnaryOp<OpUnaryCos, Arg>
+cos(const ArrayBase<Arg> &arg) noexcept {
+  return {OpUnaryCos{}, arg.derived()};
 }
 
 } // namespace numeric::memory

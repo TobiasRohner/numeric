@@ -433,35 +433,18 @@ class Cube(Element):
         return poly_x * poly_y * poly_z
 
 
-def generate_code(element_name, p_max):
-    element_types = {
-        'segment': Segment,
-        'tria': Tria,
-        'quad': Quad,
-        'tetra': Tetra,
-        'cube': Cube
-    }
-    element_type = element_types[element_name]
-    ref_el = element_type.REF_EL()
-    guard = f'NUMERIC_MATH_BASIS_LAGRANGE_{ref_el.name.upper()}_HPP_'
+def generate_code(p_max):
+    guard = f'NUMERIC_MATH_BASIS_LAGRANGE_SPECIALIZATION_HPP_'
     code = f'#ifndef {guard}\n'
     code += f'#define {guard}\n'
     code += f'\n'
-    code += f'#include <numeric/meta/meta.hpp>\n'
-    code += f'#include <numeric/meta/type_tag.hpp>\n'
-    code += f'#include <numeric/mesh/ref_el_point.hpp>\n'
-    code += f'#include <numeric/mesh/ref_el_segment.hpp>\n'
-    code += f'#include <numeric/mesh/ref_el_tria.hpp>\n'
-    code += f'#include <numeric/mesh/ref_el_quad.hpp>\n'
-    code += f'#include <numeric/mesh/ref_el_tetra.hpp>\n'
-    code += f'#include <numeric/mesh/ref_el_cube.hpp>\n'
-    code += f'\n'
     code += f'namespace numeric::math {{\n'
     code += f'\n'
-    for p in range(1, p_max+1):
-        element = element_type(p)
-        code += element.code()
-        code += f'\n'
+    for element_type in [Segment, Tria, Quad, Tetra, Cube]:
+        for p in range(1, p_max+1):
+            element = element_type(p)
+            code += element.code()
+            code += f'\n'
     code += f'}}\n'
     code += f'\n'
     code += f'#endif'
@@ -472,10 +455,5 @@ def generate_code(element_name, p_max):
 if __name__ == '__main__':
     import sys
 
-    if len(sys.argv) < 3:
-        for element_type in [Segment, Tria, Quad, Tetra, Cube]:
-            print(specialized_code(element_type, 3))
-    else:
-        element_name = sys.argv[1]
-        max_order = int(sys.argv[2])
-        print(generate_code(element_name, max_order))
+    max_order = int(sys.argv[1])
+    print(generate_code(max_order))
