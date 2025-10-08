@@ -21,7 +21,8 @@ if (NUMERIC_HIP_REQUIRE_DOWNLOAD)
     COMMAND_ERROR_IS_FATAL ANY
   )
 
-  list(APPEND CMAKE_MODULE_PATH ${FETCHCONTENT_BASE_DIR}/hipother-install/lib/cmake/hip)
+  list(APPEND CMAKE_MODULE_PATH ${FETCHCONTENT_BASE_DIR}/hip-install/lib/cmake/hip)
+  list(APPEND CMAKE_MODULE_PATH ${FETCHCONTENT_BASE_DIR}/hip-install)
   find_package(HIP REQUIRED)
 
   set(HIP_INCLUDE_DIR ${HIP_ROOT_DIR}/include)

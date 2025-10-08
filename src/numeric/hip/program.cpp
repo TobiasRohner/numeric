@@ -137,8 +137,10 @@ void Program::compile() {
   }
   std::vector<const char *> options;
   for (const auto &option : compile_options_) {
+    std::cout << option << ' ';
     options.push_back(option.c_str());
   }
+  std::cout << std::endl;
   if (const hiprtcResult status =
           hiprtcCompileProgram(program, options.size(), options.data());
       status != HIPRTC_SUCCESS) {

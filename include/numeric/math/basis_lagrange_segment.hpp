@@ -1,6 +1,7 @@
 #ifndef NUMERIC_MATH_BASIS_LAGRANGE_SEGMENT_HPP_
 #define NUMERIC_MATH_BASIS_LAGRANGE_SEGMENT_HPP_
 
+#include <numeric/math/polynomial.hpp>
 #include <numeric/mesh/ref_el_cube.hpp>
 #include <numeric/mesh/ref_el_point.hpp>
 #include <numeric/mesh/ref_el_quad.hpp>
@@ -12,46 +13,79 @@
 
 namespace numeric::math {
 
+namespace {
+
+template <typename InterpolationNodes> struct BasisLagrangeSegmentNodeAdaptor {
+  using interpolation_nodes_t = InterpolationNodes;
+  static constexpr dim_t order = interpolation_nodes_t::order;
+
+  static constexpr dim_t reordered_node(dim_t i) {
+    switch (i) {
+    case 0:
+      return 0;
+    case 1:
+      return order;
+    default:
+      return i - 1;
+    }
+  }
+
+  template <typename Scalar> static constexpr Scalar node(dim_t i) {
+    return interpolation_nodes_t::template node<Scalar>(reordered_node(i));
+  }
+
+  template <typename Scalar> static Scalar weight(dim_t i) {
+    return interpolation_nodes_t::template node<Scalar>(reordered_node(i));
+  }
+};
+
+} // namespace
+
 template <dim_t Order> struct BasisLagrange<mesh::RefElSegment, Order> {
   using ref_el_t = mesh::RefElSegment;
+  using interpolation_nodes_t = NodesEquispaced<Order>;
+  using poly_t =
+      Lagrange<BasisLagrangeSegmentNodeAdaptor<interpolation_nodes_t>>;
   static constexpr dim_t order = Order;
   static constexpr dim_t num_basis_functions = Order + 1;
   static constexpr dim_t num_interpolation_nodes = Order + 1;
 
   template <typename Scalar>
   static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {
-    return -coeffs[0] * (x[0] - 1) + coeffs[1] * x[0];
+    return poly_t::eval(coeffs, x[0]);
   }
 
   template <typename Scalar>
   static constexpr void eval_basis(const Scalar *x, Scalar *out) {
-    out[0] = 1 - x[0];
-    out[1] = x[0];
+    for (dim_t i = 0; i < num_basis_functions; ++i) {
+      out[i] = poly_t::basis(i, x[0]);
+    }
   }
 
   template <typename Scalar>
   static constexpr void grad(const Scalar *x, const Scalar *coeffs,
                              Scalar *out) {
-    out[0] = -coeffs[0] + coeffs[1];
+    out[0] = poly_t::diff(coeffs, x[0]);
   }
 
   template <typename Scalar>
   static constexpr void grad_basis(const Scalar *x, Scalar (*out)[1]) {
-    out[0][0] = -1;
-    out[1][0] = 1;
+    for (dim_t i = 0; i < num_basis_functions; ++i) {
+      out[i][0] = poly_t::basis_diff(i, x[0]);
+    }
   }
 
   template <typename Scalar> static constexpr void node(dim_t i, Scalar *out) {
-    dim_t idxs[1];
-    node_idxs(i, idxs);
-    out[0] = static_cast<Scalar>(idxs[0]) / order;
+    out[0] = poly_t::template node<Scalar>(i);
   }
 
   template <typename Scalar>
   static constexpr void interpolation_nodes(Scalar (*out)[1]) {
-    out[0][0] = static_cast<Scalar>(0) / order;
-    out[1][0] = static_cast<Scalar>(1) / order;
+    for (dim_t i = 0; i < num_interpolation_nodes; ++i) {
+      out[i][0] = poly_t::template node<Scalar>(i);
+    }
   }
+
   template <typename Scalar>
   static constexpr void interpolate(const Scalar *node_values, Scalar *coeffs) {
     for (dim_t i = 0; i < num_interpolation_nodes; ++i) {
@@ -65,7 +99,10 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElSegment, Order> {
       out[0] = 0;
       break;
     case 1:
-      out[0] = 1;
+      out[0] = order;
+      break;
+    default:
+      out[0] = i - 1;
       break;
     }
   }

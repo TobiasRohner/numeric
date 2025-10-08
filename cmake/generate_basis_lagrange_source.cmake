@@ -25,25 +25,3 @@ add_custom_command(
 )
 add_custom_target(generate_basis_lagrange DEPENDS ${BASIS_LAGRANGE_SOURCE_FILE})
 add_dependencies(numeric generate_basis_lagrange)
-#foreach (ELEMENT ${NUMERIC_ELEMENT_NAMES})
-#execute_process(
-#COMMAND ${Python3_EXECUTABLE} basis_lagrange.py ${ELEMENT} ${NUMERIC_BASIS_LAGRANGE_MAX_ORDER}
-#WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/scripts
-#OUTPUT_VARIABLE ${ELEMENT}_SRC
-#COMMAND_ECHO STDOUT
-#)
-#file(
-#GENERATE OUTPUT ${ELEMENT_BASIS_SOURCE_FILE}
-#CONTENT "${${ELEMENT}_SRC}"
-#)
-#add_custom_command(
-#OUTPUT ${ELEMENT_BASIS_SOURCE_FILE}
-#COMMAND ${Python3_EXECUTABLE} basis_lagrange.py ${ELEMENT} ${NUMERIC_BASIS_LAGRANGE_MAX_ORDER} > ${ELEMENT_BASIS_SOURCE_FILE}
-#WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/scripts
-#DEPENDS ${CMAKE_SOURCE_DIR}/scripts/basis_lagrange.py
-#${CMAKE_SOURCE_DIR}/scripts/elements.py
-#COMMENT Generating ${ELEMENT_BASIS_SOURCE_FILE}
-#)
-#add_custom_target(generate_${ELEMENT} DEPENDS ${ELEMENT_BASIS_SOURCE_FILE})
-#add_dependencies(numeric generate_${ELEMENT})
-#endforeach()

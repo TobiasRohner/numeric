@@ -14,15 +14,11 @@ namespace numeric::math {
  * @details
  * Generates interpolation nodes \f$x_i = \frac{i}{k}\f$ for \f$i = 0, \dots,
  * k\f$, where \f$k\f$ is the interpolation order.
+ *
+ * @tparam Order The order of the interpolating polynomial.
  */
-struct NodesEquispaced {
-  dim_t order;
-
-  NodesEquispaced(dim_t order_) : order(order_) {}
-  NodesEquispaced(const NodesEquispaced &) = default;
-  NodesEquispaced(NodesEquispaced &&) = default;
-  NodesEquispaced &operator=(const NodesEquispaced &) = default;
-  NodesEquispaced &operator=(NodesEquispaced &&) = default;
+template <dim_t Order> struct NodesEquispaced {
+  static constexpr dim_t order = Order;
 
   /**
    * @brief Returns the i-th equispaced node in the interval [0, 1].
@@ -30,7 +26,7 @@ struct NodesEquispaced {
    * @return Value of the i-th node.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> Scalar node(dim_t i) const {
+  template <typename Scalar> static constexpr Scalar node(dim_t i) {
     return static_cast<Scalar>(i) / order;
   }
 
@@ -40,7 +36,7 @@ struct NodesEquispaced {
    * @return Value of the weight at the i-th node.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> Scalar weight(dim_t i) const {
+  template <typename Scalar> static Scalar weight(dim_t i) {
     const Scalar result = exp(order * log(static_cast<Scalar>(order)) -
                               lgamma(static_cast<Scalar>(i + 1)) -
                               lgamma(static_cast<Scalar>(order - i + 1)));
@@ -58,15 +54,11 @@ struct NodesEquispaced {
  * @details
  * Generates Chebyshev nodes \f$x_i = \cos\left(\frac{i \pi}{k}\right)\f$
  * for \f$i = 0, \dots, k\f$, where \f$k\f$ is the interpolation order.
+ *
+ * @tparam Order The order of the interpolating polynomial.
  */
-struct NodesChebyshev {
-  dim_t order;
-
-  NodesChebyshev(dim_t order_) : order(order_) {}
-  NodesChebyshev(const NodesChebyshev &) = default;
-  NodesChebyshev(NodesChebyshev &&) = default;
-  NodesChebyshev &operator=(const NodesChebyshev &) = default;
-  NodesChebyshev &operator=(NodesChebyshev &&) = default;
+template <dim_t Order> struct NodesChebyshev {
+  static constexpr dim_t order = Order;
 
   /**
    * @brief Returns the i-th Chebyshev node in the interval [-1, 1].
@@ -74,7 +66,7 @@ struct NodesChebyshev {
    * @return Value of the i-th node.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> Scalar node(dim_t i) const {
+  template <typename Scalar> static constexpr Scalar node(dim_t i) {
     return cos(i * pi<Scalar> / order);
   }
 
@@ -84,7 +76,7 @@ struct NodesChebyshev {
    * @return Value of the weight at the i-th node.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> Scalar weight(dim_t i) const {
+  template <typename Scalar> static Scalar weight(dim_t i) {
     Scalar value = 1;
     if (i == 0 || i == order) {
       value = 0.5;
@@ -114,30 +106,9 @@ struct NodesChebyshev {
  * using weights \f$ w_i \f$: \f[ \ell_i(x) = \frac{w_i}{x - x_i} \Bigg/
  * \sum_{j=0}^{k} \frac{w_j}{x - x_j} \f]
  */
-template <typename InterpolationNodes> class Lagrange {
-public:
+template <typename InterpolationNodes> struct Lagrange {
   using interpolation_nodes_t = InterpolationNodes;
-
-  /**
-   * @brief Constructs the Lagrange interpolator.
-   *
-   * @param interpolation_nodes Generator for interpolation nodes.
-   */
-  Lagrange(const interpolation_nodes_t &interpolation_nodes)
-      : interpolation_nodes_(interpolation_nodes) {}
-
-  Lagrange(const Lagrange &) = default;
-  Lagrange(Lagrange &&) = default;
-  Lagrange &operator=(const Lagrange &) = default;
-  Lagrange &operator=(Lagrange &&) = default;
-
-  ~Lagrange() = default;
-
-  /**
-   * @brief Returns the degree of the interpolating polynomial.
-   * @return Polynomial degree \f$ k \f$.
-   */
-  dim_t order() const { return interpolation_nodes_.order; }
+  static constexpr dim_t order = interpolation_nodes_t::order;
 
   /**
    * @brief Returns the i-th interpolation node.
@@ -145,8 +116,8 @@ public:
    * @return \f$ x_i \f$
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> Scalar node(dim_t i) const {
-    return interpolation_nodes_.template node<Scalar>(i);
+  template <typename Scalar> static constexpr Scalar node(dim_t i) {
+    return interpolation_nodes_t::template node<Scalar>(i);
   }
 
   /**
@@ -155,8 +126,8 @@ public:
    * @return \f$ w_i \f$
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> Scalar weight(dim_t i) const {
-    return interpolation_nodes_.template weight<Scalar>(i);
+  template <typename Scalar> static Scalar weight(dim_t i) {
+    return interpolation_nodes_t::template weight<Scalar>(i);
   }
 
   /**
@@ -173,10 +144,10 @@ public:
    * @return Interpolated value \f$ P(x) \f$.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> Scalar eval(const Scalar *y, Scalar x) const {
+  template <typename Scalar> static Scalar eval(const Scalar *y, Scalar x) {
     Scalar nom = 0;
     Scalar denom = 0;
-    for (dim_t i = 0; i <= order(); ++i) {
+    for (dim_t i = 0; i <= order; ++i) {
       if (x == node<Scalar>(i)) {
         return y[i];
       }
@@ -201,10 +172,10 @@ public:
    * @return Derivative \f$ P'(x) \f$.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> Scalar diff(const Scalar *y, Scalar x) {
+  template <typename Scalar> static Scalar diff(const Scalar *y, Scalar x) {
     // TODO; Is there a better way?
     Scalar result = 0;
-    for (dim_t i = 0; i <= order(); ++i) {
+    for (dim_t i = 0; i <= order; ++i) {
       result += y[i] * basis_diff<Scalar>(i, x);
     }
     return result;
@@ -225,13 +196,13 @@ public:
    * @return Value \f$ \ell_i(x) \f$.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> Scalar basis(dim_t i, Scalar x) {
+  template <typename Scalar> static Scalar basis(dim_t i, Scalar x) {
     if (x == node<Scalar>(i)) {
       return 1;
     }
     const Scalar nom = weight<Scalar>(i) / (x - node<Scalar>(i));
     Scalar denom = 0;
-    for (dim_t j = 0; j <= order(); ++j) {
+    for (dim_t j = 0; j <= order; ++j) {
       if (x == node<Scalar>(j)) {
         return 0;
       }
@@ -260,10 +231,10 @@ public:
    * @return Derivative \f$ \ell_i'(x) \f$.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> Scalar basis_diff(dim_t i, Scalar x) {
+  template <typename Scalar> static Scalar basis_diff(dim_t i, Scalar x) {
     if (x == node<Scalar>(i)) {
       Scalar sum = 0;
-      for (dim_t j = 0; j <= order(); ++j) {
+      for (dim_t j = 0; j <= order; ++j) {
         if (i != j) {
           sum += -weight<Scalar>(j) / weight<Scalar>(i) / (x - node<Scalar>(j));
         }
@@ -273,7 +244,7 @@ public:
       const Scalar nom = weight<Scalar>(i) / (x - node<Scalar>(i));
       Scalar denom = 0;
       Scalar sum = 0;
-      for (dim_t j = 0; j <= order(); ++j) {
+      for (dim_t j = 0; j <= order; ++j) {
         if (x == node<Scalar>(j)) {
           return weight<Scalar>(i) / weight<Scalar>(j) / (x - node<Scalar>(i));
         }
@@ -285,9 +256,6 @@ public:
       return nom / denom * sum;
     }
   }
-
-private:
-  interpolation_nodes_t interpolation_nodes_; ///< Node generator.
 };
 
 } // namespace numeric::math

@@ -19,6 +19,6 @@ if (NUMERIC_hipcc_REQUIRE_DOWNLOAD)
     COMMAND_ERROR_IS_FATAL ANY
   )
 
-  set(HIPCC_BIN_DIR ${FETCHCONTENT_BASE_DIR}/hipcc-install/bin)
+  set(HIPCC_BIN_DIR ${FETCHCONTENT_BASE_DIR}/hip-install/bin)
 
 endif()
