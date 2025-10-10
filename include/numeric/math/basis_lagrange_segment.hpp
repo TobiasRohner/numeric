@@ -35,7 +35,7 @@ template <typename InterpolationNodes> struct BasisLagrangeSegmentNodeAdaptor {
   }
 
   template <typename Scalar> static Scalar weight(dim_t i) {
-    return interpolation_nodes_t::template node<Scalar>(reordered_node(i));
+    return interpolation_nodes_t::template weight<Scalar>(reordered_node(i));
   }
 };
 

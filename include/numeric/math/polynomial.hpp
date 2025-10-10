@@ -148,7 +148,7 @@ template <typename InterpolationNodes> struct Lagrange {
     Scalar nom = 0;
     Scalar denom = 0;
     for (dim_t i = 0; i <= order; ++i) {
-      if (x == node<Scalar>(i)) {
+      if (abs(x - node<Scalar>(i)) == 0) {
         return y[i];
       }
       const Scalar fac = weight<Scalar>(i) / (x - node<Scalar>(i));
@@ -197,7 +197,7 @@ template <typename InterpolationNodes> struct Lagrange {
    * @tparam Scalar Floating-point type.
    */
   template <typename Scalar> static Scalar basis(dim_t i, Scalar x) {
-    if (x == node<Scalar>(i)) {
+    if (abs(x - node<Scalar>(i)) == 0) {
       return 1;
     }
     const Scalar nom = weight<Scalar>(i) / (x - node<Scalar>(i));
@@ -232,7 +232,7 @@ template <typename InterpolationNodes> struct Lagrange {
    * @tparam Scalar Floating-point type.
    */
   template <typename Scalar> static Scalar basis_diff(dim_t i, Scalar x) {
-    if (x == node<Scalar>(i)) {
+    if (abs(x - node<Scalar>(i)) == 0) {
       Scalar sum = 0;
       for (dim_t j = 0; j <= order; ++j) {
         if (i != j) {
@@ -245,7 +245,7 @@ template <typename InterpolationNodes> struct Lagrange {
       Scalar denom = 0;
       Scalar sum = 0;
       for (dim_t j = 0; j <= order; ++j) {
-        if (x == node<Scalar>(j)) {
+        if (abs(x - node<Scalar>(j)) == 0) {
           return weight<Scalar>(i) / weight<Scalar>(j) / (x - node<Scalar>(i));
         }
         denom += weight<Scalar>(j) / (x - node<Scalar>(j));

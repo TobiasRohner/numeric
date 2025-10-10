@@ -83,11 +83,11 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElCube, Order> {
       dim_t idxs[3];
       node_idxs(i, idxs);
       out[0] +=
-          coeffs[i] * grad_x[idxs[0]] * basis_y[idxs[1]] * basis_z[idxs[3]];
+          coeffs[i] * grad_x[idxs[0]] * basis_y[idxs[1]] * basis_z[idxs[2]];
       out[1] +=
-          coeffs[i] * basis_x[idxs[0]] * grad_y[idxs[1]] * basis_z[idxs[3]];
+          coeffs[i] * basis_x[idxs[0]] * grad_y[idxs[1]] * basis_z[idxs[2]];
       out[2] +=
-          coeffs[i] * basis_x[idxs[0]] * basis_y[idxs[1]] * grad_z[idxs[3]];
+          coeffs[i] * basis_x[idxs[0]] * basis_y[idxs[1]] * grad_z[idxs[2]];
     }
   }
 
@@ -308,10 +308,6 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElCube, Order> {
   static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
                                    meta::type_tag<mesh::RefElSegment>) {
     switch (subelement) {
-    case 0:
-      idxs[0] = 0;
-      idxs[1] = 1;
-      break;
     case 0:
       idxs[0] = 0;
       idxs[1] = 1;

@@ -154,24 +154,94 @@ static void test_element_num_basis_functions() {
   ASSERT_EQ(num_basis_functs, sum_of_interior_basis_functs);
 }
 
-TEST(BasisL2, SumOrder1) {
+TEST(BasisL2, PointSumOrder1) {
   using basis_t = numeric::math::fes::BasisL2<1>;
   test_element_sum<basis_t, numeric::mesh::RefElPoint>();
+}
+
+TEST(BasisL2, SegmentSumOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
   test_element_sum<basis_t, numeric::mesh::RefElSegment>();
+}
+
+TEST(BasisL2, TriaSumOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
   test_element_sum<basis_t, numeric::mesh::RefElTria>();
+}
+
+TEST(BasisL2, QuadSumOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
   test_element_sum<basis_t, numeric::mesh::RefElQuad>();
+}
+
+TEST(BasisL2, TetraSumOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
   test_element_sum<basis_t, numeric::mesh::RefElTetra>();
+}
+
+TEST(BasisL2, CubeSumOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
   test_element_sum<basis_t, numeric::mesh::RefElCube>();
 }
 
-TEST(BasisL2, GradientOrder1) {
+TEST(BasisL2, PointGradientOrder1) {
   using basis_t = numeric::math::fes::BasisL2<1>;
   test_element_gradient<basis_t, numeric::mesh::RefElPoint>();
+}
+
+TEST(BasisL2, SegmentGradientOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
   test_element_gradient<basis_t, numeric::mesh::RefElSegment>();
+}
+
+TEST(BasisL2, TriaGradientOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
   test_element_gradient<basis_t, numeric::mesh::RefElTria>();
+}
+
+TEST(BasisL2, QuadGradientOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
   test_element_gradient<basis_t, numeric::mesh::RefElQuad>();
+}
+
+TEST(BasisL2, TetraGradientOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
   test_element_gradient<basis_t, numeric::mesh::RefElTetra>();
+}
+
+TEST(BasisL2, CubeGradientOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
   test_element_gradient<basis_t, numeric::mesh::RefElCube>();
+}
+
+TEST(BasisL2, PointNumBasisFunctsOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElPoint>();
+}
+
+TEST(BasisL2, SegmentNumBasisFunctOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElSegment>();
+}
+
+TEST(BasisL2, TriaNumBasisFunctOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElTria>();
+}
+
+TEST(BasisL2, QuadNumBasisFunctOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElQuad>();
+}
+
+TEST(BasisL2, TetraNumBasisFunctOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElTetra>();
+}
+
+TEST(BasisL2, CubeNumBasisFunctOrder1) {
+  using basis_t = numeric::math::fes::BasisL2<1>;
+  test_element_num_basis_functions<basis_t, numeric::mesh::RefElCube>();
 }
 
 TEST(BasisL2, NumBasisFunctsOrder1) {
