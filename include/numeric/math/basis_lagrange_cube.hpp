@@ -10,6 +10,7 @@
 #include <numeric/mesh/ref_el_tria.hpp>
 #include <numeric/meta/meta.hpp>
 #include <numeric/meta/type_tag.hpp>
+#include <numeric/utils/error.hpp>
 
 namespace numeric::math {
 
@@ -232,7 +233,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElCube, Order> {
     } else if (i < 8 + 12 * (order - 1) + 2 * (order - 1) * (order - 1)) {
       const dim_t iloc =
           i - (8 + 12 * (order - 1) + 1 * (order - 1) * (order - 1));
-      out[0] = 3;
+      out[0] = order;
       out[1] = 1 + iloc % (order - 1);
       out[2] = 1 + iloc / (order - 1);
     } else if (i < 8 + 12 * (order - 1) + 3 * (order - 1) * (order - 1)) {
@@ -266,6 +267,10 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElCube, Order> {
       out[1] = 1 + (iloc / (order - 1)) % (order - 1);
       out[2] = 1 + iloc / ((order - 1) * (order - 1));
     }
+  }
+
+  static constexpr dim_t node_idx_under_permutation(dim_t i, dim_t *perm) {
+    NUMERIC_ERROR("Not yet implemented");
   }
 
   template <typename Element>

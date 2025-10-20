@@ -147,6 +147,7 @@ private:
 
       // Initialize DoFs on subelements for all element types
       (init_dofs_on_subelements<ElementTypes, Element>(
+           mesh_->template get_elements<ElementTypes>(), elements,
            relations.template get<ElementTypes>(),
            current_highest_dof_idx.template get<ElementTypes>()),
        ...);
@@ -181,11 +182,15 @@ private:
    * @param current_highest_dof_idx Current offset for this element type.
    */
   template <typename Element, typename Subelement>
-  void init_dofs_on_subelements(const memory::ArrayView<dim_t, 2> &relations,
-                                dim_t &current_highest_dof_idx) {
+  void
+  init_dofs_on_subelements(const memory::ArrayConstView<dim_t, 2> &elements,
+                           const memory::ArrayConstView<dim_t, 2> &subelements,
+                           const memory::ArrayView<dim_t, 2> &relations,
+                           dim_t &current_highest_dof_idx) {
     const dim_t num_elements = relations.shape(1);
     static constexpr dim_t num_subelements =
         Element::template num_subelements<Subelement>();
+    static constexpr dim_t num_corners = Subelement::ref_el_t::num_nodes;
     auto &dof_map = dof_maps_.template get<Element>();
 
     // For each subelement on the element
@@ -198,10 +203,39 @@ private:
       for (dim_t element = 0; element < num_elements; ++element) {
         // Assign each DoF to the global index space
         for (dim_t dof = 0; dof < num_dofs_on_subelement; ++dof) {
+          // Compute the permutation of the corners of the local subelement with
+          // respect to the corners of the global element
+          dim_t local_corner_dofs[num_corners];
+          dim_t global_corner_dofs[num_corners];
+          dim_t sub_node_idxs[num_corners];
+          Element::ref_el_t::template subelement_node_idxs<
+              typename Subelement::ref_el_t>(subelement, sub_node_idxs);
+          for (dim_t corner = 0; corner < num_corners; ++corner) {
+            local_corner_dofs[corner] =
+                elements(sub_node_idxs[corner], element);
+            global_corner_dofs[corner] =
+                subelements(corner, relations(subelement, element));
+          }
+          dim_t perm[num_corners];
+          for (dim_t corner_loc = 0; corner_loc < num_corners; ++corner_loc) {
+            for (dim_t corner_glob = 0; corner_glob < num_corners;
+                 ++corner_glob) {
+              if (local_corner_dofs[corner_loc] ==
+                  global_corner_dofs[corner_glob]) {
+                perm[corner_loc] = corner_glob;
+                break;
+              }
+            }
+          }
           const dim_t local_dof_idx = current_highest_dof_idx + dof;
+          const dim_t dof_on_subelement =
+              basis_t::template interior_dof_idx_under_permutation<Subelement>(
+                  dof, perm);
+          std::cout << dof << " -> " << dof_on_subelement << std::endl;
           const dim_t global_dof_idx =
               num_dofs_ +
-              relations(subelement, element) * num_dofs_on_subelement + dof;
+              relations(subelement, element) * num_dofs_on_subelement +
+              dof_on_subelement;
           dof_map(local_dof_idx, element) = global_dof_idx;
         }
       }

@@ -135,6 +135,21 @@ template <typename Derived> struct BasisBase {
            const Scalar *x) {
     return Derived::gradient(out, x, meta::type_tag<Element>{});
   }
+
+  template <typename Element>
+  static constexpr dim_t interior_dof_idx_under_permutation(dim_t dof,
+                                                            dim_t *perm) {
+    using element_basis_t =
+        typename Derived::element_basis_t<typename Element::ref_el_t>;
+    const dim_t nb = num_basis_functions<typename Element::ref_el_t>();
+    const dim_t nib =
+        num_interior_basis_functions<typename Element::ref_el_t>();
+    std::cout << element_basis_t::node_idx_under_permutation(dof + nb - nib,
+                                                             perm)
+              << ", " << nib << ", " << nb << std::endl;
+    return element_basis_t::node_idx_under_permutation(dof + nb - nib, perm) +
+           nib - nb;
+  }
 };
 
 } // namespace numeric::math::fes

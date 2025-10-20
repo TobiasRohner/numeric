@@ -77,6 +77,7 @@ class ReferenceElement:
                 code += f'      case {i}:\n'
                 for j in range(subel.num_verts):
                     code += f'        out[{j}] = {subel.idxs[j]};\n'
+                code += f'        break;\n'
             code += f'      }}\n'
             code += f'    }}\n'
         code += f'  }}\n'

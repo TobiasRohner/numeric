@@ -1,43 +1,44 @@
 #ifndef NUMERIC_MATH_BASIS_LAGRANGE_TETRA_HPP_
 #define NUMERIC_MATH_BASIS_LAGRANGE_TETRA_HPP_
 
+#include <numeric/math/basis_lagrange_tria.hpp>
 #include <numeric/mesh/ref_el_cube.hpp>
 #include <numeric/mesh/ref_el_point.hpp>
 #include <numeric/mesh/ref_el_quad.hpp>
 #include <numeric/mesh/ref_el_segment.hpp>
 #include <numeric/mesh/ref_el_tetra.hpp>
 #include <numeric/mesh/ref_el_tria.hpp>
-#include <numeric/math/basis_lagrange_tria.hpp>
 #include <numeric/meta/meta.hpp>
 #include <numeric/meta/type_tag.hpp>
+#include <numeric/utils/error.hpp>
 
 namespace numeric::math {
 
 template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
   using ref_el_t = mesh::RefElTetra;
   static constexpr dim_t order = Order;
-  static constexpr dim_t num_basis_functions = (Order + 1) * (Order + 2) * (Order + 3) / 6;
-  static constexpr dim_t num_interpolation_nodes = (Order + 1) * (Order + 2) * (Order + 3) / 6;
+  static constexpr dim_t num_basis_functions =
+      (Order + 1) * (Order + 2) * (Order + 3) / 6;
+  static constexpr dim_t num_interpolation_nodes =
+      (Order + 1) * (Order + 2) * (Order + 3) / 6;
 
-  template <typename Scalar>
-  static constexpr Scalar P(dim_t m, Scalar z) {
+  template <typename Scalar> static constexpr Scalar P(dim_t m, Scalar z) {
     Scalar result = 1;
-    for (dim_t i = 1 ; i <= m ; ++i) {
+    for (dim_t i = 1; i <= m; ++i) {
       result *= (order * z - i + 1) / i;
     }
     return result;
   }
 
-  template <typename Scalar>
-  static constexpr Scalar diff_P(dim_t m, Scalar z) {
+  template <typename Scalar> static constexpr Scalar diff_P(dim_t m, Scalar z) {
     Scalar result = 0;
-    for (dim_t i = 1 ; i <= m ; ++i) {
+    for (dim_t i = 1; i <= m; ++i) {
       Scalar prod = static_cast<Scalar>(order) / i;
-      for (dim_t j = 1 ; j <= m ; ++j) {
-	if (i == j) {
-	  continue;
-	}
-	prod *= (order * z - j + 1) / j;
+      for (dim_t j = 1; j <= m; ++j) {
+        if (i == j) {
+          continue;
+        }
+        prod *= (order * z - j + 1) / j;
       }
       result += prod;
     }
@@ -51,11 +52,12 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
     const Scalar l2 = x[1];
     const Scalar l3 = x[2];
     const Scalar l4 = 1 - l1 - l2 - l3;
-    for (dim_t b = 0 ; b < num_basis_functions ; ++b) {
+    for (dim_t b = 0; b < num_basis_functions; ++b) {
       dim_t ijkl[4];
       node_idxs(b, ijkl);
       ijkl[3] = order - ijkl[0] - ijkl[1] - ijkl[2];
-      y += coeffs[b] * P(ijkl[0], l1) * P(ijkl[1], l2) * P(ijkl[2], l3) * P(ijkl[3], l4);
+      y += coeffs[b] * P(ijkl[0], l1) * P(ijkl[1], l2) * P(ijkl[2], l3) *
+           P(ijkl[3], l4);
     }
     return y;
   }
@@ -66,11 +68,12 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
     const Scalar l2 = x[1];
     const Scalar l3 = x[2];
     const Scalar l4 = 1 - l1 - l2 - l3;
-    for (dim_t b = 0 ; b < num_basis_functions ; ++b) {
+    for (dim_t b = 0; b < num_basis_functions; ++b) {
       dim_t ijkl[4];
       node_idxs(b, ijkl);
       ijkl[3] = order - ijkl[0] - ijkl[1] - ijkl[2];
-      out[b] = P(ijkl[0], l1) * P(ijkl[1], l2) * P(ijkl[2], l3) * P(ijkl[3], l4);
+      out[b] =
+          P(ijkl[0], l1) * P(ijkl[1], l2) * P(ijkl[2], l3) * P(ijkl[3], l4);
     }
   }
 
@@ -84,7 +87,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
     out[0] = 0;
     out[1] = 0;
     out[2] = 0;
-    for (dim_t b = 0 ; b < num_basis_functions ; ++b) {
+    for (dim_t b = 0; b < num_basis_functions; ++b) {
       dim_t ijkl[4];
       node_idxs(b, ijkl);
       ijkl[3] = order - ijkl[0] - ijkl[1] - ijkl[2];
@@ -108,7 +111,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
     const Scalar l2 = x[1];
     const Scalar l3 = x[2];
     const Scalar l4 = 1 - l1 - l2 - l3;
-    for (dim_t b = 0 ; b < num_basis_functions ; ++b) {
+    for (dim_t b = 0; b < num_basis_functions; ++b) {
       dim_t ijkl[4];
       node_idxs(b, ijkl);
       ijkl[3] = order - ijkl[0] - ijkl[1] - ijkl[2];
@@ -136,7 +139,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
 
   template <typename Scalar>
   static constexpr void interpolation_nodes(Scalar (*out)[3]) {
-    for (dim_t i = 0 ; i < num_basis_functions ; ++i) {
+    for (dim_t i = 0; i < num_basis_functions; ++i) {
       dim_t idxs[3];
       node_idxs(i, idxs);
       out[i][0] = static_cast<Scalar>(idxs[0]) / order;
@@ -196,43 +199,55 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
     } else if constexpr (order >= 3) {
       using tria_low_t = BasisLagrange<mesh::RefElTria, order - 3>;
       if (i < 4 + 6 * (order - 1) + 1 * tria_low_t::num_basis_functions) {
-	const dim_t iloc = i - (4 + 6 * (order - 1) + 0 * tria_low_t::num_basis_functions);
-	dim_t idxs_tria[2];
-	tria_low_t::node_idxs(iloc, idxs_tria);
-	out[0] = 1 + idxs_tria[0];
-	out[1] = 0;
-	out[2] = 1 + idxs_tria[1];
-      } else if (i < 4 + 6 * (order - 1) + 2 * tria_low_t::num_basis_functions) {
-	const dim_t iloc = i - (4 + 6 * (order - 1) + 1 * tria_low_t::num_basis_functions);
-	dim_t idxs_tria[2];
-	tria_low_t::node_idxs(iloc, idxs_tria);
-	out[0] = order - 2 - idxs_tria[0] - idxs_tria[1];
-	out[1] = 1 + (order - 3) - idxs_tria[0] - idxs_tria[1];
-	out[2] = 1 + idxs_tria[0];
-      } else if (i < 4 + 6 * (order - 1) + 3 * tria_low_t::num_basis_functions) {
-	const dim_t iloc = i - (4 + 6 * (order - 1) + 2 * tria_low_t::num_basis_functions);
-	dim_t idxs_tria[2];
-	tria_low_t::node_idxs(iloc, idxs_tria);
-	out[0] = 0;
-	out[1] = 1 + idxs_tria[1];
-	out[2] = 1 + idxs_tria[0];
-      } else if (i < 4 + 6 * (order - 1) + 4 * tria_low_t::num_basis_functions) {
-	const dim_t iloc = i - (4 + 6 * (order - 1) + 3 * tria_low_t::num_basis_functions);
-	dim_t idxs_tria[2];
-	tria_low_t::node_idxs(iloc, idxs_tria);
-	out[0] = 1 + idxs_tria[1];
-	out[1] = 1 + idxs_tria[0];
-	out[2] = 0;
+        const dim_t iloc =
+            i - (4 + 6 * (order - 1) + 0 * tria_low_t::num_basis_functions);
+        dim_t idxs_tria[2];
+        tria_low_t::node_idxs(iloc, idxs_tria);
+        out[0] = 1 + idxs_tria[0];
+        out[1] = 0;
+        out[2] = 1 + idxs_tria[1];
+      } else if (i <
+                 4 + 6 * (order - 1) + 2 * tria_low_t::num_basis_functions) {
+        const dim_t iloc =
+            i - (4 + 6 * (order - 1) + 1 * tria_low_t::num_basis_functions);
+        dim_t idxs_tria[2];
+        tria_low_t::node_idxs(iloc, idxs_tria);
+        out[0] = order - 2 - idxs_tria[0] - idxs_tria[1];
+        out[1] = 1 + (order - 3) - idxs_tria[0] - idxs_tria[1];
+        out[2] = 1 + idxs_tria[0];
+      } else if (i <
+                 4 + 6 * (order - 1) + 3 * tria_low_t::num_basis_functions) {
+        const dim_t iloc =
+            i - (4 + 6 * (order - 1) + 2 * tria_low_t::num_basis_functions);
+        dim_t idxs_tria[2];
+        tria_low_t::node_idxs(iloc, idxs_tria);
+        out[0] = 0;
+        out[1] = 1 + idxs_tria[1];
+        out[2] = 1 + idxs_tria[0];
+      } else if (i <
+                 4 + 6 * (order - 1) + 4 * tria_low_t::num_basis_functions) {
+        const dim_t iloc =
+            i - (4 + 6 * (order - 1) + 3 * tria_low_t::num_basis_functions);
+        dim_t idxs_tria[2];
+        tria_low_t::node_idxs(iloc, idxs_tria);
+        out[0] = 1 + idxs_tria[1];
+        out[1] = 1 + idxs_tria[0];
+        out[2] = 0;
       } else if constexpr (order >= 4) {
-	using tetra_low_t = BasisLagrange<mesh::RefElTetra, order - 4>;
-	const dim_t iloc = i - (4 + 6 * (order - 1) + 4 * tria_low_t::num_basis_functions);
-	dim_t idxs_low[3];
-	tetra_low_t::node_idxs(iloc, idxs_low);
-	out[0] = 1 + idxs_low[0];
-	out[1] = 1 + idxs_low[1];
-	out[2] = 1 + idxs_low[2];
+        using tetra_low_t = BasisLagrange<mesh::RefElTetra, order - 4>;
+        const dim_t iloc =
+            i - (4 + 6 * (order - 1) + 4 * tria_low_t::num_basis_functions);
+        dim_t idxs_low[3];
+        tetra_low_t::node_idxs(iloc, idxs_low);
+        out[0] = 1 + idxs_low[0];
+        out[1] = 1 + idxs_low[1];
+        out[2] = 1 + idxs_low[2];
       }
     }
+  }
+
+  static constexpr dim_t node_idx_under_permutation(dim_t i, dim_t *perm) {
+    NUMERIC_ERROR("Not yet implemented");
   }
 
   template <typename Element>
@@ -290,7 +305,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
     default:
       break;
     }
-    for (dim_t i = 0 ; i < order - 1 ; ++i) {
+    for (dim_t i = 0; i < order - 1; ++i) {
       idxs[i + 2] = i + 4 + subelement * (order - 1);
     }
   }
@@ -302,40 +317,40 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
       idxs[0] = 0;
       idxs[1] = 1;
       idxs[2] = 3;
-      for (dim_t i = 0 ; i < order - 1 ; ++i) {
-	idxs[i + 2 + 0 * (order - 1)] = i + 4 + 0 * (order - 1);
-	idxs[i + 2 + 1 * (order - 1)] = i + 4 + 4 * (order - 1);
-	idxs[i + 2 + 2 * (order - 1)] = (order - 2 - i) + 4 + 3 * (order - 1);
+      for (dim_t i = 0; i < order - 1; ++i) {
+        idxs[i + 2 + 0 * (order - 1)] = i + 4 + 0 * (order - 1);
+        idxs[i + 2 + 1 * (order - 1)] = i + 4 + 4 * (order - 1);
+        idxs[i + 2 + 2 * (order - 1)] = (order - 2 - i) + 4 + 3 * (order - 1);
       }
       break;
     case 1:
       idxs[0] = 2;
       idxs[1] = 3;
       idxs[2] = 1;
-      for (dim_t i = 0 ; i < order - 1 ; ++i) {
-	idxs[i + 2 + 0 * (order - 1)] = i + 4 + 5 * (order - 1);
-	idxs[i + 2 + 1 * (order - 1)] = (order - 2 -i) + 4 + 4 * (order - 1);
-	idxs[i + 2 + 2 * (order - 1)] = i + 4 + 1 * (order - 1);
+      for (dim_t i = 0; i < order - 1; ++i) {
+        idxs[i + 2 + 0 * (order - 1)] = i + 4 + 5 * (order - 1);
+        idxs[i + 2 + 1 * (order - 1)] = (order - 2 - i) + 4 + 4 * (order - 1);
+        idxs[i + 2 + 2 * (order - 1)] = i + 4 + 1 * (order - 1);
       }
       break;
     case 2:
       idxs[0] = 0;
       idxs[1] = 3;
       idxs[2] = 2;
-      for (dim_t i = 0 ; i < order - 1 ; ++i) {
-	idxs[i + 2 + 0 * (order - 1)] = i + 4 + 3 * (order - 1);
-	idxs[i + 2 + 1 * (order - 1)] = (order - 2 - i) + 4 + 5 * (order - 1);
-	idxs[i + 2 + 2 * (order - 1)] = i + 4 + 2 * (order - 1);
+      for (dim_t i = 0; i < order - 1; ++i) {
+        idxs[i + 2 + 0 * (order - 1)] = i + 4 + 3 * (order - 1);
+        idxs[i + 2 + 1 * (order - 1)] = (order - 2 - i) + 4 + 5 * (order - 1);
+        idxs[i + 2 + 2 * (order - 1)] = i + 4 + 2 * (order - 1);
       }
       break;
     case 3:
       idxs[0] = 0;
       idxs[1] = 2;
       idxs[2] = 1;
-      for (dim_t i = 0 ; i < order - 1 ; ++i) {
-	idxs[i + 2 + 0 * (order - 1)] = (order - 2 - i) + 4 + 2 * (order - 1);
-	idxs[i + 2 + 1 * (order - 1)] = (order - 2 - i) + 4 + 1 * (order - 1);
-	idxs[i + 2 + 2 * (order - 1)] = (order - 2 - i) + 4 + 0 * (order - 1);
+      for (dim_t i = 0; i < order - 1; ++i) {
+        idxs[i + 2 + 0 * (order - 1)] = (order - 2 - i) + 4 + 2 * (order - 1);
+        idxs[i + 2 + 1 * (order - 1)] = (order - 2 - i) + 4 + 1 * (order - 1);
+        idxs[i + 2 + 2 * (order - 1)] = (order - 2 - i) + 4 + 0 * (order - 1);
       }
       break;
     default:
@@ -343,8 +358,9 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
     }
     if constexpr (order >= 3) {
       using tria_low_t = BasisLagrange<mesh::RefElTria, order - 3>;
-      for (dim_t i = 0 ; i < tria_low_t::num_basis_functions ; ++i) {
-	idxs[i + 3 * order] = i + subelement * tria_low_t::num_basis_functions + 4 + 6 * (order - 1);
+      for (dim_t i = 0; i < tria_low_t::num_basis_functions; ++i) {
+        idxs[i + 3 * order] = i + subelement * tria_low_t::num_basis_functions +
+                              4 + 6 * (order - 1);
       }
     }
   }

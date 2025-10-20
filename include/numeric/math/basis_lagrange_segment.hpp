@@ -10,6 +10,7 @@
 #include <numeric/mesh/ref_el_tria.hpp>
 #include <numeric/meta/meta.hpp>
 #include <numeric/meta/type_tag.hpp>
+#include <numeric/utils/error.hpp>
 
 namespace numeric::math {
 
@@ -104,6 +105,23 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElSegment, Order> {
     default:
       out[0] = i - 1;
       break;
+    }
+  }
+
+  static constexpr dim_t node_idx_under_permutation(dim_t i, dim_t *perm) {
+    if (perm[0] == 0 && perm[1] == 1) {
+      return i;
+    } else if (perm[0] == 1 && perm[1] == 0) {
+      switch (i) {
+      case 0:
+        return order;
+      case 1:
+        return 0;
+      default:
+        return order + 2 - i;
+      }
+    } else {
+      NUMERIC_ERROR("What a weird permutation you have");
     }
   }
 

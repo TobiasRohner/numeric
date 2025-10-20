@@ -43,6 +43,10 @@ template <dim_t Ord> struct BasisLagrange<mesh::RefElPoint, Ord> {
   static constexpr void grad_basis(const Scalar *x, Scalar (*out)[1]) {
     // Nothing to do here
   }
+
+  static constexpr dim_t node_idx_under_permutation(dim_t i, dim_t *perm) {
+    return i;
+  }
 };
 
 } // namespace numeric::math

@@ -9,6 +9,7 @@
 #include <numeric/mesh/ref_el_tria.hpp>
 #include <numeric/meta/meta.hpp>
 #include <numeric/meta/type_tag.hpp>
+#include <numeric/utils/error.hpp>
 
 namespace numeric::math {
 
@@ -16,27 +17,26 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
   using ref_el_t = mesh::RefElTria;
   static constexpr dim_t order = Order;
   static constexpr dim_t num_basis_functions = (Order + 1) * (Order + 2) / 2;
-  static constexpr dim_t num_interpolation_nodes = (Order + 1) * (Order + 2) / 2;
+  static constexpr dim_t num_interpolation_nodes =
+      (Order + 1) * (Order + 2) / 2;
 
-  template <typename Scalar>
-  static constexpr Scalar P(dim_t m, Scalar z) {
+  template <typename Scalar> static constexpr Scalar P(dim_t m, Scalar z) {
     Scalar result = 1;
-    for (dim_t i = 1 ; i <= m ; ++i) {
+    for (dim_t i = 1; i <= m; ++i) {
       result *= (order * z - i + 1) / i;
     }
     return result;
   }
 
-  template <typename Scalar>
-  static constexpr Scalar diff_P(dim_t m, Scalar z) {
+  template <typename Scalar> static constexpr Scalar diff_P(dim_t m, Scalar z) {
     Scalar result = 0;
-    for (dim_t i = 1 ; i <= m ; ++i) {
+    for (dim_t i = 1; i <= m; ++i) {
       Scalar prod = static_cast<Scalar>(order) / i;
-      for (dim_t j = 1 ; j <= m ; ++j) {
-	if (i == j) {
-	  continue;
-	}
-	prod *= (order * z - j + 1) / j;
+      for (dim_t j = 1; j <= m; ++j) {
+        if (i == j) {
+          continue;
+        }
+        prod *= (order * z - j + 1) / j;
       }
       result += prod;
     }
@@ -49,7 +49,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
     const Scalar l1 = x[0];
     const Scalar l2 = x[1];
     const Scalar l3 = 1 - l1 - l2;
-    for (dim_t b = 0 ; b < num_basis_functions ; ++b) {
+    for (dim_t b = 0; b < num_basis_functions; ++b) {
       dim_t ijk[3];
       node_idxs(b, ijk);
       ijk[2] = order - ijk[0] - ijk[1];
@@ -63,7 +63,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
     const Scalar l1 = x[0];
     const Scalar l2 = x[1];
     const Scalar l3 = 1 - l1 - l2;
-    for (dim_t b = 0 ; b < num_basis_functions ; ++b) {
+    for (dim_t b = 0; b < num_basis_functions; ++b) {
       dim_t ijk[3];
       node_idxs(b, ijk);
       ijk[2] = order - ijk[0] - ijk[1];
@@ -79,7 +79,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
     const Scalar l3 = 1 - l1 - l2;
     out[0] = 0;
     out[1] = 0;
-    for (dim_t b = 0 ; b < num_basis_functions ; ++b) {
+    for (dim_t b = 0; b < num_basis_functions; ++b) {
       dim_t ijk[3];
       node_idxs(b, ijk);
       ijk[2] = order - ijk[0] - ijk[1];
@@ -99,7 +99,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
     const Scalar l1 = x[0];
     const Scalar l2 = x[1];
     const Scalar l3 = 1 - l1 - l2;
-    for (dim_t b = 0 ; b < num_basis_functions ; ++b) {
+    for (dim_t b = 0; b < num_basis_functions; ++b) {
       dim_t ijk[3];
       node_idxs(b, ijk);
       ijk[2] = order - ijk[0] - ijk[1];
@@ -123,7 +123,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
 
   template <typename Scalar>
   static constexpr void interpolation_nodes(Scalar (*out)[2]) {
-    for (dim_t i = 0 ; i < num_basis_functions ; ++i) {
+    for (dim_t i = 0; i < num_basis_functions; ++i) {
       dim_t idxs[2];
       node_idxs(i, idxs);
       out[i][0] = static_cast<Scalar>(idxs[0]) / order;
@@ -159,14 +159,16 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
       out[1] = order - (i - (2 + 2 * (order - 1)));
     } else {
       if constexpr (order >= 3) {
-	using tria_low_t = BasisLagrange<mesh::RefElTria, order - 3>;
-	for (dim_t j = 0 ; j < tria_low_t::num_basis_functions ; ++j) {
-	  tria_low_t::node_idxs(i - 3 * order + j, out);
-	  ++out[0];
-	  ++out[1];
-	}
+        using tria_low_t = BasisLagrange<mesh::RefElTria, order - 3>;
+        tria_low_t::node_idxs(i - 3 * order, out);
+        ++out[0];
+        ++out[1];
       }
     }
+  }
+
+  static constexpr dim_t node_idx_under_permutation(dim_t i, dim_t *perm) {
+    NUMERIC_ERROR("Not yet implemented");
   }
 
   template <typename Element>
@@ -197,17 +199,20 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
     case 0:
       idxs[0] = 0;
       idxs[1] = 1;
+      break;
     case 1:
       idxs[0] = 1;
       idxs[1] = 2;
+      break;
     case 2:
       idxs[0] = 2;
       idxs[1] = 0;
+      break;
     default:
       break;
     }
-    for (dim_t i = 0 ; i < order - 1 ; ++i) {
-      idxs[i + 2] = i + 4 + subelement * (order - 1);
+    for (dim_t i = 0; i < order - 1; ++i) {
+      idxs[i + 2] = i + 3 + subelement * (order - 1);
     }
   }
 

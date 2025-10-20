@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
   using scalar_t = double;
   static constexpr dim_t world_dim = 2;
   using mesh_t = mesh::UnstructuredMesh<scalar_t, mesh::Tria<1>>;
-  using basis_t = math::fes::BasisH1<2>;
+  using basis_t = math::fes::BasisH1<3>;
   using fes_t = math::fes::FESpace<basis_t, mesh_t>;
   using element_matrix_factory_t =
       equations::fem::DiffusionElementMatrixFactory<scalar_t, basis_t>;

@@ -47,12 +47,16 @@ struct RefElTetra {
       switch (idx) {
       case 0:
         out[0] = 0;
+        break;
       case 1:
         out[0] = 1;
+        break;
       case 2:
         out[0] = 2;
+        break;
       case 3:
         out[0] = 3;
+        break;
       }
     }
     if constexpr (meta::is_same_v<Subelement, RefElSegment>) {
@@ -60,21 +64,27 @@ struct RefElTetra {
       case 0:
         out[0] = 0;
         out[1] = 1;
+        break;
       case 1:
         out[0] = 1;
         out[1] = 2;
+        break;
       case 2:
         out[0] = 2;
         out[1] = 0;
+        break;
       case 3:
         out[0] = 0;
         out[1] = 3;
+        break;
       case 4:
         out[0] = 1;
         out[1] = 3;
+        break;
       case 5:
         out[0] = 2;
         out[1] = 3;
+        break;
       }
     }
     if constexpr (meta::is_same_v<Subelement, RefElTria>) {
@@ -83,18 +93,22 @@ struct RefElTetra {
         out[0] = 0;
         out[1] = 1;
         out[2] = 3;
+        break;
       case 1:
         out[0] = 2;
         out[1] = 3;
         out[2] = 1;
+        break;
       case 2:
         out[0] = 0;
         out[1] = 3;
         out[2] = 2;
+        break;
       case 3:
         out[0] = 0;
         out[1] = 2;
         out[2] = 1;
+        break;
       }
     }
   }

@@ -10,6 +10,7 @@
 #include <numeric/mesh/ref_el_tria.hpp>
 #include <numeric/meta/meta.hpp>
 #include <numeric/meta/type_tag.hpp>
+#include <numeric/utils/error.hpp>
 
 namespace numeric::math {
 
@@ -137,11 +138,11 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElQuad, Order> {
       out[0] = i - (3 + 0 * (order - 1));
       out[1] = 0;
     } else if (i < 4 + 2 * (order - 1)) {
-      out[0] = 4;
+      out[0] = order;
       out[1] = i - (3 + 1 * (order - 1));
     } else if (i < 4 + 3 * (order - 1)) {
       out[0] = i - (3 + 2 * (order - 1));
-      out[1] = 4;
+      out[1] = order;
     } else if (i < 4 + 4 * (order - 1)) {
       out[0] = 0;
       out[1] = i - (3 + 3 * (order - 1));
@@ -149,6 +150,10 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElQuad, Order> {
       out[0] = 1 + (i - 4 * order) % (order - 1);
       out[1] = 1 + (i - 4 * order) / (order - 1);
     }
+  }
+
+  static constexpr dim_t node_idx_under_permutation(dim_t i, dim_t *perm) {
+    NUMERIC_ERROR("Not yet implemented");
   }
 
   template <typename Element>
@@ -182,33 +187,24 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElQuad, Order> {
     case 0:
       idxs[0] = 0;
       idxs[1] = 1;
-      for (dim_t i = 0; i < order - 1; ++i) {
-        idxs[i + 2] = i + 4 + 0 * (order - 1);
-      }
       break;
     case 1:
       idxs[0] = 1;
       idxs[1] = 2;
-      for (dim_t i = 0; i < order - 1; ++i) {
-        idxs[i + 2] = i + 4 + 1 * (order - 1);
-      }
       break;
     case 2:
       idxs[0] = 3;
       idxs[1] = 2;
-      for (dim_t i = 0; i < order - 1; ++i) {
-        idxs[i + 2] = i + 4 + 2 * (order - 1);
-      }
       break;
     case 3:
       idxs[0] = 0;
       idxs[1] = 3;
-      for (dim_t i = 0; i < order - 1; ++i) {
-        idxs[i + 2] = i + 4 + 3 * (order - 1);
-      }
       break;
     default:
       break;
+    }
+    for (dim_t i = 0; i < order - 1; ++i) {
+      idxs[i + 2] = i + 4 + subelement * (order - 1);
     }
   }
 

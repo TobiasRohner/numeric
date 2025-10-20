@@ -29,8 +29,10 @@ struct RefElSegment {
       switch (idx) {
       case 0:
         out[0] = 0;
+        break;
       case 1:
         out[0] = 1;
+        break;
       }
     }
   }

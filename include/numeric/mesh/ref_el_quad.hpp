@@ -39,12 +39,16 @@ struct RefElQuad {
       switch (idx) {
       case 0:
         out[0] = 0;
+        break;
       case 1:
         out[0] = 1;
+        break;
       case 2:
         out[0] = 2;
+        break;
       case 3:
         out[0] = 3;
+        break;
       }
     }
     if constexpr (meta::is_same_v<Subelement, RefElSegment>) {
@@ -52,15 +56,19 @@ struct RefElQuad {
       case 0:
         out[0] = 0;
         out[1] = 1;
+        break;
       case 1:
         out[0] = 1;
         out[1] = 2;
+        break;
       case 2:
         out[0] = 3;
         out[1] = 2;
+        break;
       case 3:
         out[0] = 0;
         out[1] = 3;
+        break;
       }
     }
   }

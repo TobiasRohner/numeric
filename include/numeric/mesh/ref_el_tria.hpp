@@ -37,10 +37,13 @@ struct RefElTria {
       switch (idx) {
       case 0:
         out[0] = 0;
+        break;
       case 1:
         out[0] = 1;
+        break;
       case 2:
         out[0] = 2;
+        break;
       }
     }
     if constexpr (meta::is_same_v<Subelement, RefElSegment>) {
@@ -48,12 +51,15 @@ struct RefElTria {
       case 0:
         out[0] = 0;
         out[1] = 1;
+        break;
       case 1:
         out[0] = 1;
         out[1] = 2;
+        break;
       case 2:
         out[0] = 2;
         out[1] = 0;
+        break;
       }
     }
   }

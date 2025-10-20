@@ -59,20 +59,28 @@ struct RefElCube {
       switch (idx) {
       case 0:
         out[0] = 0;
+        break;
       case 1:
         out[0] = 1;
+        break;
       case 2:
         out[0] = 2;
+        break;
       case 3:
         out[0] = 3;
+        break;
       case 4:
         out[0] = 4;
+        break;
       case 5:
         out[0] = 5;
+        break;
       case 6:
         out[0] = 6;
+        break;
       case 7:
         out[0] = 7;
+        break;
       }
     }
     if constexpr (meta::is_same_v<Subelement, RefElSegment>) {
@@ -80,39 +88,51 @@ struct RefElCube {
       case 0:
         out[0] = 0;
         out[1] = 1;
+        break;
       case 1:
         out[0] = 1;
         out[1] = 2;
+        break;
       case 2:
         out[0] = 3;
         out[1] = 2;
+        break;
       case 3:
         out[0] = 0;
         out[1] = 3;
+        break;
       case 4:
         out[0] = 4;
         out[1] = 5;
+        break;
       case 5:
         out[0] = 5;
         out[1] = 6;
+        break;
       case 6:
         out[0] = 7;
         out[1] = 6;
+        break;
       case 7:
         out[0] = 4;
         out[1] = 7;
+        break;
       case 8:
         out[0] = 0;
         out[1] = 4;
+        break;
       case 9:
         out[0] = 1;
         out[1] = 5;
+        break;
       case 10:
         out[0] = 2;
         out[1] = 6;
+        break;
       case 11:
         out[0] = 3;
         out[1] = 7;
+        break;
       }
     }
     if constexpr (meta::is_same_v<Subelement, RefElQuad>) {
@@ -122,31 +142,37 @@ struct RefElCube {
         out[1] = 3;
         out[2] = 7;
         out[3] = 4;
+        break;
       case 1:
         out[0] = 1;
         out[1] = 2;
         out[2] = 6;
         out[3] = 5;
+        break;
       case 2:
         out[0] = 0;
         out[1] = 1;
         out[2] = 5;
         out[3] = 4;
+        break;
       case 3:
         out[0] = 3;
         out[1] = 2;
         out[2] = 6;
         out[3] = 7;
+        break;
       case 4:
         out[0] = 0;
         out[1] = 1;
         out[2] = 2;
         out[3] = 3;
+        break;
       case 5:
         out[0] = 4;
         out[1] = 5;
         out[2] = 6;
         out[3] = 7;
+        break;
       }
     }
   }
