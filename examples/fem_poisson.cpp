@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
   using scalar_t = double;
   static constexpr dim_t world_dim = 2;
   using mesh_t = mesh::UnstructuredMesh<scalar_t, mesh::Tria<1>>;
-  using basis_t = math::fes::BasisH1<3>;
+  using basis_t = math::fes::BasisH1<4>;
   using fes_t = math::fes::FESpace<basis_t, mesh_t>;
   using element_matrix_factory_t =
       equations::fem::DiffusionElementMatrixFactory<scalar_t, basis_t>;
@@ -38,7 +38,8 @@ int main(int argc, char *argv[]) {
   std::cout << "Done reading " << mesh->num_vertices() << " vertices, "
             << mesh->num_elements<mesh::Tria<1>>() << " triangles" << std::endl;
 
-  std::cout << "Constructing first-order H1 FE space" << std::endl;
+  std::cout << "Constructing H1 FE space of order " << fes_t::basis_t::order
+            << std::endl;
   auto fes = std::make_shared<fes_t>(mesh);
   std::cout << "Done. Got " << fes->num_dofs() << " degrees of freedom."
             << std::endl;

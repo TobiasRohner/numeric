@@ -127,6 +127,9 @@ class Element:
         code += '}'
         return code
 
+    def node_idx_under_permutation_code(self):
+        return 'NUMERIC_ERROR("Not yet implemented");'
+
     def lagrange(self, point):
         raise NotImplementedError
 
@@ -324,6 +327,10 @@ class Element:
         code += f'\n'
         code += f'  }}\n'
         code += f'\n'
+        code += f'  static dim_t node_idx_under_permutation(dim_t i, dim_t *perm) {{\n'
+        code += f'    ' + self.node_idx_under_permutation_code().replace('\n', '\n    ')
+        code += f'  }}\n'
+        code += f'\n'
         code += f'  template <typename Element>\n'
         code += f'  static void subelement_node_idxs(dim_t subelement, dim_t *idxs) {{\n'
         code += f'    subelement_node_idxs(subelement, idxs, meta::type_tag<Element>{{}});\n'
@@ -345,6 +352,23 @@ class Segment(Element):
         Y = [sympy.Integer(0) for _ in range(self.order+1)]
         Y[point[0]] = sympy.Integer(1)
         return sympy.interpolating_poly(self.order+1, self.coords[0], points, Y)
+
+    def node_idx_under_permutation_code(self):
+        code = 'if (perm[0] == 0 && perm[1] == 1) {\n'
+        code += '  return i;\n'
+        code += '} else if (perm[0] == 1 && perm[1] == 0) {\n'
+        code += '  switch (i) {\n'
+        code += '  case 0:\n'
+        code += '    return 1;\n'
+        code += '  case 1:\n'
+        code += '    return 0;\n'
+        code += '  default:\n'
+        code += '    return order + 2 - i;\n'
+        code += '  }\n'
+        code += '} else {\n'
+        code += '  NUMERIC_ERROR("What a weird permutation you have");\n'
+        code += '}\n'
+        return code
 
 
 class Tria(Element):

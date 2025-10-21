@@ -114,7 +114,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElSegment, Order> {
     } else if (perm[0] == 1 && perm[1] == 0) {
       switch (i) {
       case 0:
-        return order;
+        return 1;
       case 1:
         return 0;
       default:

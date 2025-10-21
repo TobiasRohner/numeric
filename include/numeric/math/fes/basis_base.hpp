@@ -144,9 +144,6 @@ template <typename Derived> struct BasisBase {
     const dim_t nb = num_basis_functions<typename Element::ref_el_t>();
     const dim_t nib =
         num_interior_basis_functions<typename Element::ref_el_t>();
-    std::cout << element_basis_t::node_idx_under_permutation(dof + nb - nib,
-                                                             perm)
-              << ", " << nib << ", " << nb << std::endl;
     return element_basis_t::node_idx_under_permutation(dof + nb - nib, perm) +
            nib - nb;
   }

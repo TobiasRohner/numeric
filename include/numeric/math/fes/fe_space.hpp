@@ -231,7 +231,6 @@ private:
           const dim_t dof_on_subelement =
               basis_t::template interior_dof_idx_under_permutation<Subelement>(
                   dof, perm);
-          std::cout << dof << " -> " << dof_on_subelement << std::endl;
           const dim_t global_dof_idx =
               num_dofs_ +
               relations(subelement, element) * num_dofs_on_subelement +
