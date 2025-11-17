@@ -2,6 +2,7 @@
 #define NUMERIC_EQUATIONS_FEM_FINITE_ELEMENT_MATRIX_HPP_
 
 #include <numeric/math/fes/fe_space.hpp>
+#include <numeric/math/linear_operator.hpp>
 #include <numeric/math/quad/quad_rule.hpp>
 
 namespace numeric::equations::fem {
@@ -36,7 +37,10 @@ template <typename Basis, typename ScalarMesh, typename... ElementTypes,
 class FiniteElementMatrix<
     math::fes::FESpace<Basis,
                        mesh::UnstructuredMesh<ScalarMesh, ElementTypes...>>,
-    ElementMatrixFactory> {
+    ElementMatrixFactory>
+    : public math::LinearOperator<typename ElementMatrixFactory::scalar_t> {
+  using super = math::LinearOperator<typename ElementMatrixFactory::scalar_t>;
+
 public:
   using scalar_t =
       typename ElementMatrixFactory::scalar_t; ///< Scalar type used for
@@ -56,14 +60,27 @@ public:
   /**
    * @brief Constructor with default quadrature order.
    */
-  FiniteElementMatrix(const fes_t &fes)
+  FiniteElementMatrix(const std::shared_ptr<fes_t> &fes)
       : FiniteElementMatrix(fes, 2 * basis_t::order) {}
 
   /**
    * @brief Constructor with custom quadrature order.
    */
-  FiniteElementMatrix(const fes_t &fes, dim_t order)
+  FiniteElementMatrix(const std::shared_ptr<fes_t> &fes, dim_t order)
       : FiniteElementMatrix(fes, build_qr(order)) {}
+
+  virtual ~FiniteElementMatrix() override = default;
+
+  std::shared_ptr<fes_t> fes() { return fes_; }
+
+  std::shared_ptr<const fes_t> fes() const { return fes_; }
+
+  virtual memory::Shape<2> shape() const override {
+    const dim_t N = fes_->num_dofs();
+    return memory::Shape<2>(N, N);
+  }
+
+  virtual dim_t shape(dim_t i) const override { return fes_->num_dofs(); }
 
   /**
    * @brief Applies the finite element matrix to a vector.
@@ -74,15 +91,18 @@ public:
    * @param u Input coefficient vector.
    * @param out Output vector.
    */
-  void apply(const fes_t &fes, const memory::ArrayConstView<scalar_t, 1> &u,
-             memory::ArrayView<scalar_t, 1> out) const {
+  virtual void operator()(const memory::ArrayConstView<scalar_t, 1> &u,
+                          memory::ArrayView<scalar_t, 1> out) const override {
     // Clear out vector
     out = 0;
     // Compute matrix-vector product for each element type
-    ((apply_to_element<ElementTypes>(fes, u, out, work_.raw())), ...);
+    ((apply_to_element<ElementTypes>(u, out, work_.raw())), ...);
   }
 
+  using super::operator();
+
 private:
+  std::shared_ptr<fes_t> fes_;
   mutable memory::Array<char, 1> work_; ///< Workspace buffer
   utils::TypeIndexedMap<memory::Array<scalar_t, 2>, ElementTypes...>
       qr_points_; ///< Quadrature points per element type
@@ -95,12 +115,13 @@ private:
    * @brief Core constructor using prebuilt quadrature rules.
    */
   FiniteElementMatrix(
-      const fes_t &fes,
+      const std::shared_ptr<fes_t> &fes,
       utils::Tuple<
           utils::TypeIndexedMap<memory::Array<scalar_t, 2>, ElementTypes...>,
           utils::TypeIndexedMap<memory::Array<scalar_t, 1>, ElementTypes...>>
           &&qr)
-      : work_(memory::Shape<1>(apply_work_size(fes.mesh()->world_dim())),
+      : fes_(fes),
+        work_(memory::Shape<1>(apply_work_size(fes->mesh()->world_dim())),
               memory::MemoryType::HOST),
         qr_points_(std::move(qr.template get<0>())),
         qr_weights_(std::move(qr.template get<1>())),
@@ -156,15 +177,14 @@ private:
    * @brief Applies the local element matrix to a slice of the global vector.
    */
   template <typename Element>
-  void apply_to_element(const fes_t &fes,
-                        const memory::ArrayConstView<scalar_t, 1> &u,
+  void apply_to_element(const memory::ArrayConstView<scalar_t, 1> &u,
                         memory::ArrayView<scalar_t, 1> out, void *work) const {
     using ref_el_t = typename Element::ref_el_t;
     static constexpr dim_t num_nodes = Element::num_nodes;
     static constexpr dim_t num_basis_functions =
         basis_t::template num_basis_functions<ref_el_t>();
 
-    const mesh_t &mesh = *(fes.mesh());
+    const mesh_t &mesh = *(fes_->mesh());
     const dim_t num_elements = mesh.template num_elements<Element>();
     const dim_t world_dim = mesh.world_dim();
 
@@ -172,7 +192,7 @@ private:
     const memory::ArrayConstView<dim_t, 2> elements =
         mesh.template get_elements<Element>();
     const memory::ArrayConstView<dim_t, 2> dof_map =
-        fes.template dof_map<Element>();
+        fes_->template dof_map<Element>();
     const element_matrix_t<Element> &elem_mat =
         elem_mats_.template get<element_matrix_t<Element>>();
 

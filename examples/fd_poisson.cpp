@@ -81,6 +81,7 @@
 #include <iostream>
 #include <numeric/io/netcdf_file.hpp>
 #include <numeric/math/conjugate_gradient.hpp>
+#include <numeric/math/custom_linear_operator.hpp>
 #include <numeric/math/sum.hpp>
 #include <numeric/memory/array.hpp>
 #include <numeric/memory/array_op.hpp>
@@ -143,28 +144,44 @@ int main() {
   memory::Array<real_t, 2> bd = u_exact;
   // Define the negative Laplacian operator as a lambda function.
   // The operator computes a finite-difference approximation of the Laplacian.
-  auto negative_laplacian = [&](memory::ArrayConstView<real_t, 2> &x) {
-    bd(memory::Slice(1, -2), memory::Slice(1, -2)) = x;
-    return (4 * bd(memory::Slice(1, -2), memory::Slice(1, -2)) -
-            bd(memory::Slice(1, -2), memory::Slice(0, -3)) -
-            bd(memory::Slice(1, -2), memory::Slice(2, -1)) -
-            bd(memory::Slice(0, -3), memory::Slice(1, -2)) -
-            bd(memory::Slice(2, -1), memory::Slice(1, -2))) /
-           (dx * dy);
-  };
+  auto negative_laplacian =
+      std::make_shared<math::CustomLinearOperator<real_t>>(
+          memory::Shape<2>(N * N, N * N),
+          [&](const memory::ArrayConstView<real_t, 1> &x,
+              memory::ArrayView<real_t, 1> out) {
+            memory::ArrayConstView<real_t, 2> x_view(
+                x.raw(), memory::Shape<2>(N, N), out.memory_type());
+            memory::ArrayView<real_t, 2> out_view(
+                out.raw(), memory::Shape<2>(N, N), out.memory_type());
+            bd(memory::Slice(1, -2), memory::Slice(1, -2)) =
+                memory::ArrayConstView<real_t, 2>(
+                    x.raw(), memory::Shape<2>(N, N), x.memory_type());
+            out_view = (4 * bd(memory::Slice(1, -2), memory::Slice(1, -2)) -
+                        bd(memory::Slice(1, -2), memory::Slice(0, -3)) -
+                        bd(memory::Slice(1, -2), memory::Slice(2, -1)) -
+                        bd(memory::Slice(0, -3), memory::Slice(1, -2)) -
+                        bd(memory::Slice(2, -1), memory::Slice(1, -2))) /
+                       (dx * dy);
+          });
   //! [laplacian]
 
   //! [solver]
   // Create the conjugate gradient solver using the negative Laplacian operator.
-  math::ConjugateGradient<real_t, decltype(negative_laplacian)> cg(
-      negative_laplacian);
+  math::ConjugateGradient<real_t> cg(negative_laplacian);
   cg.set_tolerance(N * N * 1e-8);
   cg.set_max_iterations(N * N);
 
   // Solve the system on the interior of the grid.
-  const auto [converged, num_iter, error] =
-      cg.solve(f(memory::Slice(1, -2), memory::Slice(1, -2)),
-               u(memory::Slice(1, -2), memory::Slice(1, -2)));
+  memory::Array<real_t, 2> rhs(memory::Shape<2>(N, N), f.memory_type());
+  memory::Array<real_t, 2> x(memory::Shape<2>(N, N), u.memory_type());
+  rhs = f(memory::Slice(1, -2), memory::Slice(1, -2));
+  x = u(memory::Slice(1, -2), memory::Slice(1, -2));
+  cg.solve(memory::ArrayConstView<real_t, 1>(rhs.raw(), memory::Shape<1>(N * N),
+                                             rhs.memory_type()),
+           memory::ArrayView<real_t, 1>(x.raw(), memory::Shape<1>(N * N),
+                                        x.memory_type()));
+  u(memory::Slice(1, -2), memory::Slice(1, -2)) = x;
+  const auto [converged, num_iter, error] = cg.result();
   if (converged) {
     std::cout << "Converged in " << num_iter << " iterations (error = " << error
               << ")" << std::endl;

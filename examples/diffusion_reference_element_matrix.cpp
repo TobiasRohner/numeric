@@ -37,19 +37,20 @@ memory::Array<scalar_t, 2> diffusion_reference_element_matrix() {
   using basis_t = math::fes::BasisH1<Order>;
   using fes_t = math::fes::FESpace<basis_t, mesh_t>;
   const auto mesh = generate_mesh<Element>();
-  fes_t fes(mesh);
+  auto fes = std::make_shared<fes_t>(mesh);
   using element_matrix_factory_t =
       equations::fem::DiffusionElementMatrixFactory<scalar_t, basis_t>;
   equations::fem::FiniteElementMatrix<fes_t, element_matrix_factory_t> lapl(
       fes);
-  memory::Array<scalar_t, 1> u(memory::Shape<1>(fes.num_dofs()),
+  memory::Array<scalar_t, 1> u(memory::Shape<1>(fes->num_dofs()),
                                memory::MemoryType::HOST);
-  memory::Array<scalar_t, 2> A(memory::Shape<2>(fes.num_dofs(), fes.num_dofs()),
-                               memory::MemoryType::HOST);
-  for (dim_t i = 0; i < fes.num_dofs(); ++i) {
+  memory::Array<scalar_t, 2> A(
+      memory::Shape<2>(fes->num_dofs(), fes->num_dofs()),
+      memory::MemoryType::HOST);
+  for (dim_t i = 0; i < fes->num_dofs(); ++i) {
     u = 0;
     u(i) = 1;
-    lapl.apply(fes, u, A(i));
+    lapl(u, A(i));
   }
   return A;
 }

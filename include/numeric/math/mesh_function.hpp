@@ -15,9 +15,9 @@ public:
   MeshFunction(const std::shared_ptr<const fes_t> &fes)
       : fes_(fes),
         dofs_(memory::Shape<1>(fes->num_dofs()), memory::MemoryType::HOST) {}
-  MeshFunction(const MeshFunction &) = delete;
+  MeshFunction(const MeshFunction &) = default;
   MeshFunction(MeshFunction &&) = default;
-  MeshFunction &operator=(const MeshFunction &) = delete;
+  MeshFunction &operator=(const MeshFunction &) = default;
   MeshFunction &operator=(MeshFunction &&) = default;
 
   template <typename ElementType>

@@ -27,8 +27,8 @@ int main(int argc, char *argv[]) {
   using mesh_t = mesh::UnstructuredMesh<scalar_t, mesh::Tria<1>, mesh::Quad<1>>;
   using basis_t = math::fes::BasisH1<2>;
   using fes_t = math::fes::FESpace<basis_t, mesh_t>;
-  fes_t fes(mesh);
-  std::cout << "Done. Got " << fes.num_dofs() << " degrees of freedom."
+  auto fes = std::make_shared<fes_t>(mesh);
+  std::cout << "Done. Got " << fes->num_dofs() << " degrees of freedom."
             << std::endl;
 
   using element_matrix_factory_t =
@@ -36,18 +36,19 @@ int main(int argc, char *argv[]) {
   equations::fem::FiniteElementMatrix<fes_t, element_matrix_factory_t> lapl(
       fes);
 
-  memory::Array<scalar_t, 1> u(memory::Shape<1>(fes.num_dofs()),
+  memory::Array<scalar_t, 1> u(memory::Shape<1>(fes->num_dofs()),
                                memory::MemoryType::HOST);
-  memory::Array<scalar_t, 2> A(memory::Shape<2>(fes.num_dofs(), fes.num_dofs()),
-                               memory::MemoryType::HOST);
-  for (dim_t i = 0; i < fes.num_dofs(); ++i) {
+  memory::Array<scalar_t, 2> A(
+      memory::Shape<2>(fes->num_dofs(), fes->num_dofs()),
+      memory::MemoryType::HOST);
+  for (dim_t i = 0; i < fes->num_dofs(); ++i) {
     u = 0;
     u(i) = 1;
-    lapl.apply(fes, u, A(i));
+    lapl(u, A(i));
   }
 
-  for (dim_t i = 0; i < fes.num_dofs(); ++i) {
-    for (dim_t j = 0; j < fes.num_dofs(); ++j) {
+  for (dim_t i = 0; i < fes->num_dofs(); ++i) {
+    for (dim_t j = 0; j < fes->num_dofs(); ++j) {
       std::cout << std::showpos << std::left << std::setw(9) << A(i, j) << " ";
     }
     std::cout << "\n";

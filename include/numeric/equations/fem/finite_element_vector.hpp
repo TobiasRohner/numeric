@@ -49,7 +49,7 @@ public:
    *
    * @param fes Finite element space.
    */
-  FiniteElementVector(const fes_t &fes)
+  FiniteElementVector(const std::shared_ptr<fes_t> &fes)
       : FiniteElementVector(fes, 2 * basis_t::order) {}
 
   /**
@@ -58,8 +58,12 @@ public:
    * @param fes Finite element space.
    * @param order Polynomial integration order for quadrature.
    */
-  FiniteElementVector(const fes_t &fes, dim_t order)
+  FiniteElementVector(const std::shared_ptr<fes_t> &fes, dim_t order)
       : FiniteElementVector(fes, build_qr(order)) {}
+
+  std::shared_ptr<fes_t> fes() { return fes_; }
+
+  std::shared_ptr<const fes_t> fes() const { return fes_; }
 
   /**
    * @brief Assemble the global finite element vector by applying
@@ -71,11 +75,10 @@ public:
    * @param out Output array to write the assembled vector to.
    */
   template <typename Func>
-  void assemble(const fes_t &fes, Func &&f,
-                memory::ArrayView<scalar_t, 1> out) const {
+  void assemble(Func &&f, memory::ArrayView<scalar_t, 1> out) const {
     out = 0; // Initialize result vector
 
-    const auto mesh = fes.mesh();
+    const auto mesh = fes_->mesh();
     const auto vertices = mesh->vertices();
     const dim_t world_dim = vertices.shape(0);
 
@@ -83,7 +86,7 @@ public:
     mesh_t::for_all_element_types([&]<typename ElementType>(
                                       meta::type_tag<ElementType>) {
       const auto elements = mesh->template get_elements<ElementType>();
-      const auto dofs = fes.template dof_map<ElementType>();
+      const auto dofs = fes_->template dof_map<ElementType>();
       static constexpr dim_t num_nodes = ElementType::num_nodes;
       static constexpr dim_t num_basis_functions =
           element_vector_t<ElementType>::num_basis_functions;
@@ -124,6 +127,7 @@ public:
   }
 
 private:
+  std::shared_ptr<fes_t> fes_;
   /// Temporary workspace memory
   mutable memory::Array<char, 1> work_;
   /// Quadrature rule points for each element type
@@ -136,12 +140,13 @@ private:
 
   /// Constructor used internally to initialize all data from quadrature rules
   FiniteElementVector(
-      const fes_t &fes,
+      const std::shared_ptr<fes_t> &fes,
       utils::Tuple<
           utils::TypeIndexedMap<memory::Array<scalar_t, 2>, ElementTypes...>,
           utils::TypeIndexedMap<memory::Array<scalar_t, 1>, ElementTypes...>>
           &&qr)
-      : work_(memory::Shape<1>(apply_work_size(fes.mesh()->world_dim())),
+      : fes_(fes),
+        work_(memory::Shape<1>(apply_work_size(fes->mesh()->world_dim())),
               memory::MemoryType::HOST),
         qr_points_(std::move(qr.template get<0>())),
         qr_weights_(std::move(qr.template get<1>())),

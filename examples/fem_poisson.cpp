@@ -8,6 +8,7 @@
 #include <numeric/math/conjugate_gradient.hpp>
 #include <numeric/math/fes/basis_h1.hpp>
 #include <numeric/math/fes/fe_space.hpp>
+#include <numeric/math/linear_system.hpp>
 #include <numeric/math/mesh_function.hpp>
 #include <numeric/memory/array.hpp>
 #include <numeric/mesh/elements.hpp>
@@ -44,41 +45,34 @@ int main(int argc, char *argv[]) {
   std::cout << "Done. Got " << fes->num_dofs() << " degrees of freedom."
             << std::endl;
 
-  stiffness_matrix_t lapl(*fes);
-  load_vector_t load(*fes);
+  // TODO: Figure out real boundary dofs
+  memory::Array<dim_t, 1> dirichlet_dofs(memory::Shape<1>(1),
+                                         memory::MemoryType::HOST);
+  dirichlet_dofs(0) = 0;
+
+  auto lapl = std::make_shared<stiffness_matrix_t>(fes);
+  load_vector_t load(fes);
+
+  math::LinearSystem<scalar_t> system(lapl);
+  system.set_fixed_dofs(dirichlet_dofs);
+  auto cg = std::make_shared<math::ConjugateGradient<scalar_t>>();
+  cg->set_tolerance(1e-8);
+  cg->set_max_iterations(fes->num_dofs());
+  system.set_solver(cg);
 
   const auto f = [](scalar_t *x) -> scalar_t {
     const scalar_t x1 = x[0];
     const scalar_t x2 = x[1];
     const scalar_t r2 = x1 * x1 + x2 * x2;
-    return r2 < 0.01 ? 1 : 0;
+    return (r2 < 0.01 ? 1 : 0) - 0.01;
   };
-  memory::Array<scalar_t, 1> rhs(memory::Shape<1>(fes->num_dofs() + 1),
-                                 memory::MemoryType::HOST);
-  load.assemble(*fes, f, rhs(memory::Slice(0, -2)));
-  rhs(rhs.size() - 1) = 0;
+  load.assemble(f, system.rhs());
 
   math::MeshFunction<scalar_t, fes_t> u(fes);
-  u.dofs() = 0;
-
-  // TODO: This should be its own class somehow
-  memory::Array<scalar_t, 1> x(memory::Shape<1>(fes->num_dofs() + 1),
-                               memory::MemoryType::HOST);
-  memory::Array<scalar_t, 1> Ax(memory::Shape<1>(fes->num_dofs() + 1),
-                                memory::MemoryType::HOST);
-  auto lapl_with_boundary = [&](const memory::ArrayConstView<scalar_t, 1> &x) {
-    lapl.apply(*fes, x(memory::Slice(0, -2)), Ax(memory::Slice(0, -2)));
-    Ax(memory::Slice(0, -2)) -= x(x.size() - 1) / (x.size() - 1);
-    Ax(x.size() - 1) =
-        x(x.size() - 1) - math::sum(x(memory::Slice(0, -2))) / (x.size() - 1);
-    return Ax.const_view();
-  };
-  math::ConjugateGradient<scalar_t, decltype(lapl_with_boundary)> cg(
-      lapl_with_boundary);
-  cg.set_tolerance(fes->num_dofs() * 1e-8);
-  cg.set_max_iterations(fes->num_dofs());
-  x = 0;
-  const auto [converged, num_iter, error] = cg.solve(rhs, x);
+  math::MeshFunction<scalar_t, fes_t> offset(fes);
+  offset.dofs() = 100;
+  system.solve(u.dofs(), offset.dofs());
+  const auto [converged, num_iter, error] = cg->result();
   if (converged) {
     std::cout << "Converged in " << num_iter << " iterations (error = " << error
               << ")" << std::endl;
@@ -86,12 +80,17 @@ int main(int argc, char *argv[]) {
     std::cout << "No convergence in " << num_iter
               << " iterations (error = " << error << ")" << std::endl;
   }
-  u.dofs() = x(memory::Slice(0, -2));
 
   io::VTKHDFWriter<basis_t::order, io::VTKHDFFunctionSpaceType::CONTINUOUS,
                    mesh_t>
       writer("fem_poisson.vtkhdf", mesh);
   writer.write("u", u);
+  math::MeshFunction<scalar_t, fes_t> Au(fes);
+  Au.dofs() = (*lapl)(u.dofs());
+  writer.write("Au", Au);
+  math::MeshFunction<scalar_t, fes_t> mfrhs(fes);
+  mfrhs.dofs() = system.rhs();
+  writer.write("f", mfrhs);
 
   return 0;
 }
