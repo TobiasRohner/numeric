@@ -30,7 +30,7 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
   /**
    * @brief Returns number of interior basis functions for a reference point.
    */
-  static constexpr dim_t
+  static constexpr NUMERIC_HOST_DEVICE dim_t
   num_interior_basis_functions(meta::type_tag<mesh::RefElPoint>) {
     return element_basis_t<mesh::RefElPoint>::num_basis_functions;
   }
@@ -39,7 +39,7 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
    * @brief Returns number of interior basis functions for a reference segment.
    * Excludes vertex DoFs shared with RefElPoint.
    */
-  static constexpr dim_t
+  static constexpr NUMERIC_HOST_DEVICE dim_t
   num_interior_basis_functions(meta::type_tag<mesh::RefElSegment>) {
     return element_basis_t<mesh::RefElSegment>::num_basis_functions -
            2 * num_interior_basis_functions<mesh::RefElPoint>();
@@ -49,7 +49,7 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
    * @brief Returns number of interior basis functions for a reference triangle.
    * Excludes DoFs shared with vertices and edges.
    */
-  static constexpr dim_t
+  static constexpr NUMERIC_HOST_DEVICE dim_t
   num_interior_basis_functions(meta::type_tag<mesh::RefElTria>) {
     return element_basis_t<mesh::RefElTria>::num_basis_functions -
            3 * num_interior_basis_functions<mesh::RefElPoint>() -
@@ -60,7 +60,7 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
    * @brief Returns number of interior basis functions for a reference
    * quadrilateral. Excludes DoFs on vertices and edges.
    */
-  static constexpr dim_t
+  static constexpr NUMERIC_HOST_DEVICE dim_t
   num_interior_basis_functions(meta::type_tag<mesh::RefElQuad>) {
     return element_basis_t<mesh::RefElQuad>::num_basis_functions -
            4 * num_interior_basis_functions<mesh::RefElPoint>() -
@@ -71,7 +71,7 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
    * @brief Returns number of interior basis functions for a reference
    * tetrahedron. Excludes contributions from vertices, edges, and faces.
    */
-  static constexpr dim_t
+  static constexpr NUMERIC_HOST_DEVICE dim_t
   num_interior_basis_functions(meta::type_tag<mesh::RefElTetra>) {
     return element_basis_t<mesh::RefElTetra>::num_basis_functions -
            4 * num_interior_basis_functions<mesh::RefElPoint>() -
@@ -83,7 +83,7 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
    * @brief Returns number of interior basis functions for a reference cube.
    * Excludes contributions from vertices, edges, and faces.
    */
-  static constexpr dim_t
+  static constexpr NUMERIC_HOST_DEVICE dim_t
   num_interior_basis_functions(meta::type_tag<mesh::RefElCube>) {
     return element_basis_t<mesh::RefElCube>::num_basis_functions -
            8 * num_interior_basis_functions<mesh::RefElPoint>() -
@@ -99,7 +99,8 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
    * @param tag Type tag of the reference element.
    */
   template <typename RefEl>
-  static constexpr dim_t num_basis_functions(meta::type_tag<RefEl>) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t
+  num_basis_functions(meta::type_tag<RefEl>) {
     return element_basis_t<RefEl>::num_basis_functions;
   }
 
@@ -117,9 +118,8 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
    * @param tag_child Type tag for the child element.
    */
   template <typename Parent, typename Child>
-  static constexpr dim_t num_basis_functions(dim_t /*subelement*/,
-                                             meta::type_tag<Parent>,
-                                             meta::type_tag<Child>) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t num_basis_functions(
+      dim_t /*subelement*/, meta::type_tag<Parent>, meta::type_tag<Child>) {
     return num_interior_basis_functions(meta::type_tag<Child>{});
   }
 
@@ -133,7 +133,8 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
    * @param tag Type tag of the reference element.
    */
   template <typename Scalar, typename RefEl>
-  static void eval(Scalar *out, const Scalar *x, meta::type_tag<RefEl>) {
+  static NUMERIC_HOST_DEVICE void eval(Scalar *out, const Scalar *x,
+                                       meta::type_tag<RefEl>) {
     element_basis_t<RefEl>::eval_basis(x, out);
   }
 
@@ -147,8 +148,9 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
    * @param tag Type tag of the reference element.
    */
   template <typename Scalar, typename RefEl>
-  static void gradient(Scalar (*out)[RefEl::dim == 0 ? dim_t(1) : RefEl::dim],
-                       const Scalar *x, meta::type_tag<RefEl> tag) {
+  static NUMERIC_HOST_DEVICE void
+  gradient(Scalar (*out)[RefEl::dim == 0 ? dim_t(1) : RefEl::dim],
+           const Scalar *x, meta::type_tag<RefEl> tag) {
     element_basis_t<RefEl>::grad_basis(x, out);
   }
 

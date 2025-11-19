@@ -255,7 +255,7 @@ class Element:
         parent_idxs = self.idxs()
         for subel in ALL_REF_EL:
             code += '\n'
-            code += f'static void subelement_node_idxs(dim_t subelement, dim_t *idxs, meta::type_tag<mesh::RefEl{subel().name}>) {{\n'
+            code += f'static NUMERIC_HOST_DEVICE void subelement_node_idxs(dim_t subelement, dim_t *idxs, meta::type_tag<mesh::RefEl{subel().name}>) {{\n'
             code += f'  switch (subelement) {{\n'
             for i in range(self.num_subelements(subel)):
                 child = Element(subel(), self.order)
@@ -284,55 +284,55 @@ class Element:
         code += f'  static constexpr dim_t num_interpolation_nodes = {len(self.idxs())};\n'
         code += f'  \n'
         code += f'  template <typename Scalar>\n'
-        code += f'  static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {{\n'
+        code += f'  static constexpr NUMERIC_HOST_DEVICE Scalar eval(const Scalar *x, const Scalar *coeffs) {{\n'
         code += f'    ' + self.eval_code().replace('\n', '\n    ')
         code += f'\n'
         code += f'  }}\n'
         code += f'  \n'
         code += f'  template <typename Scalar>\n'
-        code += f'  static constexpr void eval_basis(const Scalar *x, Scalar *out) {{\n'
+        code += f'  static constexpr NUMERIC_HOST_DEVICE void eval_basis(const Scalar *x, Scalar *out) {{\n'
         code += f'    ' + self.eval_basis_code().replace('\n', '\n    ')
         code += f'\n'
         code += f'  }}\n'
         code += f'  \n'
         code += f'  template <typename Scalar>\n'
-        code += f'  static constexpr void grad(const Scalar *x, const Scalar *coeffs, Scalar *out) {{\n'
+        code += f'  static constexpr NUMERIC_HOST_DEVICE void grad(const Scalar *x, const Scalar *coeffs, Scalar *out) {{\n'
         code += f'    ' + self.grad_code().replace('\n', '\n    ')
         code += f'\n'
         code += f'  }}\n'
         code += f'  \n'
         code += f'  template <typename Scalar>\n'
-        code += f'  static constexpr void grad_basis(const Scalar *x, Scalar (*out)[{len(self.coords)}]) {{\n'
+        code += f'  static constexpr NUMERIC_HOST_DEVICE void grad_basis(const Scalar *x, Scalar (*out)[{len(self.coords)}]) {{\n'
         code += f'    ' + self.grad_basis_code().replace('\n', '\n    ')
         code += f'\n'
         code += f'  }}\n'
         code += f'  \n'
-        code += f'  template <typename Scalar> static constexpr void node(dim_t i, Scalar *out) {{\n'
+        code += f'  template <typename Scalar> static constexpr NUMERIC_HOST_DEVICE void node(dim_t i, Scalar *out) {{\n'
         code += f'    ' + self.node_code().replace('\n', '\n    ')
         code += f'\n'
         code += f'  }}\n'
         code += f'  \n'
-        code += f'  template <typename Scalar> static constexpr void interpolation_nodes(Scalar (*out)[{self.dim}]) {{\n'
+        code += f'  template <typename Scalar> static constexpr NUMERIC_HOST_DEVICE void interpolation_nodes(Scalar (*out)[{self.dim}]) {{\n'
         code += f'    ' + self.interpolation_nodes_code().replace('\n', '\n    ')
         code += f'\n'
         code += f'  }}\n'
-        code += f'  template <typename Scalar> static constexpr void interpolate(const Scalar *node_values, Scalar *coeffs) {{\n'
+        code += f'  template <typename Scalar> static constexpr NUMERIC_HOST_DEVICE void interpolate(const Scalar *node_values, Scalar *coeffs) {{\n'
         code += f'    for (dim_t i = 0 ; i < num_interpolation_nodes ; ++i) {{\n'
         code += f'      coeffs[i] = node_values[i];\n'
         code += f'    }}\n'
         code += f'  }}\n'
         code += f'  \n'
-        code += f'  static constexpr void node_idxs(dim_t i, dim_t *out) {{\n'
+        code += f'  static constexpr NUMERIC_HOST_DEVICE void node_idxs(dim_t i, dim_t *out) {{\n'
         code += f'    ' + self.idxs_code().replace('\n', '\n    ')
         code += f'\n'
         code += f'  }}\n'
         code += f'\n'
-        code += f'  static dim_t node_idx_under_permutation(dim_t i, dim_t *perm) {{\n'
+        code += f'  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i, dim_t *perm) {{\n'
         code += f'    ' + self.node_idx_under_permutation_code().replace('\n', '\n    ')
         code += f'  }}\n'
         code += f'\n'
         code += f'  template <typename Element>\n'
-        code += f'  static void subelement_node_idxs(dim_t subelement, dim_t *idxs) {{\n'
+        code += f'  static NUMERIC_HOST_DEVICE void subelement_node_idxs(dim_t subelement, dim_t *idxs) {{\n'
         code += f'    subelement_node_idxs(subelement, idxs, meta::type_tag<Element>{{}});\n'
         code += f'  }}\n'
         code += f'  ' + self.subelement_node_idxs_code().replace('\n', '\n  ')

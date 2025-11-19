@@ -27,6 +27,12 @@ public:
   operator=(const ConstrainedLinearOperator &) = default;
   ConstrainedLinearOperator &operator=(ConstrainedLinearOperator &&) = default;
 
+  virtual void to(memory::MemoryType memory_type) override {
+    A_->to(memory_type);
+    constrained_dofs_.to(memory_type);
+    work_.to(memory_type);
+  }
+
   virtual memory::Shape<2> shape() const override { return A_->shape(); }
 
   virtual dim_t shape(dim_t i) const override { return A_->shape(i); }

@@ -36,7 +36,8 @@ template <dim_t Order> struct BasisL2 : public BasisBase<BasisL2<Order>> {
    * element.
    */
   template <typename RefEl>
-  static constexpr dim_t num_interior_basis_functions(meta::type_tag<RefEl>) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t
+  num_interior_basis_functions(meta::type_tag<RefEl>) {
     return element_basis_t<RefEl>::num_basis_functions;
   }
 
@@ -51,7 +52,8 @@ template <dim_t Order> struct BasisL2 : public BasisBase<BasisL2<Order>> {
    * @return Number of basis functions.
    */
   template <typename RefEl>
-  static constexpr dim_t num_basis_functions(meta::type_tag<RefEl> tt) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t
+  num_basis_functions(meta::type_tag<RefEl> tt) {
     return num_interior_basis_functions(tt);
   }
 
@@ -65,7 +67,8 @@ template <dim_t Order> struct BasisL2 : public BasisBase<BasisL2<Order>> {
    * @param tag Type tag for the reference element.
    */
   template <typename Scalar, typename RefEl>
-  static void eval(Scalar *out, const Scalar *x, meta::type_tag<RefEl>) {
+  static NUMERIC_HOST_DEVICE void eval(Scalar *out, const Scalar *x,
+                                       meta::type_tag<RefEl>) {
     element_basis_t<RefEl>::eval_basis(x, out);
   }
 
@@ -80,8 +83,9 @@ template <dim_t Order> struct BasisL2 : public BasisBase<BasisL2<Order>> {
    * @param tag Type tag for the reference element.
    */
   template <typename Scalar, typename RefEl>
-  static void gradient(Scalar (*out)[RefEl::dim == 0 ? dim_t(1) : RefEl::dim],
-                       const Scalar *x, meta::type_tag<RefEl>) {
+  static NUMERIC_HOST_DEVICE void
+  gradient(Scalar (*out)[RefEl::dim == 0 ? dim_t(1) : RefEl::dim],
+           const Scalar *x, meta::type_tag<RefEl>) {
     element_basis_t<RefEl>::grad_basis(x, out);
   }
 

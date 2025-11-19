@@ -19,6 +19,8 @@ public:
   LinearOperator &operator=(const LinearOperator &) = default;
   LinearOperator &operator=(LinearOperator &&) = default;
 
+  virtual void to(memory::MemoryType memory_type) {}
+
   virtual memory::Shape<2> shape() const = 0;
 
   virtual dim_t shape(dim_t i) const { return shape()[i]; }

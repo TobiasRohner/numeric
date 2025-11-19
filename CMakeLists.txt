@@ -19,6 +19,9 @@ cmake_dependent_option(NUMERIC_DOXYGEN_QUIET "Suppress doxygen output" OFF "NUME
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+
 if (NUMERIC_ENABLE_CLANG_TIDY)
   find_program(NUMERIC_CLANG_TIDY_EXE NAMES "clang-tidy")
   set(NUMERIC_CLANG_TIDY_CMD "${NUMERIC_CLANG_TIDY_EXE}\;-checks=*,-llvmlibc-*,-modernize-use-trailing-return-type,-readability-identifier-length,-fuchsia-*,-readability-magic-numbers,-cppcoreguidelines-avoid-magic-numbers,-google-readability-avoid-underscore-in-googletest-name,-altera-id-dependent-backward-branch,-altera-unroll-loops,-portability-simd-intrinsics")

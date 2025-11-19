@@ -52,7 +52,7 @@ class ReferenceElement:
         code += f'  static constexpr char name[] = "{self.name}";\n'
         code += f'  \n'
         code += f'  template <typename Subelement>\n'
-        code += f'  static constexpr dim_t num_subelements() {{\n'
+        code += f'  static constexpr NUMERIC_HOST_DEVICE dim_t num_subelements() {{\n'
         for subel in self.subelements:
             code += f'    if constexpr (meta::is_same_v<Subelement, RefEl{subel().name}>) {{\n'
             code += f'      return {self.num_subelements(subel)};\n'
@@ -61,14 +61,14 @@ class ReferenceElement:
         code += f'  }}\n'
         code += f'  \n'
         code += f'  template <typename Scalar>\n'
-        code += f'  static constexpr void get_nodes(Scalar (*out)[{max(1,self.world_dim)}]) {{\n'
+        code += f'  static constexpr NUMERIC_HOST_DEVICE void get_nodes(Scalar (*out)[{max(1,self.world_dim)}]) {{\n'
         for vert in range(self.num_verts):
             for dim in range(self.world_dim):
                 code += f'    out[{vert}][{dim}] = {self.verts[vert,dim]};\n'
         code += f'  }}\n'
         code += f'  \n'
         code += f'  template <typename Subelement>\n'
-        code += f'  static constexpr void subelement_node_idxs(dim_t idx, dim_t *out) {{\n'
+        code += f'  static constexpr NUMERIC_HOST_DEVICE void subelement_node_idxs(dim_t idx, dim_t *out) {{\n'
         for subeltype in self.subelements:
             code += f'    if constexpr (meta::is_same_v<Subelement, RefEl{subeltype().name}>) {{\n'
             code += f'      switch (idx) {{\n'

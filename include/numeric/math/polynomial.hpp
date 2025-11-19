@@ -4,7 +4,6 @@
 #include <numeric/config.hpp>
 #include <numeric/math/constants.hpp>
 #include <numeric/math/functions.hpp>
-#include <numeric/memory/memory_resource_factory.hpp>
 
 namespace numeric::math {
 
@@ -26,7 +25,8 @@ template <dim_t Order> struct NodesEquispaced {
    * @return Value of the i-th node.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> static constexpr Scalar node(dim_t i) {
+  template <typename Scalar>
+  static constexpr NUMERIC_HOST_DEVICE Scalar node(dim_t i) {
     return static_cast<Scalar>(i) / order;
   }
 
@@ -36,7 +36,7 @@ template <dim_t Order> struct NodesEquispaced {
    * @return Value of the weight at the i-th node.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> static Scalar weight(dim_t i) {
+  template <typename Scalar> static NUMERIC_HOST_DEVICE Scalar weight(dim_t i) {
     const Scalar result = exp(order * log(static_cast<Scalar>(order)) -
                               lgamma(static_cast<Scalar>(i + 1)) -
                               lgamma(static_cast<Scalar>(order - i + 1)));
@@ -66,7 +66,8 @@ template <dim_t Order> struct NodesChebyshev {
    * @return Value of the i-th node.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> static constexpr Scalar node(dim_t i) {
+  template <typename Scalar>
+  static constexpr NUMERIC_HOST_DEVICE Scalar node(dim_t i) {
     return cos(i * pi<Scalar> / order);
   }
 
@@ -76,7 +77,7 @@ template <dim_t Order> struct NodesChebyshev {
    * @return Value of the weight at the i-th node.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> static Scalar weight(dim_t i) {
+  template <typename Scalar> static NUMERIC_HOST_DEVICE Scalar weight(dim_t i) {
     Scalar value = 1;
     if (i == 0 || i == order) {
       value = 0.5;
@@ -116,7 +117,8 @@ template <typename InterpolationNodes> struct Lagrange {
    * @return \f$ x_i \f$
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> static constexpr Scalar node(dim_t i) {
+  template <typename Scalar>
+  static constexpr NUMERIC_HOST_DEVICE Scalar node(dim_t i) {
     return interpolation_nodes_t::template node<Scalar>(i);
   }
 
@@ -126,7 +128,7 @@ template <typename InterpolationNodes> struct Lagrange {
    * @return \f$ w_i \f$
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> static Scalar weight(dim_t i) {
+  template <typename Scalar> static NUMERIC_HOST_DEVICE Scalar weight(dim_t i) {
     return interpolation_nodes_t::template weight<Scalar>(i);
   }
 
@@ -144,7 +146,8 @@ template <typename InterpolationNodes> struct Lagrange {
    * @return Interpolated value \f$ P(x) \f$.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> static Scalar eval(const Scalar *y, Scalar x) {
+  template <typename Scalar>
+  static NUMERIC_HOST_DEVICE Scalar eval(const Scalar *y, Scalar x) {
     Scalar nom = 0;
     Scalar denom = 0;
     for (dim_t i = 0; i <= order; ++i) {
@@ -172,7 +175,8 @@ template <typename InterpolationNodes> struct Lagrange {
    * @return Derivative \f$ P'(x) \f$.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> static Scalar diff(const Scalar *y, Scalar x) {
+  template <typename Scalar>
+  static NUMERIC_HOST_DEVICE Scalar diff(const Scalar *y, Scalar x) {
     // TODO; Is there a better way?
     Scalar result = 0;
     for (dim_t i = 0; i <= order; ++i) {
@@ -196,7 +200,8 @@ template <typename InterpolationNodes> struct Lagrange {
    * @return Value \f$ \ell_i(x) \f$.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> static Scalar basis(dim_t i, Scalar x) {
+  template <typename Scalar>
+  static NUMERIC_HOST_DEVICE Scalar basis(dim_t i, Scalar x) {
     if (abs(x - node<Scalar>(i)) == 0) {
       return 1;
     }
@@ -231,7 +236,8 @@ template <typename InterpolationNodes> struct Lagrange {
    * @return Derivative \f$ \ell_i'(x) \f$.
    * @tparam Scalar Floating-point type.
    */
-  template <typename Scalar> static Scalar basis_diff(dim_t i, Scalar x) {
+  template <typename Scalar>
+  static NUMERIC_HOST_DEVICE Scalar basis_diff(dim_t i, Scalar x) {
     if (abs(x - node<Scalar>(i)) == 0) {
       Scalar sum = 0;
       for (dim_t j = 0; j <= order; ++j) {

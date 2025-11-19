@@ -12,7 +12,9 @@ namespace numeric::hip {
 std::vector<std::string_view> Program::numeric_headers_ = {
     "numeric/config.hpp",
     "numeric/hip/runtime.hpp",
+    "numeric/math/constants.hpp",
     "numeric/math/functions.hpp",
+    "numeric/math/polynomial.hpp",
     "numeric/memory/array_traits.hpp",
     "numeric/memory/array_base_decl.hpp",
     "numeric/memory/array_base.hpp",
@@ -37,7 +39,33 @@ std::vector<std::string_view> Program::numeric_headers_ = {
     "numeric/utils/forward.hpp",
     "numeric/meta/meta.hpp",
     "numeric/meta/type_tag.hpp",
-    "numeric/meta/integer_sequence.hpp"};
+    "numeric/meta/integer_sequence.hpp",
+    "numeric/mesh/ref_el_point.hpp",
+    "numeric/mesh/ref_el_segment.hpp",
+    "numeric/mesh/ref_el_tria.hpp",
+    "numeric/mesh/ref_el_quad.hpp",
+    "numeric/mesh/ref_el_tetra.hpp",
+    "numeric/mesh/ref_el_cube.hpp",
+    "numeric/mesh/element_traits.hpp",
+    "numeric/mesh/element_base.hpp",
+    "numeric/mesh/point.hpp",
+    "numeric/mesh/segment.hpp",
+    "numeric/mesh/tria.hpp",
+    "numeric/mesh/quad.hpp",
+    "numeric/mesh/tetra.hpp",
+    "numeric/mesh/cube.hpp",
+    "numeric/mesh/elements.hpp",
+    "numeric/math/basis_lagrange.hpp",
+    "numeric/math/basis_lagrange_segment.hpp",
+    "numeric/math/basis_lagrange_tria.hpp",
+    "numeric/math/basis_lagrange_quad.hpp",
+    "numeric/math/basis_lagrange_tetra.hpp",
+    "numeric/math/basis_lagrange_cube.hpp",
+    "numeric/math/basis_lagrange_specialization.hpp",
+    "numeric/math/fes/basis_base.hpp",
+    "numeric/math/fes/basis_h1.hpp",
+    "numeric/math/fes/basis_l2.hpp",
+    "numeric/equations/fem/load_element_vector.hpp"};
 
 Program::Header::Header(std::string_view name_, std::string_view src_)
     : name(name_), src(src_) {}
@@ -137,10 +165,8 @@ void Program::compile() {
   }
   std::vector<const char *> options;
   for (const auto &option : compile_options_) {
-    std::cout << option << ' ';
     options.push_back(option.c_str());
   }
-  std::cout << std::endl;
   if (const hiprtcResult status =
           hiprtcCompileProgram(program, options.size(), options.data());
       status != HIPRTC_SUCCESS) {

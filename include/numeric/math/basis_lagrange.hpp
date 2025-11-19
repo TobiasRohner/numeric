@@ -24,27 +24,31 @@ template <dim_t Ord> struct BasisLagrange<mesh::RefElPoint, Ord> {
   static constexpr dim_t num_basis_functions = 1;
 
   template <typename Scalar>
-  static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {
+  static constexpr NUMERIC_HOST_DEVICE Scalar eval(const Scalar *x,
+                                                   const Scalar *coeffs) {
     return coeffs[0];
   }
 
   template <typename Scalar>
-  static constexpr void eval_basis(const Scalar *x, Scalar *out) {
+  static constexpr NUMERIC_HOST_DEVICE void eval_basis(const Scalar *x,
+                                                       Scalar *out) {
     out[0] = 1;
   }
 
   template <typename Scalar>
-  static constexpr void grad(const Scalar *x, const Scalar *coeffs,
-                             Scalar *out) {
+  static constexpr NUMERIC_HOST_DEVICE void
+  grad(const Scalar *x, const Scalar *coeffs, Scalar *out) {
     // Nothing to do here
   }
 
   template <typename Scalar>
-  static constexpr void grad_basis(const Scalar *x, Scalar (*out)[1]) {
+  static constexpr NUMERIC_HOST_DEVICE void grad_basis(const Scalar *x,
+                                                       Scalar (*out)[1]) {
     // Nothing to do here
   }
 
-  static constexpr dim_t node_idx_under_permutation(dim_t i, dim_t *perm) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t
+  node_idx_under_permutation(dim_t i, dim_t *perm) {
     return i;
   }
 };

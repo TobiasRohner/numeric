@@ -33,13 +33,16 @@ template <dim_t Order> struct Tetra : public ElementBase<Tetra<Order>> {
   static constexpr const char *name = traits_t::name;
   static constexpr dim_t num_nodes = traits_t::num_nodes;
 
-  static constexpr dim_t num_subelements(meta::type_tag<Point<Order>>) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t
+  num_subelements(meta::type_tag<Point<Order>>) {
     return 4;
   }
-  static constexpr dim_t num_subelements(meta::type_tag<Segment<Order>>) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t
+  num_subelements(meta::type_tag<Segment<Order>>) {
     return 6;
   }
-  static constexpr dim_t num_subelements(meta::type_tag<Tria<Order>>) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t
+  num_subelements(meta::type_tag<Tria<Order>>) {
     return 4;
   }
 

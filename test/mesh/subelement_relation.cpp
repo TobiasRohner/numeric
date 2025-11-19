@@ -9,7 +9,7 @@ numeric::mesh::UnstructuredMesh<double, numeric::mesh::Tria<1>,
 generate_mesh() {
   numeric::mesh::UnstructuredMesh<double, numeric::mesh::Tria<1>,
                                   numeric::mesh::Quad<1>>
-      mesh(2, 9, 4, 2);
+      mesh(2, 9, numeric::memory::MemoryType::HOST, 4, 2);
   auto vertices = mesh.vertices();
   vertices(0, 0) = -1;
   vertices(0, 1) = 0;

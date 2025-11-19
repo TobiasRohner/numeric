@@ -13,6 +13,10 @@ public:
     return derived().template get_elements<Element>().shape(1);
   }
 
+  memory::MemoryType memory_type() const noexcept {
+    return derived().vertices().memory_type();
+  }
+
 private:
   const Derived &derived() const noexcept {
     return static_cast<const Derived &>(*this);

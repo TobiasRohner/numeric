@@ -62,7 +62,7 @@ public:
    * @param mesh Shared pointer to a constant mesh object.
    * @param dof_order Ordering of the DOFs on shared subelements
    */
-  FESpace(const std::shared_ptr<const mesh_t> &mesh,
+  FESpace(const std::shared_ptr<mesh_t> &mesh,
           BoundaryDOFOrdering dof_order = BoundaryDOFOrdering::LOCAL)
       : mesh_(mesh), dof_maps_(memory::Array<dim_t, 2>(memory::Shape<2>(
                          basis_t::template num_basis_functions<
@@ -70,6 +70,14 @@ public:
                          mesh_->template num_elements<ElementTypes>()))...),
         num_dofs_(0), dof_order_(dof_order) {
     init_dofs();
+  }
+
+  /**
+   * @brief Move the FE space to the given memory
+   */
+  void to(memory::MemoryType memory_type) {
+    mesh_->to(memory_type);
+    (dof_maps_.template get<ElementTypes>().to(memory_type), ...);
   }
 
   /**
@@ -96,9 +104,13 @@ public:
     return dof_maps_.template get<Element>();
   }
 
+  memory::MemoryType memory_type() const noexcept {
+    return mesh_->memory_type();
+  }
+
 private:
   /// Shared pointer to the mesh.
-  std::shared_ptr<const mesh_t> mesh_;
+  std::shared_ptr<mesh_t> mesh_;
   /// Mapping from element types to DoF arrays.
   utils::TypeIndexedMap<memory::Array<dim_t, 2>, ElementTypes...> dof_maps_;
   /// Total number of degrees of freedom.

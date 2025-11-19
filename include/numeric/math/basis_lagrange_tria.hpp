@@ -20,7 +20,8 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
   static constexpr dim_t num_interpolation_nodes =
       (Order + 1) * (Order + 2) / 2;
 
-  template <typename Scalar> static constexpr Scalar P(dim_t m, Scalar z) {
+  template <typename Scalar>
+  static constexpr NUMERIC_HOST_DEVICE Scalar P(dim_t m, Scalar z) {
     Scalar result = 1;
     for (dim_t i = 1; i <= m; ++i) {
       result *= (order * z - i + 1) / i;
@@ -28,7 +29,8 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
     return result;
   }
 
-  template <typename Scalar> static constexpr Scalar diff_P(dim_t m, Scalar z) {
+  template <typename Scalar>
+  static constexpr NUMERIC_HOST_DEVICE Scalar diff_P(dim_t m, Scalar z) {
     Scalar result = 0;
     for (dim_t i = 1; i <= m; ++i) {
       Scalar prod = static_cast<Scalar>(order) / i;
@@ -44,7 +46,8 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
   }
 
   template <typename Scalar>
-  static constexpr Scalar eval(const Scalar *x, const Scalar *coeffs) {
+  static constexpr NUMERIC_HOST_DEVICE Scalar eval(const Scalar *x,
+                                                   const Scalar *coeffs) {
     Scalar y = 0;
     const Scalar l1 = x[0];
     const Scalar l2 = x[1];
@@ -59,7 +62,8 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
   }
 
   template <typename Scalar>
-  static constexpr void eval_basis(const Scalar *x, Scalar *out) {
+  static constexpr NUMERIC_HOST_DEVICE void eval_basis(const Scalar *x,
+                                                       Scalar *out) {
     const Scalar l1 = x[0];
     const Scalar l2 = x[1];
     const Scalar l3 = 1 - l1 - l2;
@@ -72,8 +76,8 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
   }
 
   template <typename Scalar>
-  static constexpr void grad(const Scalar *x, const Scalar *coeffs,
-                             Scalar *out) {
+  static constexpr NUMERIC_HOST_DEVICE void
+  grad(const Scalar *x, const Scalar *coeffs, Scalar *out) {
     const Scalar l1 = x[0];
     const Scalar l2 = x[1];
     const Scalar l3 = 1 - l1 - l2;
@@ -95,7 +99,8 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
   }
 
   template <typename Scalar>
-  static constexpr void grad_basis(const Scalar *x, Scalar (*out)[2]) {
+  static constexpr NUMERIC_HOST_DEVICE void grad_basis(const Scalar *x,
+                                                       Scalar (*out)[2]) {
     const Scalar l1 = x[0];
     const Scalar l2 = x[1];
     const Scalar l3 = 1 - l1 - l2;
@@ -114,7 +119,8 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
     }
   }
 
-  template <typename Scalar> static constexpr void node(dim_t i, Scalar *out) {
+  template <typename Scalar>
+  static constexpr NUMERIC_HOST_DEVICE void node(dim_t i, Scalar *out) {
     dim_t idxs[2];
     node_idxs(i, idxs);
     out[0] = static_cast<Scalar>(idxs[0]) / order;
@@ -122,7 +128,8 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
   }
 
   template <typename Scalar>
-  static constexpr void interpolation_nodes(Scalar (*out)[2]) {
+  static constexpr NUMERIC_HOST_DEVICE void
+  interpolation_nodes(Scalar (*out)[2]) {
     for (dim_t i = 0; i < num_basis_functions; ++i) {
       dim_t idxs[2];
       node_idxs(i, idxs);
@@ -132,13 +139,14 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
   }
 
   template <typename Scalar>
-  static constexpr void interpolate(const Scalar *node_values, Scalar *coeffs) {
+  static constexpr NUMERIC_HOST_DEVICE void
+  interpolate(const Scalar *node_values, Scalar *coeffs) {
     for (dim_t i = 0; i < num_interpolation_nodes; ++i) {
       coeffs[i] = node_values[i];
     }
   }
 
-  static constexpr void node_idxs(dim_t i, dim_t *out) {
+  static constexpr NUMERIC_HOST_DEVICE void node_idxs(dim_t i, dim_t *out) {
     if (i == 0) {
       out[0] = 0;
       out[1] = 0;
@@ -167,17 +175,20 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
     }
   }
 
-  static constexpr dim_t node_idx_under_permutation(dim_t i, dim_t *perm) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t
+  node_idx_under_permutation(dim_t i, dim_t *perm) {
     NUMERIC_ERROR("Not yet implemented");
   }
 
   template <typename Element>
-  static void subelement_node_idxs(dim_t subelement, dim_t *idxs) {
+  static NUMERIC_HOST_DEVICE void subelement_node_idxs(dim_t subelement,
+                                                       dim_t *idxs) {
     subelement_node_idxs(subelement, idxs, meta::type_tag<Element>{});
   }
 
-  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
-                                   meta::type_tag<mesh::RefElPoint>) {
+  static NUMERIC_HOST_DEVICE void
+  subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                       meta::type_tag<mesh::RefElPoint>) {
     switch (subelement) {
     case 0:
       idxs[0] = 0;
@@ -193,8 +204,9 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
     }
   }
 
-  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
-                                   meta::type_tag<mesh::RefElSegment>) {
+  static NUMERIC_HOST_DEVICE void
+  subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                       meta::type_tag<mesh::RefElSegment>) {
     switch (subelement) {
     case 0:
       idxs[0] = 0;
@@ -216,32 +228,36 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
     }
   }
 
-  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
-                                   meta::type_tag<mesh::RefElTria>) {
+  static NUMERIC_HOST_DEVICE void
+  subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                       meta::type_tag<mesh::RefElTria>) {
     switch (subelement) {
     default:
       break;
     }
   }
 
-  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
-                                   meta::type_tag<mesh::RefElQuad>) {
+  static NUMERIC_HOST_DEVICE void
+  subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                       meta::type_tag<mesh::RefElQuad>) {
     switch (subelement) {
     default:
       break;
     }
   }
 
-  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
-                                   meta::type_tag<mesh::RefElTetra>) {
+  static NUMERIC_HOST_DEVICE void
+  subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                       meta::type_tag<mesh::RefElTetra>) {
     switch (subelement) {
     default:
       break;
     }
   }
 
-  static void subelement_node_idxs(dim_t subelement, dim_t *idxs,
-                                   meta::type_tag<mesh::RefElCube>) {
+  static NUMERIC_HOST_DEVICE void
+  subelement_node_idxs(dim_t subelement, dim_t *idxs,
+                       meta::type_tag<mesh::RefElCube>) {
     switch (subelement) {
     default:
       break;

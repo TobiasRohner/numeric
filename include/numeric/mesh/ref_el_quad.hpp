@@ -12,7 +12,8 @@ struct RefElQuad {
   static constexpr dim_t num_nodes = 4;
   static constexpr char name[] = "Quad";
 
-  template <typename Subelement> static constexpr dim_t num_subelements() {
+  template <typename Subelement>
+  static constexpr NUMERIC_HOST_DEVICE dim_t num_subelements() {
     if constexpr (meta::is_same_v<Subelement, RefElPoint>) {
       return 4;
     }
@@ -22,7 +23,8 @@ struct RefElQuad {
     return 0;
   }
 
-  template <typename Scalar> static constexpr void get_nodes(Scalar (*out)[2]) {
+  template <typename Scalar>
+  static constexpr NUMERIC_HOST_DEVICE void get_nodes(Scalar (*out)[2]) {
     out[0][0] = 0;
     out[0][1] = 0;
     out[1][0] = 1;
@@ -34,7 +36,8 @@ struct RefElQuad {
   }
 
   template <typename Subelement>
-  static constexpr void subelement_node_idxs(dim_t idx, dim_t *out) {
+  static constexpr NUMERIC_HOST_DEVICE void subelement_node_idxs(dim_t idx,
+                                                                 dim_t *out) {
     if constexpr (meta::is_same_v<Subelement, RefElPoint>) {
       switch (idx) {
       case 0:

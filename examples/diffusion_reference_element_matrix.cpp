@@ -17,7 +17,7 @@ std::shared_ptr<mesh::UnstructuredMesh<scalar_t, Element>> generate_mesh() {
   static constexpr dim_t world_dim = Element::dim;
   static constexpr dim_t num_vertices = Element::num_nodes;
   auto mesh = std::make_shared<mesh::UnstructuredMesh<scalar_t, Element>>(
-      world_dim, num_vertices, 1);
+      world_dim, num_vertices, memory::MemoryType::HOST, 1);
   auto vertices = mesh->vertices();
   auto elements = mesh->template get_elements<Element>();
   scalar_t ref_nodes[num_vertices][world_dim];

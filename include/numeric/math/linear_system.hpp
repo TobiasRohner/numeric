@@ -24,6 +24,14 @@ public:
   LinearSystem &operator=(const LinearSystem &) = default;
   LinearSystem &operator=(LinearSystem &&) = default;
 
+  void to(memory::MemoryType memory_type) {
+    A_->to(memory_type);
+    if (A_constrained_) {
+      A_constrained_->to(memory_type);
+    }
+    rhs_.to(memory_type);
+  }
+
   memory::ArrayConstView<scalar_t, 1> rhs() const { return rhs_; }
 
   memory::ArrayView<scalar_t, 1> rhs() { return rhs_; }

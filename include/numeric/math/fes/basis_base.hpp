@@ -35,7 +35,7 @@ template <typename Derived> struct BasisBase {
    * @return Number of interior basis functions.
    */
   template <typename Element>
-  static constexpr dim_t num_interior_basis_functions() {
+  static constexpr NUMERIC_HOST_DEVICE dim_t num_interior_basis_functions() {
     return Derived::num_interior_basis_functions(meta::type_tag<Element>{});
   }
 
@@ -48,7 +48,8 @@ template <typename Derived> struct BasisBase {
    * @tparam Element The element type.
    * @return Number of basis functions.
    */
-  template <typename Element> static constexpr dim_t num_basis_functions() {
+  template <typename Element>
+  static constexpr NUMERIC_HOST_DEVICE dim_t num_basis_functions() {
     return Derived::num_basis_functions(meta::type_tag<Element>{});
   }
 
@@ -64,7 +65,8 @@ template <typename Derived> struct BasisBase {
    * @return Number of basis functions associated with the subelement.
    */
   template <typename Element, typename Subelement>
-  static constexpr dim_t num_basis_functions(dim_t subelement) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t
+  num_basis_functions(dim_t subelement) {
     // Use SFINAE to determine whether the Derived type implements
     // subelement-specific methods.
     if constexpr (meta::is_detected_v<has_subelement_num_basis_functions_t,
@@ -89,7 +91,7 @@ template <typename Derived> struct BasisBase {
    * @return Total number of basis functions associated with all subelements.
    */
   template <typename Element, typename Subelement>
-  static constexpr dim_t total_num_basis_functions() {
+  static constexpr NUMERIC_HOST_DEVICE dim_t total_num_basis_functions() {
     // If the element and subelement are the same, only consider interior basis
     // functions.
     if constexpr (meta::is_same_v<Element, Subelement>) {
@@ -115,7 +117,7 @@ template <typename Derived> struct BasisBase {
    * @param x Input coordinates.
    */
   template <typename Element, typename Scalar>
-  static void eval(Scalar *out, const Scalar *x) {
+  static NUMERIC_HOST_DEVICE void eval(Scalar *out, const Scalar *x) {
     return Derived::eval(out, x, meta::type_tag<Element>{});
   }
 
@@ -130,15 +132,15 @@ template <typename Derived> struct BasisBase {
    * @param x Input coordinates.
    */
   template <typename Element, typename Scalar>
-  static void
+  static NUMERIC_HOST_DEVICE void
   gradient(Scalar (*out)[Element::dim == 0 ? dim_t(1) : Element::dim],
            const Scalar *x) {
     return Derived::gradient(out, x, meta::type_tag<Element>{});
   }
 
   template <typename Element>
-  static constexpr dim_t interior_dof_idx_under_permutation(dim_t dof,
-                                                            dim_t *perm) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t
+  interior_dof_idx_under_permutation(dim_t dof, dim_t *perm) {
     using element_basis_t =
         typename Derived::element_basis_t<typename Element::ref_el_t>;
     const dim_t nb = num_basis_functions<typename Element::ref_el_t>();

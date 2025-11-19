@@ -38,7 +38,7 @@ public:
                           math::fes::BasisH1<order>, math::fes::BasisL2<order>>;
   using fes_t = math::fes::FESpace<basis_t, mesh_t>;
 
-  VTKHDFWriter(std::string_view path, const std::shared_ptr<const mesh_t> &mesh)
+  VTKHDFWriter(std::string_view path, const std::shared_ptr<mesh_t> &mesh)
       : fes_(mesh) {
     auto file = io::HDF5File::create(path);
     VTKHDF_ = file->create_group("VTKHDF");

@@ -1,7 +1,6 @@
 #ifndef NUMERIC_MESH_ELEMENT_BASE_HPP_
 #define NUMERIC_MESH_ELEMENT_BASE_HPP_
 
-#include <iostream>
 #include <numeric/config.hpp>
 #include <numeric/math/basis_lagrange.hpp>
 #include <numeric/math/functions.hpp>
@@ -31,43 +30,47 @@ template <typename Derived> struct ElementBase {
                                           meta::declval<dim_t *>(),
                                           meta::type_tag<Element>()));
 
-  template <typename Element> static constexpr dim_t num_subelements() {
+  template <typename Element>
+  static constexpr NUMERIC_HOST_DEVICE dim_t num_subelements() {
     return ref_el_t::template num_subelements<typename Element::ref_el_t>();
   }
 
   template <typename Element>
-  static void subelement_node_idxs(dim_t subelement, dim_t *idxs) {
+  static NUMERIC_HOST_DEVICE void subelement_node_idxs(dim_t subelement,
+                                                       dim_t *idxs) {
     basis_t::template subelement_node_idxs<typename Element::ref_el_t>(
         subelement, idxs);
   }
 
   template <typename Scalar>
-  static void get_ref_nodes(Scalar (&nodes)[num_nodes][dim]) {
+  static NUMERIC_HOST_DEVICE void
+  get_ref_nodes(Scalar (&nodes)[num_nodes][dim]) {
     for (dim_t node = 0; node < num_nodes; ++node) {
       basis_t::node(node, nodes[node]);
     }
   }
 
   template <typename Scalar>
-  static constexpr void local_to_global(const Scalar (*nodes)[num_nodes],
-                                        const Scalar *x, Scalar *out,
-                                        dim_t world_dim) {
+  static constexpr NUMERIC_HOST_DEVICE void
+  local_to_global(const Scalar (*nodes)[num_nodes], const Scalar *x,
+                  Scalar *out, dim_t world_dim) {
     for (dim_t i = 0; i < world_dim; ++i) {
       out[i] = basis_t::eval(x, nodes[i]);
     }
   }
 
   template <typename Scalar>
-  static constexpr void jacobian(const Scalar (*nodes)[num_nodes],
-                                 const Scalar *x, Scalar (*out)[dim],
-                                 dim_t world_dim) {
+  static constexpr NUMERIC_HOST_DEVICE void
+  jacobian(const Scalar (*nodes)[num_nodes], const Scalar *x,
+           Scalar (*out)[dim], dim_t world_dim) {
     for (dim_t i = 0; i < world_dim; ++i) {
       basis_t::grad(x, nodes[i], out[i]);
     }
   }
 
   template <typename Scalar>
-  static dim_t integration_element_work_size(dim_t world_dim) {
+  static NUMERIC_HOST_DEVICE dim_t
+  integration_element_work_size(dim_t world_dim) {
     static constexpr dim_t dim = ElementTraits<Derived>::dim;
     return sizeof(Scalar) * (dim * dim + world_dim * dim);
   }
@@ -93,7 +96,7 @@ template <typename Derived> struct ElementBase {
    * function returns 1.
    */
   template <typename Scalar>
-  static Scalar
+  static NUMERIC_HOST_DEVICE Scalar
   integration_element(const Scalar (*nodes)[ElementTraits<Derived>::num_nodes],
                       const Scalar *x, dim_t world_dim, void *work) {
     if constexpr (dim == 0) {
@@ -130,7 +133,8 @@ template <typename Derived> struct ElementBase {
   }
 
   template <typename Scalar>
-  static dim_t jacobian_inverse_gramian_work_size(dim_t world_dim) {
+  static NUMERIC_HOST_DEVICE dim_t
+  jacobian_inverse_gramian_work_size(dim_t world_dim) {
     static constexpr dim_t dim = ElementTraits<Derived>::dim;
     if (world_dim == dim) {
       return sizeof(Scalar) * dim * dim;
@@ -140,7 +144,7 @@ template <typename Derived> struct ElementBase {
   }
 
   template <typename Scalar>
-  static void jacobian_inverse_gramian(
+  static NUMERIC_HOST_DEVICE void jacobian_inverse_gramian(
       const Scalar (*nodes)[ElementTraits<Derived>::num_nodes], const Scalar *x,
       Scalar (*out)[dim], dim_t world_dim, void *work) {
     Scalar(*J)[dim] = reinterpret_cast<Scalar(*)[dim]>(work);
@@ -199,9 +203,9 @@ template <typename Derived> struct ElementBase {
 
 private:
   template <typename Scalar>
-  static void JTJ(const Scalar (*nodes)[ElementTraits<Derived>::num_nodes],
-                  const Scalar *x, Scalar (&out)[dim][dim], dim_t world_dim,
-                  Scalar (*work)[dim]) {
+  static NUMERIC_HOST_DEVICE void
+  JTJ(const Scalar (*nodes)[ElementTraits<Derived>::num_nodes], const Scalar *x,
+      Scalar (&out)[dim][dim], dim_t world_dim, Scalar (*work)[dim]) {
     Derived::template jacobian<Scalar>(nodes, x, work, world_dim);
     for (dim_t i = 0; i < dim; ++i) {
       for (dim_t j = 0; j < dim; ++j) {
@@ -214,13 +218,13 @@ private:
   }
 
   template <typename Scalar>
-  static void inverse(Scalar (&out)[1][1], Scalar a) {
+  static NUMERIC_HOST_DEVICE void inverse(Scalar (&out)[1][1], Scalar a) {
     out[0][0] = 1 / a;
   }
 
   template <typename Scalar>
-  static void inverse(Scalar (&out)[2][2], Scalar a, Scalar b, Scalar c,
-                      Scalar d) {
+  static NUMERIC_HOST_DEVICE void inverse(Scalar (&out)[2][2], Scalar a,
+                                          Scalar b, Scalar c, Scalar d) {
     const Scalar invdet = 1 / (a * d - b * c);
     out[0][0] = invdet * d;
     out[0][1] = -invdet * b;
@@ -229,9 +233,9 @@ private:
   }
 
   template <typename Scalar>
-  static void inverse(Scalar (&out)[3][3], Scalar a, Scalar b, Scalar c,
-                      Scalar d, Scalar e, Scalar f, Scalar g, Scalar h,
-                      Scalar i) {
+  static NUMERIC_HOST_DEVICE void
+  inverse(Scalar (&out)[3][3], Scalar a, Scalar b, Scalar c, Scalar d, Scalar e,
+          Scalar f, Scalar g, Scalar h, Scalar i) {
     const Scalar invdet = 1 / (a * e * i + b * f * g + c * d * h - c * e * g -
                                b * d * i - a * f * h);
     out[0][0] = invdet * (e * i - f * h);

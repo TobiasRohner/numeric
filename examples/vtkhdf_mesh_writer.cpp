@@ -20,8 +20,8 @@ template <dim_t Order> std::shared_ptr<mesh_t<Order>> generate_mesh() {
                                         math::pow<2>(tria_t::num_nodes) +
                                         math::pow<2>(quad_t::num_nodes);
   std::shared_ptr<mesh_t<Order>> mesh = std::make_shared<mesh_t<Order>>(
-      world_dim, num_vertices, segment_t::num_nodes, tria_t::num_nodes,
-      quad_t::num_nodes);
+      world_dim, num_vertices, memory::MemoryType::HOST, segment_t::num_nodes,
+      tria_t::num_nodes, quad_t::num_nodes);
   auto vertices = mesh->vertices();
   auto segments = mesh->template get_elements<segment_t>();
   auto trias = mesh->template get_elements<tria_t>();

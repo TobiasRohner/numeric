@@ -1,6 +1,6 @@
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
-set(NUMERIC_BASIS_LAGRANGE_MAX_ORDER 5 CACHE STRING "Maximum order of lagrangian basis functions")
+set(NUMERIC_BASIS_LAGRANGE_MAX_ORDER 3 CACHE STRING "Maximum order of lagrangian basis functions")
 
 set(NUMERIC_ELEMENT_NAMES "segment;tria;quad;tetra;cube")
 

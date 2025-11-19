@@ -161,6 +161,21 @@ public:
   }
 
   /**
+   * @brief Move this array to the given memory location
+   *
+   * If the memory is already located in the requested location, this does
+   * nothing. Otherwise it allocates new memory and copies the data over.
+   */
+  void to(MemoryType mem_type) {
+    if (memory_type() == mem_type) {
+      return;
+    }
+    Array<Scalar, N> other(shape(), mem_type);
+    other = *this;
+    *this = std::move(other);
+  }
+
+  /**
    * @brief Gets a mutable view of the array.
    *
    * @return ArrayView representing a mutable view of the array.

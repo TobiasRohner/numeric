@@ -13,12 +13,16 @@
 #include <numeric/memory/array.hpp>
 #include <numeric/mesh/elements.hpp>
 #include <numeric/mesh/unstructured_mesh.hpp>
+#include <numeric/meta/meta.hpp>
+#include <numeric/utils/lambda.hpp>
 
 using namespace numeric;
 
 int main(int argc, char *argv[]) {
   using scalar_t = double;
   static constexpr dim_t world_dim = 2;
+  const memory::MemoryType memory_type = memory::MemoryType::DEVICE;
+
   using mesh_t = mesh::UnstructuredMesh<scalar_t, mesh::Tria<1>>;
   using basis_t = math::fes::BasisH1<4>;
   using fes_t = math::fes::FESpace<basis_t, mesh_t>;
@@ -54,18 +58,20 @@ int main(int argc, char *argv[]) {
   load_vector_t load(fes);
 
   math::LinearSystem<scalar_t> system(lapl);
+  system.to(memory_type);
   system.set_fixed_dofs(dirichlet_dofs);
   auto cg = std::make_shared<math::ConjugateGradient<scalar_t>>();
   cg->set_tolerance(1e-8);
   cg->set_max_iterations(fes->num_dofs());
   system.set_solver(cg);
 
-  const auto f = [](scalar_t *x) -> scalar_t {
-    const scalar_t x1 = x[0];
-    const scalar_t x2 = x[1];
-    const scalar_t r2 = x1 * x1 + x2 * x2;
-    return (r2 < 0.01 ? 1 : 0) - 0.01;
-  };
+  const auto f = NUMERIC_LAMBDA(
+      [](auto *x) -> ::numeric::meta::remove_cvref_t<decltype(*x)> {
+        const scalar_t x1 = x[0];
+        const scalar_t x2 = x[1];
+        const scalar_t r2 = x1 * x1 + x2 * x2;
+        return (r2 < 0.01 ? 1 : 0) - 0.01;
+      });
   load.assemble(f, system.rhs());
 
   math::MeshFunction<scalar_t, fes_t> u(fes);

@@ -21,8 +21,8 @@ std::shared_ptr<mesh_t> generate_mesh() {
   static constexpr dim_t num_vertices =
       el_segment_t::num_nodes + el_tria_t::num_nodes + el_quad_t::num_nodes +
       el_tetra_t::num_nodes + el_cube_t::num_nodes;
-  std::shared_ptr<mesh_t> mesh =
-      std::make_shared<mesh_t>(world_dim, num_vertices, 1, 1, 1, 1, 1);
+  std::shared_ptr<mesh_t> mesh = std::make_shared<mesh_t>(
+      world_dim, num_vertices, memory::MemoryType::HOST, 1, 1, 1, 1, 1);
   dim_t idx = 0;
   scalar_t offset = 0;
   mesh_t::for_all_element_types(

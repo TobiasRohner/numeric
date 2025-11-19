@@ -1,7 +1,6 @@
 #ifndef NUMERIC_EQUATIONS_FEM_LOAD_ELEMENT_VECTOR_HPP_
 #define NUMERIC_EQUATIONS_FEM_LOAD_ELEMENT_VECTOR_HPP_
 
-#include <numeric/math/fes/fe_space.hpp>
 #include <numeric/memory/array_const_view.hpp>
 #include <numeric/memory/array_view.hpp>
 #include <numeric/mesh/elements.hpp>
@@ -26,8 +25,9 @@ public:
   using element_t = Element;                     ///< Mesh element type
   using ref_el_t = typename element_t::ref_el_t; ///< Reference element type
   using element_basis_t =
-      basis_t::template element_basis_t<ref_el_t>; ///< Specific basis for this
-                                                   ///< element
+      typename basis_t::template element_basis_t<ref_el_t>; ///< Specific basis
+                                                            ///< for this
+                                                            ///< element
 
   /// Rebind this class to a different element type
   template <typename OtherElement>
@@ -44,6 +44,7 @@ public:
    * @param qr_points Quadrature points in reference element.
    * @param qr_weights Corresponding quadrature weights.
    */
+  NUMERIC_HOST_DEVICE
   LoadElementVector(const memory::ArrayConstView<scalar_t, 2> &qr_points,
                     const memory::ArrayConstView<scalar_t, 1> &qr_weights)
       : qr_points_(qr_points), qr_weights_(qr_weights) {}
@@ -57,7 +58,7 @@ public:
    * @param world_dim Spatial dimension of the mesh (e.g., 2D or 3D).
    * @return Size in bytes of the workspace.
    */
-  static constexpr dim_t apply_work_size(dim_t world_dim) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t apply_work_size(dim_t world_dim) {
     const dim_t global_work_size = world_dim * sizeof(scalar_t);
     const dim_t ie_work_size =
         element_t::template integration_element_work_size<scalar_t>(world_dim);
@@ -79,8 +80,9 @@ public:
    * @param work Temporary workspace.
    */
   template <typename Func>
-  void apply(Func &&f, const scalar_t (*nodes)[num_nodes], dim_t world_dim,
-             scalar_t (&out)[num_basis_functions], void *work) const {
+  NUMERIC_HOST_DEVICE void
+  apply(Func &&f, const scalar_t (*nodes)[num_nodes], dim_t world_dim,
+        scalar_t (&out)[num_basis_functions], void *work) const {
     scalar_t local[element_t::dim];      // Coordinates in reference element
     scalar_t basis[num_basis_functions]; // Evaluated basis functions
     scalar_t *global = static_cast<scalar_t *>(work); // Global coordinates

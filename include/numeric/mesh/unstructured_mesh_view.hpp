@@ -33,6 +33,11 @@ public:
     ((f(meta::type_tag<ElementTypes>{}), false) || ...);
   }
 
+  using super::memory_type;
+  using super::num_elements;
+  using super::num_vertices;
+  using super::world_dim;
+
   memory::ArrayConstView<Scalar, 2> vertices() const noexcept {
     return vertices_;
   }

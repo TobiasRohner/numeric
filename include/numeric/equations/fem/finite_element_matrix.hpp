@@ -71,6 +71,12 @@ public:
 
   virtual ~FiniteElementMatrix() override = default;
 
+  virtual void to(memory::MemoryType memory_type) override {
+    fes_->to(memory_type);
+    (qr_points_.template get<ElementTypes>().to(memory_type), ...);
+    (qr_weights_.template get<ElementTypes>().to(memory_type), ...);
+  }
+
   std::shared_ptr<fes_t> fes() { return fes_; }
 
   std::shared_ptr<const fes_t> fes() const { return fes_; }
