@@ -1,11 +1,20 @@
 #ifndef NUMERIC_EQUATIONS_FEM_FINITE_ELEMENT_MATRIX_HPP_
 #define NUMERIC_EQUATIONS_FEM_FINITE_ELEMENT_MATRIX_HPP_
 
+#include <numeric/hip/program.hpp>
 #include <numeric/math/fes/fe_space.hpp>
 #include <numeric/math/linear_operator.hpp>
 #include <numeric/math/quad/quad_rule.hpp>
 
 namespace numeric::equations::fem {
+
+namespace internal {
+
+hip::Kernel element_matrix_build_kernel(std::string_view scalar,
+                                        std::string_view scalar_mesh,
+                                        std::string_view element_matrix);
+
+}
 
 /**
  * @brief Primary template for FiniteElementMatrix — not implemented.
@@ -75,6 +84,15 @@ public:
     fes_->to(memory_type);
     (qr_points_.template get<ElementTypes>().to(memory_type), ...);
     (qr_weights_.template get<ElementTypes>().to(memory_type), ...);
+    ((elem_mats_.template get<element_matrix_t<ElementTypes>>() =
+          std::move(element_matrix_t<ElementTypes>(
+              qr_points_.template get<ElementTypes>(),
+              qr_weights_.template get<ElementTypes>()))),
+     ...);
+  }
+
+  virtual memory::MemoryType memory_type() const override {
+    return fes_->memory_type();
   }
 
   std::shared_ptr<fes_t> fes() { return fes_; }
@@ -197,10 +215,33 @@ private:
     const memory::ArrayConstView<scalar_mesh_t, 2> vertices = mesh.vertices();
     const memory::ArrayConstView<dim_t, 2> elements =
         mesh.template get_elements<Element>();
-    const memory::ArrayConstView<dim_t, 2> dof_map =
+    const memory::ArrayConstView<dim_t, 2> dofs =
         fes_->template dof_map<Element>();
     const element_matrix_t<Element> &elem_mat =
         elem_mats_.template get<element_matrix_t<Element>>();
+
+    if (is_host_accessible(memory_type())) {
+      apply_host<Element>(elem_mat, vertices, elements, dofs, u, out,
+                          work_.raw());
+    } else if (is_device_accessible(memory_type())) {
+      apply_device<Element>(elem_mat, vertices, elements, dofs, u, out);
+    } else {
+      NUMERIC_ERROR("Unsupperted memory type: {}", to_string(memory_type()));
+    }
+  }
+
+  template <typename Element>
+  void apply_host(const element_matrix_t<Element> &elem_mat,
+                  const memory::ArrayConstView<scalar_mesh_t, 2> &vertices,
+                  const memory::ArrayConstView<dim_t, 2> &elements,
+                  const memory::ArrayConstView<dim_t, 2> &dofs,
+                  const memory::ArrayConstView<scalar_t, 1> &u,
+                  memory::ArrayView<scalar_t, 1> out, void *work) const {
+    static constexpr dim_t num_nodes = Element::num_nodes;
+    static constexpr dim_t num_basis_functions =
+        element_matrix_t<Element>::num_basis_functions;
+    const dim_t num_elements = elements.shape(1);
+    const dim_t world_dim = vertices.shape(0);
 
     // Workspace pointers
     scalar_t(*nodes)[num_nodes] = static_cast<scalar_t(*)[num_nodes]>(work);
@@ -221,7 +262,7 @@ private:
 
       // Gather the local dofs
       for (dim_t bf = 0; bf < num_basis_functions; ++bf) {
-        const dim_t dof_idx = dof_map(bf, element);
+        const dim_t dof_idx = dofs(bf, element);
         elem_vec_in[bf] = u(dof_idx);
       }
 
@@ -231,9 +272,71 @@ private:
 
       // Scatter onto the global coefficient vector
       for (dim_t bf = 0; bf < num_basis_functions; ++bf) {
-        const dim_t dof_idx = dof_map(bf, element);
+        const dim_t dof_idx = dofs(bf, element);
         out(dof_idx) += elem_vec_out[bf];
       }
+    }
+  }
+
+  template <typename Element>
+  void apply_device(const element_matrix_t<Element> &elem_mat,
+                    const memory::ArrayConstView<scalar_mesh_t, 2> &vertices,
+                    const memory::ArrayConstView<dim_t, 2> &elements,
+                    const memory::ArrayConstView<dim_t, 2> &dofs,
+                    const memory::ArrayConstView<scalar_t, 1> &u,
+                    memory::ArrayView<scalar_t, 1> out) const {
+    NUMERIC_ERROR_IF(!is_device_accessible(vertices.memory_type()),
+                     "Need vertices to be accessible on the device, but got {}",
+                     to_string(vertices.memory_type()));
+    NUMERIC_ERROR_IF(!is_device_accessible(elements.memory_type()),
+                     "Need elements to be accessible on the device, but got {}",
+                     to_string(elements.memory_type()));
+    NUMERIC_ERROR_IF(!is_device_accessible(dofs.memory_type()),
+                     "Need dofs to be accessible on the device, but got {}",
+                     to_string(dofs.memory_type()));
+    NUMERIC_ERROR_IF(!is_device_accessible(out.memory_type()),
+                     "Need out to be accessible on the device, but got {}",
+                     to_string(out.memory_type()));
+    NUMERIC_ERROR_IF(
+        (!is_device_accessible(
+             qr_points_.template get<ElementTypes>().memory_type()) ||
+         ...),
+        "Need quad rules to be accessible on the device, but at least one is "
+        "not");
+    NUMERIC_ERROR_IF(
+        (!is_device_accessible(
+             qr_weights_.template get<ElementTypes>().memory_type()) ||
+         ...),
+        "Need quad rules to be accessible on the device, but at least one is "
+        "not");
+    static hip::Kernel kernel = internal::element_matrix_build_kernel(
+        utils::type_name<scalar_t>(), utils::type_name<scalar_mesh_t>(),
+        utils::type_name<element_matrix_t<Element>>());
+    hip::Device device;
+    static constexpr dim_t num_nodes = Element::num_nodes;
+    const dim_t world_dim = vertices.shape(0);
+    for (const auto &group :
+         fes_->template independent_element_groups<Element>()) {
+      const dim_t num_elements = group.shape(0);
+      const unsigned shared_mem_per_thread =
+          world_dim * num_nodes * sizeof(scalar_t) +
+          elem_mat.apply_work_size(world_dim);
+      const unsigned max_threads_per_block = math::min(
+          device.max_threads_per_block(),
+          device.max_shared_memory_per_block() / shared_mem_per_thread);
+      const unsigned num_blocks =
+          math::div_up(num_elements, max_threads_per_block);
+      const unsigned num_threads = math::div_up(num_elements, num_blocks);
+      hip::LaunchParams lp;
+      lp.grid_dim_x = num_blocks;
+      lp.grid_dim_y = 1;
+      lp.grid_dim_z = 1;
+      lp.block_dim_x = num_threads;
+      lp.block_dim_y = 1;
+      lp.block_dim_z = 1;
+      lp.shared_mem_bytes = num_threads * shared_mem_per_thread;
+      kernel(lp, hip::Stream(device), elem_mat, group, vertices, elements, dofs,
+             u, out);
     }
   }
 };

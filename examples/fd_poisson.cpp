@@ -82,7 +82,7 @@
 #include <numeric/io/netcdf_file.hpp>
 #include <numeric/math/conjugate_gradient.hpp>
 #include <numeric/math/custom_linear_operator.hpp>
-#include <numeric/math/sum.hpp>
+#include <numeric/math/reduce.hpp>
 #include <numeric/memory/array.hpp>
 #include <numeric/memory/array_op.hpp>
 #include <numeric/memory/constant.hpp>

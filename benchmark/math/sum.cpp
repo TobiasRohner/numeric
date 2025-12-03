@@ -1,5 +1,5 @@
 #include <benchmark/benchmark.h>
-#include <numeric/math/sum.hpp>
+#include <numeric/math/reduce.hpp>
 #include <numeric/memory/array.hpp>
 
 static void BandwidthSum(benchmark::State &state,

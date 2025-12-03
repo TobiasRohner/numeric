@@ -1,7 +1,7 @@
 #include <limits>
 #include <numeric/math/optim/nelder_mead.hpp>
 #include <numeric/math/quad/optimize_quad_tria.hpp>
-#include <numeric/math/sum.hpp>
+#include <numeric/math/reduce.hpp>
 #include <numeric/memory/array.hpp>
 #include <numeric/memory/array_op.hpp>
 #include <random>

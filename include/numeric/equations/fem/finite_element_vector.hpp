@@ -4,6 +4,7 @@
 #include <numeric/hip/program.hpp>
 #include <numeric/math/fes/fe_space.hpp>
 #include <numeric/math/quad/quad_rule.hpp>
+#include <numeric/utils/lambda.hpp>
 #include <numeric/utils/type_name.hpp>
 #include <string_view>
 
@@ -11,9 +12,10 @@ namespace numeric::equations::fem {
 
 namespace internal {
 
-utils::Tuple<hip::Kernel, hip::Kernel>
-element_vector_build_kernel(std::string_view scalar,
-                            std::string_view element_vector);
+hip::Kernel element_vector_build_kernel(std::string_view scalar,
+                                        std::string_view scalar_mesh,
+                                        std::string_view element_vector,
+                                        std::string_view f);
 
 }
 
@@ -77,9 +79,10 @@ public:
     work_.to(memory_type);
     (qr_points_.template get<ElementTypes>().to(memory_type), ...);
     (qr_weights_.template get<ElementTypes>().to(memory_type), ...);
-    ((elem_vecs_.template get<ElementTypes>() = element_vector_t<ElementTypes>(
-          qr_points_.template get<ElementTypes>(),
-          qr_weights_.template get<ElementTypes>())),
+    ((elem_vecs_.template get<element_vector_t<ElementTypes>>() =
+          std::move(element_vector_t<ElementTypes>(
+              qr_points_.template get<ElementTypes>(),
+              qr_weights_.template get<ElementTypes>()))),
      ...);
   }
 
@@ -101,7 +104,8 @@ public:
    * @param out Output array to write the assembled vector to.
    */
   template <typename Func>
-  void assemble(Func &&f, memory::ArrayView<scalar_t, 1> out) const {
+  void assemble(const utils::Lambda<Func> &f,
+                memory::ArrayView<scalar_t, 1> out) const {
     // Check if the provided output vector is consistent with the FE Space
     NUMERIC_ERROR_IF(fes_->num_dofs() != out.shape(0),
                      "Output vector has wrong shape. Expected {}, but got {}.",
@@ -130,7 +134,7 @@ public:
       const element_vector_t<ElementType> &element_vector =
           elem_vecs_.template get<element_vector_t<ElementType>>();
       if (is_host_accessible(memory_type())) {
-        build_vector_host<ElementType>(f, element_vector, vertices, elements,
+        build_vector_host<ElementType>(f.f, element_vector, vertices, elements,
                                        dofs, out);
       } else if (is_device_accessible(memory_type())) {
         build_vector_device<ElementType>(f, element_vector, vertices, elements,
@@ -253,17 +257,67 @@ private:
 
   template <typename ElementType, typename Func>
   void
-  build_vector_device(Func &&f,
+  build_vector_device(const utils::Lambda<Func> &f,
                       const element_vector_t<ElementType> &element_vector,
                       const memory::ArrayConstView<scalar_mesh_t, 2> &vertices,
                       const memory::ArrayConstView<dim_t, 2> &elements,
                       const memory::ArrayConstView<dim_t, 2> &dofs,
                       memory::ArrayView<scalar_t, 1> out) const {
-    auto [compute_kernel, gather_kernel] =
-        internal::element_vector_build_kernel(
-            utils::type_name<scalar_t>(),
-            utils::type_name<element_vector_t<ElementType>>());
-    NUMERIC_ERROR("Not yet implemented");
+    NUMERIC_ERROR_IF(!is_device_accessible(vertices.memory_type()),
+                     "Need vertices to be accessible on the device, but got {}",
+                     to_string(vertices.memory_type()));
+    NUMERIC_ERROR_IF(!is_device_accessible(elements.memory_type()),
+                     "Need elements to be accessible on the device, but got {}",
+                     to_string(elements.memory_type()));
+    NUMERIC_ERROR_IF(!is_device_accessible(dofs.memory_type()),
+                     "Need dofs to be accessible on the device, but got {}",
+                     to_string(dofs.memory_type()));
+    NUMERIC_ERROR_IF(!is_device_accessible(out.memory_type()),
+                     "Need out to be accessible on the device, but got {}",
+                     to_string(out.memory_type()));
+    NUMERIC_ERROR_IF(
+        (!is_device_accessible(
+             qr_points_.template get<ElementTypes>().memory_type()) ||
+         ...),
+        "Need quad rules to be accessible on the device, but at least one is "
+        "not");
+    NUMERIC_ERROR_IF(
+        (!is_device_accessible(
+             qr_weights_.template get<ElementTypes>().memory_type()) ||
+         ...),
+        "Need quad rules to be accessible on the device, but at least one is "
+        "not");
+    static hip::Kernel kernel = internal::element_vector_build_kernel(
+        utils::type_name<scalar_t>(), utils::type_name<scalar_mesh_t>(),
+        utils::type_name<element_vector_t<ElementType>>(), f.source);
+    hip::Device device;
+    static constexpr dim_t num_nodes = ElementType::num_nodes;
+    const dim_t world_dim = vertices.shape(0);
+    for (const auto &group :
+         fes_->template independent_element_groups<ElementType>()) {
+      const dim_t num_elements = group.shape(0);
+      std::cout << "Launching kernel for group of " << num_elements << " "
+                << ElementType::name << std::endl;
+      const unsigned shared_mem_per_thread =
+          world_dim * num_nodes * sizeof(scalar_t) +
+          element_vector.apply_work_size(world_dim);
+      const unsigned max_threads_per_block = math::min(
+          device.max_threads_per_block(),
+          device.max_shared_memory_per_block() / shared_mem_per_thread);
+      const unsigned num_blocks =
+          math::div_up(num_elements, max_threads_per_block);
+      const unsigned num_threads = math::div_up(num_elements, num_blocks);
+      hip::LaunchParams lp;
+      lp.grid_dim_x = num_blocks;
+      lp.grid_dim_y = 1;
+      lp.grid_dim_z = 1;
+      lp.block_dim_x = num_threads;
+      lp.block_dim_y = 1;
+      lp.block_dim_z = 1;
+      lp.shared_mem_bytes = num_threads * shared_mem_per_thread;
+      kernel(lp, hip::Stream(device), element_vector, group, vertices, elements,
+             dofs, out);
+    }
   }
 };
 

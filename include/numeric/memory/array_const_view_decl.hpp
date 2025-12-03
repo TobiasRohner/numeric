@@ -49,8 +49,8 @@ public:
 
   ArrayConstView(const ArrayConstView &) = default;
   ArrayConstView(ArrayConstView &&) = default;
-  ArrayConstView &operator=(const ArrayConstView &) = delete;
-  ArrayConstView &operator=(ArrayConstView &&) = delete;
+  ArrayConstView &operator=(const ArrayConstView &) = default;
+  ArrayConstView &operator=(ArrayConstView &&) = default;
 
   /**
    * @brief Sets the data, layout, and memory type of the ArrayConstView.

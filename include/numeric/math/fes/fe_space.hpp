@@ -3,8 +3,17 @@
 
 #include <numeric/mesh/elements.hpp>
 #include <numeric/mesh/subelement_relation.hpp>
+#include <vector>
 
 namespace numeric::math::fes {
+
+namespace internal {
+
+void compute_independent_element_groups(
+    const memory::ArrayConstView<dim_t, 2> &external_dofs,
+    std::vector<memory::Array<dim_t, 1>> &groups);
+
+}
 
 /**
  * @brief Ordering of the degrees of freedom on shared boundaries of elements
@@ -78,6 +87,13 @@ public:
   void to(memory::MemoryType memory_type) {
     mesh_->to(memory_type);
     (dof_maps_.template get<ElementTypes>().to(memory_type), ...);
+    (
+        [&](auto groups) {
+          for (auto &group : groups) {
+            group.to(memory_type);
+          }
+        }(independent_element_groups<ElementTypes>()),
+        ...);
   }
 
   /**
@@ -108,6 +124,27 @@ public:
     return mesh_->memory_type();
   }
 
+  template <typename Element>
+  const std::vector<memory::Array<dim_t, 1>> &
+  independent_element_groups() const {
+    auto &groups = independent_elements_.template get<Element>();
+    if (groups.size() == 0) {
+      static constexpr dim_t num_external_dofs =
+          basis_t::template num_basis_functions<typename Element::ref_el_t>() -
+          basis_t::template num_interior_basis_functions<
+              typename Element::ref_el_t>();
+      memory::ArrayConstView<dim_t, 2> dofs = dof_map<Element>();
+      std::cout << "Computing sets of independent " << Element::name
+                << std::endl;
+      internal::compute_independent_element_groups(
+          dofs(memory::Slice(0, num_external_dofs), memory::Slice()), groups);
+      for (auto &group : groups) {
+        group.to(memory_type());
+      }
+    }
+    return groups;
+  }
+
 private:
   /// Shared pointer to the mesh.
   std::shared_ptr<mesh_t> mesh_;
@@ -117,6 +154,11 @@ private:
   dim_t num_dofs_;
   /// Ordering of the DOFs
   BoundaryDOFOrdering dof_order_;
+  /// Coloring of mesh elements so that no two elements with the same color
+  /// share a DOF
+  mutable utils::TypeIndexedMap<std::vector<memory::Array<dim_t, 1>>,
+                                ElementTypes...>
+      independent_elements_;
 
   /**
    * @brief Initialize the degrees of freedom for the entire mesh.

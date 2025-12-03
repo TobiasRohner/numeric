@@ -1,9 +1,11 @@
 #ifndef NUMERIC_MATH_CONJUGATE_GRADIENT_HPP_
 #define NUMERIC_MATH_CONJUGATE_GRADIENT_HPP_
 
+#include <functional>
+#include <numeric/math/functions.hpp>
 #include <numeric/math/linear_solver.hpp>
 #include <numeric/math/norm.hpp>
-#include <numeric/math/sum.hpp>
+#include <numeric/math/reduce.hpp>
 #include <numeric/memory/array.hpp>
 #include <numeric/memory/array_view.hpp>
 
@@ -24,6 +26,9 @@ class ConjugateGradient : public LinearSolver<Scalar> {
 public:
   using scalar_t = typename super::scalar_t;
   using op_t = typename super::op_t;
+  using callback_t = std::function<void(
+      dim_t, Scalar, const memory::ArrayConstView<Scalar, 1> &,
+      const memory::ArrayConstView<Scalar, 1> &)>;
 
   /**
    * @brief Struct containing the result of the CG solver.
@@ -57,6 +62,8 @@ public:
 
   /// Set maximum number of allowed iterations.
   void set_max_iterations(dim_t val) { max_iters_ = val; }
+
+  void set_callback(const callback_t &callback) { callback_ = callback; }
 
   const Result &result() const { return result_; }
 
@@ -100,6 +107,9 @@ public:
 
       // Compute new residual norm
       const Scalar rp12 = norm::l2_squared(r);
+      if (callback_) {
+        callback_(i, math::sqrt(rp12), x, r);
+      }
       if (rp12 < threshold) {
         result_.converged = true;
         result_.num_iterations = i + 1;
@@ -127,6 +137,7 @@ protected:
 private:
   Scalar tol_ = 1e-8;    ///< Convergence tolerance
   dim_t max_iters_ = -1; ///< Maximum number of iterations (-1 = unlimited)
+  callback_t callback_;
   mutable Result result_;
 };
 

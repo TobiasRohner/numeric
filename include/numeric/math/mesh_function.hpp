@@ -13,8 +13,10 @@ public:
   using basis_t = typename fes_t::basis_t;
 
   MeshFunction(const std::shared_ptr<const fes_t> &fes)
-      : fes_(fes),
-        dofs_(memory::Shape<1>(fes->num_dofs()), memory::MemoryType::HOST) {}
+      : MeshFunction(fes, fes->memory_type()) {}
+  MeshFunction(const std::shared_ptr<const fes_t> &fes,
+               memory::MemoryType memory_type)
+      : fes_(fes), dofs_(memory::Shape<1>(fes->num_dofs()), memory_type) {}
   MeshFunction(const MeshFunction &) = default;
   MeshFunction(MeshFunction &&) = default;
   MeshFunction &operator=(const MeshFunction &) = default;

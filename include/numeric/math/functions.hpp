@@ -64,6 +64,30 @@ NUMERIC_HOST_DEVICE inline long double abs(long double x) {
 #endif
 }
 
+NUMERIC_HOST_DEVICE inline float sqrt(float x) {
+#ifndef __HIP_DEVICE_COMPILE__
+  return std::sqrt(x);
+#else
+  return sqrtf(x);
+#endif
+}
+
+NUMERIC_HOST_DEVICE inline double sqrt(double x) {
+#ifndef __HIP_DEVICE_COMPILE__
+  return std::sqrt(x);
+#else
+  return sqrt(x);
+#endif
+}
+
+NUMERIC_HOST_DEVICE inline long double sqrt(long double x) {
+#ifndef __HIP_DEVICE_COMPILE__
+  return std::sqrt(x);
+#else
+  return sqrt(static_cast<double>(x));
+#endif
+}
+
 NUMERIC_HOST_DEVICE inline float exp(float x) {
 #ifndef __HIP_DEVICE_COMPILE__
   return std::exp(x);

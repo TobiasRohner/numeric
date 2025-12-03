@@ -1,7 +1,7 @@
 #ifndef NUMERIC_MATH_NORM_HPP_
 #define NUMERIC_MATH_NORM_HPP_
 
-#include <numeric/math/sum.hpp>
+#include <numeric/math/reduce.hpp>
 #include <numeric/memory/array_base.hpp>
 #include <numeric/memory/array_op.hpp>
 

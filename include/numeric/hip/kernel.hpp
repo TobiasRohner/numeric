@@ -6,6 +6,7 @@
 #include <numeric/hip/runtime.hpp>
 #include <numeric/hip/safe_call.hpp>
 #include <numeric/hip/stream.hpp>
+#include <numeric/utils/error.hpp>
 #include <string_view>
 
 namespace numeric::hip {
@@ -56,6 +57,12 @@ public:
   void async(const LaunchParams &params, const Stream &stream,
              Args &&...args) const {
     const void *argsp[] = {&args...};
+    const unsigned max_shared_mem =
+        stream.device().max_shared_memory_per_block();
+    NUMERIC_ERROR_IF(params.shared_mem_bytes > max_shared_mem,
+                     "Kernel uses too much shared memory. Requested {} bytes, "
+                     "but maximum available is {} bytes",
+                     params.shared_mem_bytes, max_shared_mem);
     NUMERIC_CHECK_HIP(hipModuleLaunchKernel(
         kernel_, params.grid_dim_x, params.grid_dim_y, params.grid_dim_z,
         params.block_dim_x, params.block_dim_y, params.block_dim_z,

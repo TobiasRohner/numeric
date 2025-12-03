@@ -1,7 +1,6 @@
 #ifndef NUMERIC_EQUATIONS_FEM_DIFFUSION_ELEMENT_MATRIX_HPP_
 #define NUMERIC_EQUATIONS_FEM_DIFFUSION_ELEMENT_MATRIX_HPP_
 
-#include <numeric/math/fes/fe_space.hpp>
 #include <numeric/memory/array_const_view.hpp>
 #include <numeric/memory/array_view.hpp>
 #include <numeric/mesh/elements.hpp>
@@ -39,6 +38,7 @@ public:
    * @param qr_points The quadrature points for integration.
    * @param qr_weights The quadrature weights for integration.
    */
+  NUMERIC_HOST_DEVICE
   DiffusionElementMatrix(const memory::ArrayConstView<scalar_t, 2> &qr_points,
                          const memory::ArrayConstView<scalar_t, 1> &qr_weights)
       : qr_points_(qr_points), qr_weights_(qr_weights) {}
@@ -55,7 +55,7 @@ public:
    * @param world_dim The dimension of the world space.
    * @return The work size required.
    */
-  static constexpr dim_t apply_work_size(dim_t world_dim) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t apply_work_size(dim_t world_dim) {
     const dim_t jinvt_work_size =
         element_t::template jacobian_inverse_gramian_work_size<scalar_t>(
             world_dim);
@@ -77,9 +77,11 @@ public:
    * @param out The output array to store the results.
    * @param work The workspace for intermediate computations.
    */
-  void apply(const scalar_t (*nodes)[num_nodes],
-             const scalar_t (&coeffs)[num_basis_functions], dim_t world_dim,
-             scalar_t (&out)[num_basis_functions], void *work) const {
+  void NUMERIC_HOST_DEVICE apply(const scalar_t (*nodes)[num_nodes],
+                                 const scalar_t (&coeffs)[num_basis_functions],
+                                 dim_t world_dim,
+                                 scalar_t (&out)[num_basis_functions],
+                                 void *work) const {
     if constexpr (element_t::is_affine) {
       apply_affine(nodes, coeffs, world_dim, out, work);
     } else {
@@ -91,14 +93,14 @@ private:
   memory::ArrayConstView<scalar_t, 2> qr_points_;
   memory::ArrayConstView<scalar_t, 1> qr_weights_;
 
-  void apply_local(const scalar_t (*nodes)[num_nodes],
-                   const scalar_t (&coeffs)[num_basis_functions],
-                   dim_t world_dim, scalar_t (&out)[num_basis_functions],
-                   dim_t point, scalar_t ie,
-                   const scalar_t (*JinvT)[element_t::dim],
-                   scalar_t (&grads)[num_basis_functions][element_t::dim],
-                   scalar_t (&grad)[element_t::dim], scalar_t *grad_trans,
-                   const scalar_t (&x)[element_t::dim]) const {
+  void NUMERIC_HOST_DEVICE
+  apply_local(const scalar_t (*nodes)[num_nodes],
+              const scalar_t (&coeffs)[num_basis_functions], dim_t world_dim,
+              scalar_t (&out)[num_basis_functions], dim_t point, scalar_t ie,
+              const scalar_t (*JinvT)[element_t::dim],
+              scalar_t (&grads)[num_basis_functions][element_t::dim],
+              scalar_t (&grad)[element_t::dim], scalar_t *grad_trans,
+              const scalar_t (&x)[element_t::dim]) const {
     basis_t::template gradient<ref_el_t>(grads, x);
     for (dim_t j = 0; j < element_t::dim; ++j) {
       grad[j] = 0;
@@ -125,10 +127,10 @@ private:
     }
   }
 
-  void apply_affine(const scalar_t (*nodes)[num_nodes],
-                    const scalar_t (&coeffs)[num_basis_functions],
-                    dim_t world_dim, scalar_t (&out)[num_basis_functions],
-                    void *work) const {
+  void NUMERIC_HOST_DEVICE
+  apply_affine(const scalar_t (*nodes)[num_nodes],
+               const scalar_t (&coeffs)[num_basis_functions], dim_t world_dim,
+               scalar_t (&out)[num_basis_functions], void *work) const {
     const dim_t jinvt_work_size =
         element_t::template jacobian_inverse_gramian_work_size<scalar_t>(
             world_dim);
@@ -157,10 +159,10 @@ private:
     }
   }
 
-  void apply_non_affine(const scalar_t (*nodes)[num_nodes],
-                        const scalar_t (&coeffs)[num_basis_functions],
-                        dim_t world_dim, scalar_t (&out)[num_basis_functions],
-                        void *work) const {
+  void NUMERIC_HOST_DEVICE apply_non_affine(
+      const scalar_t (*nodes)[num_nodes],
+      const scalar_t (&coeffs)[num_basis_functions], dim_t world_dim,
+      scalar_t (&out)[num_basis_functions], void *work) const {
     const dim_t jinvt_work_size =
         element_t::template jacobian_inverse_gramian_work_size<scalar_t>(
             world_dim);

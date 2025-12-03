@@ -60,7 +60,7 @@ public:
       }
       return Linspace<Scalar>(this->operator()(idx.start),
                               this->operator()(idx.stop - 1),
-                              idx.stop - idx.start, endpoint_, memory_type_);
+                              idx.stop - idx.start, true, memory_type_);
     }
   }
 

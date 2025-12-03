@@ -56,6 +56,7 @@ int main(int argc, char *argv[]) {
 
   auto lapl = std::make_shared<stiffness_matrix_t>(fes);
   load_vector_t load(fes);
+  load.to(memory_type);
 
   math::LinearSystem<scalar_t> system(lapl);
   system.to(memory_type);
@@ -63,10 +64,23 @@ int main(int argc, char *argv[]) {
   auto cg = std::make_shared<math::ConjugateGradient<scalar_t>>();
   cg->set_tolerance(1e-8);
   cg->set_max_iterations(fes->num_dofs());
+  cg->set_callback([](dim_t iter, scalar_t res_norm,
+                      const memory::ArrayConstView<scalar_t, 1> &x,
+                      const memory::ArrayConstView<scalar_t, 1> &r) {
+    /*
+    memory::Array<scalar_t, 1> x_host(x.shape(), memory::MemoryType::HOST);
+    x_host = x;
+    memory::Array<scalar_t, 1> r_host(r.shape(), memory::MemoryType::HOST);
+    r_host = r;
+    */
+    std::cout << "iteration " << iter << " -> residual norm " << res_norm
+              << std::endl;
+  });
   system.set_solver(cg);
 
   const auto f = NUMERIC_LAMBDA(
       [](auto *x) -> ::numeric::meta::remove_cvref_t<decltype(*x)> {
+        using scalar_t = ::numeric::meta::remove_cvref_t<decltype(*x)>;
         const scalar_t x1 = x[0];
         const scalar_t x2 = x[1];
         const scalar_t r2 = x1 * x1 + x2 * x2;

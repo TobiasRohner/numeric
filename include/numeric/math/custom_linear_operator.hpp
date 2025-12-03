@@ -22,6 +22,10 @@ public:
   CustomLinearOperator &operator=(const CustomLinearOperator &) = default;
   CustomLinearOperator &operator=(CustomLinearOperator &&) = default;
 
+  virtual memory::MemoryType memory_type() const override {
+    return memory::MemoryType::UNKNOWN;
+  }
+
   virtual memory::Shape<2> shape() const override { return shape_; }
 
   virtual void operator()(const memory::ArrayConstView<scalar_t, 1> &x,

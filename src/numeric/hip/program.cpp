@@ -65,7 +65,8 @@ std::vector<std::string_view> Program::numeric_headers_ = {
     "numeric/math/fes/basis_base.hpp",
     "numeric/math/fes/basis_h1.hpp",
     "numeric/math/fes/basis_l2.hpp",
-    "numeric/equations/fem/load_element_vector.hpp"};
+    "numeric/equations/fem/load_element_vector.hpp",
+    "numeric/equations/fem/diffusion_element_matrix.hpp"};
 
 Program::Header::Header(std::string_view name_, std::string_view src_)
     : name(name_), src(src_) {}

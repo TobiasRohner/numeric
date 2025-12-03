@@ -21,6 +21,8 @@ public:
 
   virtual void to(memory::MemoryType memory_type) {}
 
+  virtual memory::MemoryType memory_type() const = 0;
+
   virtual memory::Shape<2> shape() const = 0;
 
   virtual dim_t shape(dim_t i) const { return shape()[i]; }

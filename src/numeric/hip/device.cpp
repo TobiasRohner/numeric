@@ -6,9 +6,9 @@
 namespace numeric::hip {
 
 Device::Device() {
-  NUMERIC_CHECK_HIP(hipGetDevice(&id_));
   // Initialize context
   NUMERIC_CHECK_HIP(hipFree(0));
+  NUMERIC_CHECK_HIP(hipGetDevice(&id_));
 }
 
 Device::Device(int id) : id_(id) {
@@ -82,6 +82,13 @@ unsigned Device::max_threads_per_block() const {
   return pi;
 }
 
+unsigned Device::max_shared_memory_per_block() const {
+  int pi;
+  NUMERIC_CHECK_HIP(hipDeviceGetAttribute(
+      &pi, hipDeviceAttributeMaxSharedMemoryPerBlock, id_));
+  return pi;
+}
+
 int Device::warp_size() const {
   hipDeviceProp_t props;
   NUMERIC_CHECK_HIP(hipGetDeviceProperties(&props, id_));
@@ -100,6 +107,7 @@ LaunchParams Device::launch_params_for_grid(unsigned Nx, unsigned Ny,
   lp.grid_dim_x = math::div_up(Nx, lp.block_dim_x);
   lp.grid_dim_y = math::div_up(Ny, lp.block_dim_y);
   lp.grid_dim_z = math::div_up(Nz, lp.block_dim_z);
+  lp.shared_mem_bytes = 0;
   return lp;
 }
 

@@ -60,6 +60,7 @@ public:
   unsigned max_grid_dim_y() const;
   unsigned max_grid_dim_z() const;
   unsigned max_threads_per_block() const;
+  unsigned max_shared_memory_per_block() const;
   int warp_size() const;
 
   /**
@@ -68,6 +69,7 @@ public:
    * @param Nx Size of the grid in the x-direction.
    * @param Ny Size of the grid in the y-direction.
    * @param Nz Size of the grid in the z-direction.
+   * #param shared_mem_bytes Amount of shared memory per block.
    * @return Launch parameters for the grid.
    */
   LaunchParams launch_params_for_grid(unsigned Nx, unsigned Ny,
