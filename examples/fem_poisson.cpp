@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 
   math::MeshFunction<scalar_t, fes_t> u(fes);
   math::MeshFunction<scalar_t, fes_t> offset(fes);
-  offset.dofs() = 100;
+  offset.dofs() = 0;
   system.solve(u.dofs(), offset.dofs());
   const auto [converged, num_iter, error] = cg->result();
   if (converged) {
@@ -101,6 +101,8 @@ int main(int argc, char *argv[]) {
               << " iterations (error = " << error << ")" << std::endl;
   }
 
+  system.to(memory::MemoryType::HOST);
+  u.to(memory::MemoryType::HOST);
   io::VTKHDFWriter<basis_t::order, io::VTKHDFFunctionSpaceType::CONTINUOUS,
                    mesh_t>
       writer("fem_poisson.vtkhdf", mesh);

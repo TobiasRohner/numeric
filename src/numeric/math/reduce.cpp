@@ -100,9 +100,11 @@ reduce_device_build_kernel_1d_contiguous_impl(std::string_view scalar,
 
 hip::LaunchParams reduce_device_launch_params(const hip::Device &device,
                                               dim_t N, dim_t bytes_per_scalar) {
+  const unsigned max_threads_per_block = device.max_threads_per_block();
+  const unsigned warp_size = device.warp_size();
   N = math::div_up(N, 2);
   hip::LaunchParams lp;
-  lp.block_dim_x = device.max_threads_per_block();
+  lp.block_dim_x = max_threads_per_block;
   lp.block_dim_y = 1;
   lp.block_dim_z = 1;
   while (lp.block_dim_x / 2 >= N) {
@@ -111,8 +113,8 @@ hip::LaunchParams reduce_device_launch_params(const hip::Device &device,
   lp.grid_dim_x = math::div_up(N, lp.block_dim_x);
   lp.grid_dim_y = 1;
   lp.grid_dim_z = 1;
-  lp.shared_mem_bytes = 2 * device.warp_size() *
-                        math::div_up(lp.block_dim_x, 2 * device.warp_size()) *
+  lp.shared_mem_bytes = 2 * warp_size *
+                        math::div_up(lp.block_dim_x, 2 * warp_size) *
                         bytes_per_scalar;
   return lp;
 }

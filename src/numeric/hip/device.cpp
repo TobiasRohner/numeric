@@ -5,10 +5,19 @@
 
 namespace numeric::hip {
 
+std::map<int, hipDeviceProp_t> Device::props_ =
+    std::map<int, hipDeviceProp_t>();
+
 Device::Device() {
   // Initialize context
   NUMERIC_CHECK_HIP(hipFree(0));
   NUMERIC_CHECK_HIP(hipGetDevice(&id_));
+  auto it = props_.find(id_);
+  if (it == props_.end()) {
+    hipDeviceProp_t p;
+    NUMERIC_CHECK_HIP(hipGetDeviceProperties(&p, id_));
+    props_[id_] = p;
+  }
 }
 
 Device::Device(int id) : id_(id) {
@@ -17,6 +26,12 @@ Device::Device(int id) : id_(id) {
   NUMERIC_CHECK_HIP(hipGetDevice(&current_id));
   NUMERIC_CHECK_HIP(hipFree(0));
   NUMERIC_CHECK_HIP(hipSetDevice(current_id));
+  auto it = props_.find(id_);
+  if (it == props_.end()) {
+    hipDeviceProp_t p;
+    NUMERIC_CHECK_HIP(hipGetDeviceProperties(&p, id_));
+    props_[id_] = p;
+  }
 }
 
 int Device::count() {
@@ -33,88 +48,47 @@ void Device::sync() const {
 
 int Device::id() const { return id_; }
 
-unsigned Device::max_block_dim_x() const {
-  int pi;
-  NUMERIC_CHECK_HIP(
-      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxBlockDimX, id_));
-  return pi;
+int Device::max_block_dim_x() const { return props_[id_].maxThreadsDim[0]; }
+
+int Device::max_block_dim_y() const { return props_[id_].maxThreadsDim[1]; }
+
+int Device::max_block_dim_z() const { return props_[id_].maxThreadsDim[2]; }
+
+int Device::max_grid_dim_x() const { return props_[id_].maxGridSize[0]; }
+
+int Device::max_grid_dim_y() const { return props_[id_].maxGridSize[1]; }
+
+int Device::max_grid_dim_z() const { return props_[id_].maxGridSize[2]; }
+
+int Device::max_threads_per_block() const {
+  return props_[id_].maxThreadsPerBlock;
 }
 
-unsigned Device::max_block_dim_y() const {
-  int pi;
-  NUMERIC_CHECK_HIP(
-      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxBlockDimY, id_));
-  return pi;
+size_t Device::max_shared_memory_per_block() const {
+  return props_[id_].sharedMemPerBlock;
 }
 
-unsigned Device::max_block_dim_z() const {
-  int pi;
-  NUMERIC_CHECK_HIP(
-      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxBlockDimZ, id_));
-  return pi;
+size_t Device::reserved_shared_memory_per_block() const {
+  return props_[id_].reservedSharedMemPerBlock;
 }
 
-unsigned Device::max_grid_dim_x() const {
-  int pi;
-  NUMERIC_CHECK_HIP(
-      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxGridDimX, id_));
-  return pi;
-}
-
-unsigned Device::max_grid_dim_y() const {
-  int pi;
-  NUMERIC_CHECK_HIP(
-      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxGridDimY, id_));
-  return pi;
-}
-
-unsigned Device::max_grid_dim_z() const {
-  int pi;
-  NUMERIC_CHECK_HIP(
-      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxGridDimZ, id_));
-  return pi;
-}
-
-unsigned Device::max_threads_per_block() const {
-  int pi;
-  NUMERIC_CHECK_HIP(
-      hipDeviceGetAttribute(&pi, hipDeviceAttributeMaxThreadsPerBlock, id_));
-  return pi;
-}
-
-unsigned Device::max_shared_memory_per_block() const {
-  int pi;
-  NUMERIC_CHECK_HIP(hipDeviceGetAttribute(
-      &pi, hipDeviceAttributeMaxSharedMemoryPerBlock, id_));
-  return pi;
-}
-
-unsigned Device::reserved_shared_memory_per_block() const {
-  int pi;
-  NUMERIC_CHECK_HIP(hipDeviceGetAttribute(
-      &pi, hipDeviceAttributeReservedSharedMemPerBlock, id_));
-  return pi;
-}
-
-unsigned Device::available_shared_memory_per_block() const {
+size_t Device::available_shared_memory_per_block() const {
   return max_shared_memory_per_block() - reserved_shared_memory_per_block();
 }
 
-int Device::warp_size() const {
-  hipDeviceProp_t props;
-  NUMERIC_CHECK_HIP(hipGetDeviceProperties(&props, id_));
-  return props.warpSize;
-}
+int Device::warp_size() const { return props_[id_].warpSize; }
 
 LaunchParams Device::launch_params_for_grid(unsigned Nx, unsigned Ny,
                                             unsigned Nz) const {
   const unsigned max_threads = max_threads_per_block();
   LaunchParams lp;
-  lp.block_dim_x = math::min(Nx, max_block_dim_x());
+  lp.block_dim_x = math::min(Nx, static_cast<unsigned>(max_block_dim_x()));
   lp.block_dim_y =
-      math::min(math::min(Ny, max_block_dim_y()), max_threads / lp.block_dim_x);
-  lp.block_dim_z = math::min(math::min(Nz, max_block_dim_z()),
-                             max_threads / (lp.block_dim_x * lp.block_dim_y));
+      math::min(math::min(Ny, static_cast<unsigned>(max_block_dim_y())),
+                max_threads / lp.block_dim_x);
+  lp.block_dim_z =
+      math::min(math::min(Nz, static_cast<unsigned>(max_block_dim_z())),
+                max_threads / (lp.block_dim_x * lp.block_dim_y));
   lp.grid_dim_x = math::div_up(Nx, lp.block_dim_x);
   lp.grid_dim_y = math::div_up(Ny, lp.block_dim_y);
   lp.grid_dim_z = math::div_up(Nz, lp.block_dim_z);

@@ -12,15 +12,20 @@ public:
   using fes_t = FES;
   using basis_t = typename fes_t::basis_t;
 
-  MeshFunction(const std::shared_ptr<const fes_t> &fes)
+  MeshFunction(const std::shared_ptr<fes_t> &fes)
       : MeshFunction(fes, fes->memory_type()) {}
-  MeshFunction(const std::shared_ptr<const fes_t> &fes,
+  MeshFunction(const std::shared_ptr<fes_t> &fes,
                memory::MemoryType memory_type)
       : fes_(fes), dofs_(memory::Shape<1>(fes->num_dofs()), memory_type) {}
   MeshFunction(const MeshFunction &) = default;
   MeshFunction(MeshFunction &&) = default;
   MeshFunction &operator=(const MeshFunction &) = default;
   MeshFunction &operator=(MeshFunction &&) = default;
+
+  void to(memory::MemoryType memory_type) {
+    fes_->to(memory_type);
+    dofs_.to(memory_type);
+  }
 
   template <typename ElementType>
   void eval(dim_t element, const scalar_t (*refcoords)[ElementType::dim],
@@ -78,7 +83,7 @@ public:
   }
 
 private:
-  std::shared_ptr<const fes_t> fes_;
+  std::shared_ptr<fes_t> fes_;
   memory::Array<scalar_t, 1> dofs_;
 };
 

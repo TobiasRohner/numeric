@@ -309,9 +309,13 @@ private:
          ...),
         "Need quad rules to be accessible on the device, but at least one is "
         "not");
-    static hip::Kernel kernel = internal::element_matrix_build_kernel(
+    static const hip::Kernel kernel = internal::element_matrix_build_kernel(
         utils::type_name<scalar_t>(), utils::type_name<scalar_mesh_t>(),
         utils::type_name<element_matrix_t<Element>>());
+    static const int kernel_max_threads_per_block =
+        kernel.max_threads_per_block();
+    static const int kernel_max_dynamic_memory =
+        kernel.max_dynamic_shared_size_bytes();
     hip::Device device;
     static constexpr dim_t num_nodes = Element::num_nodes;
     const dim_t world_dim = vertices.shape(0);
@@ -321,9 +325,9 @@ private:
       const int shared_mem_per_thread =
           world_dim * num_nodes * sizeof(scalar_t) +
           elem_mat.apply_work_size(world_dim);
-      const unsigned max_threads_per_block = math::min(
-          kernel.max_threads_per_block(),
-          kernel.max_dynamic_shared_size_bytes() / shared_mem_per_thread);
+      const unsigned max_threads_per_block =
+          math::min(kernel_max_threads_per_block,
+                    kernel_max_dynamic_memory / shared_mem_per_thread);
       const unsigned num_blocks =
           math::div_up(num_elements, max_threads_per_block);
       const unsigned num_threads = math::div_up(num_elements, num_blocks);

@@ -46,9 +46,9 @@ public:
   operator bool() const noexcept { return kernel_ != NULL; }
 
   int max_threads_per_block() const;
-  int shared_size_bytes() const;
-  int const_size_bytes() const;
-  int local_size_bytes() const;
+  size_t shared_size_bytes() const;
+  size_t const_size_bytes() const;
+  size_t local_size_bytes() const;
   int num_regs() const;
   int ptx_version() const;
   int binary_version() const;
@@ -68,12 +68,6 @@ public:
   void async(const LaunchParams &params, const Stream &stream,
              Args &&...args) const {
     const void *argsp[] = {&args...};
-    const unsigned max_shared_mem =
-        stream.device().max_shared_memory_per_block();
-    NUMERIC_ERROR_IF(params.shared_mem_bytes > max_shared_mem,
-                     "Kernel uses too much shared memory. Requested {} bytes, "
-                     "but maximum available is {} bytes",
-                     params.shared_mem_bytes, max_shared_mem);
     NUMERIC_CHECK_HIP(hipModuleLaunchKernel(
         kernel_, params.grid_dim_x, params.grid_dim_y, params.grid_dim_z,
         params.block_dim_x, params.block_dim_y, params.block_dim_z,
@@ -99,6 +93,7 @@ public:
 private:
   std::shared_ptr<Module> module_;
   hipFunction_t kernel_;
+  hipFuncAttributes attributes_;
 };
 
 } // namespace numeric::hip

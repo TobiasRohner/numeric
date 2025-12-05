@@ -1,7 +1,9 @@
 #ifndef NUMERIC_HIP_DEVICE_HPP_
 #define NUMERIC_HIP_DEVICE_HPP_
 
+#include <map>
 #include <numeric/hip/launch_params.hpp>
+#include <numeric/hip/runtime.hpp>
 
 namespace numeric::hip {
 
@@ -53,16 +55,16 @@ public:
    */
   int id() const;
 
-  unsigned max_block_dim_x() const;
-  unsigned max_block_dim_y() const;
-  unsigned max_block_dim_z() const;
-  unsigned max_grid_dim_x() const;
-  unsigned max_grid_dim_y() const;
-  unsigned max_grid_dim_z() const;
-  unsigned max_threads_per_block() const;
-  unsigned max_shared_memory_per_block() const;
-  unsigned reserved_shared_memory_per_block() const;
-  unsigned available_shared_memory_per_block() const;
+  int max_block_dim_x() const;
+  int max_block_dim_y() const;
+  int max_block_dim_z() const;
+  int max_grid_dim_x() const;
+  int max_grid_dim_y() const;
+  int max_grid_dim_z() const;
+  int max_threads_per_block() const;
+  size_t max_shared_memory_per_block() const;
+  size_t reserved_shared_memory_per_block() const;
+  size_t available_shared_memory_per_block() const;
   int warp_size() const;
 
   /**
@@ -92,6 +94,7 @@ public:
 
 private:
   int id_;
+  static std::map<int, hipDeviceProp_t> props_;
 };
 
 } // namespace numeric::hip
