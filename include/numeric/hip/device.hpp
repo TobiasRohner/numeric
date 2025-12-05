@@ -61,6 +61,8 @@ public:
   unsigned max_grid_dim_z() const;
   unsigned max_threads_per_block() const;
   unsigned max_shared_memory_per_block() const;
+  unsigned reserved_shared_memory_per_block() const;
+  unsigned available_shared_memory_per_block() const;
   int warp_size() const;
 
   /**

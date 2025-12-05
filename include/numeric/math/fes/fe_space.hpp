@@ -134,8 +134,6 @@ public:
           basis_t::template num_interior_basis_functions<
               typename Element::ref_el_t>();
       memory::ArrayConstView<dim_t, 2> dofs = dof_map<Element>();
-      std::cout << "Computing sets of independent " << Element::name
-                << std::endl;
       internal::compute_independent_element_groups(
           dofs(memory::Slice(0, num_external_dofs), memory::Slice()), groups);
       for (auto &group : groups) {

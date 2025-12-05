@@ -44,33 +44,40 @@ memory::Array<dim_t, 2> subelement_relation(
     const memory::ArrayConstView<dim_t, 2> &elements,
     std::vector<std::array<dim_t, Subelement::num_nodes>> &subelements,
     std::map<NodeBag<Subelement>, dim_t> &subelement_idxs) {
-  static constexpr dim_t N_nodes = Subelement::num_nodes;
-  static constexpr dim_t N_sub =
-      Element::template num_subelements<Subelement>();
-  memory::Array<dim_t, 2> relation(memory::Shape<2>(N_sub, elements.shape(1)));
-
-  for (dim_t element = 0; element < elements.shape(1); ++element) {
-    for (dim_t subelement = 0; subelement < N_sub; ++subelement) {
-      std::array<dim_t, N_nodes> nodes;
-      std::array<dim_t, N_nodes> node_idxs;
-      Element::template subelement_node_idxs<Subelement>(subelement,
-                                                         node_idxs.data());
-      for (dim_t i = 0; i < N_nodes; ++i) {
-        nodes[i] = elements(node_idxs[i], element);
-      }
-      detail::NodeBag<Subelement> bag(nodes);
-      auto idx = subelement_idxs.find(bag);
-      if (idx != subelement_idxs.end()) {
-        relation(subelement, element) = idx->second;
-      } else {
-        relation(subelement, element) = subelements.size();
-        subelement_idxs[bag] = subelements.size();
-        subelements.emplace_back(nodes);
+  if (!is_host_accessible(elements.memory_type())) {
+    memory::Array<dim_t, 2> elements_host(elements.shape(),
+                                          memory::MemoryType::HOST);
+    elements_host = elements;
+    return subelement_relation<Element, Subelement>(elements_host, subelements,
+                                                    subelement_idxs);
+  } else {
+    static constexpr dim_t N_nodes = Subelement::num_nodes;
+    static constexpr dim_t N_sub =
+        Element::template num_subelements<Subelement>();
+    memory::Array<dim_t, 2> relation(
+        memory::Shape<2>(N_sub, elements.shape(1)));
+    for (dim_t element = 0; element < elements.shape(1); ++element) {
+      for (dim_t subelement = 0; subelement < N_sub; ++subelement) {
+        std::array<dim_t, N_nodes> nodes;
+        std::array<dim_t, N_nodes> node_idxs;
+        Element::template subelement_node_idxs<Subelement>(subelement,
+                                                           node_idxs.data());
+        for (dim_t i = 0; i < N_nodes; ++i) {
+          nodes[i] = elements(node_idxs[i], element);
+        }
+        detail::NodeBag<Subelement> bag(nodes);
+        auto idx = subelement_idxs.find(bag);
+        if (idx != subelement_idxs.end()) {
+          relation(subelement, element) = idx->second;
+        } else {
+          relation(subelement, element) = subelements.size();
+          subelement_idxs[bag] = subelements.size();
+          subelements.emplace_back(nodes);
+        }
       }
     }
+    return relation;
   }
-
-  return relation;
 }
 
 } // namespace detail

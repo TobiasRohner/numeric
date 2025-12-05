@@ -45,6 +45,17 @@ public:
    */
   operator bool() const noexcept { return kernel_ != NULL; }
 
+  int max_threads_per_block() const;
+  int shared_size_bytes() const;
+  int const_size_bytes() const;
+  int local_size_bytes() const;
+  int num_regs() const;
+  int ptx_version() const;
+  int binary_version() const;
+  int cache_mode() const;
+  int max_dynamic_shared_size_bytes() const;
+  int preferred_shared_memory_carveout() const;
+
   /**
    * @brief Launches the kernel asynchronously.
    *

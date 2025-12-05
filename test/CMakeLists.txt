@@ -5,6 +5,7 @@ add_subdirectory(io)
 add_subdirectory(utils)
 add_subdirectory(math)
 add_subdirectory(mesh)
+add_subdirectory(equations)
 
 set_target_properties(test PROPERTIES CXX_STANDARD 20)
 if(NUMERIC_ENABLE_CLANG_TIDY)

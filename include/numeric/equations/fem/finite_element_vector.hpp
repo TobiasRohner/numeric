@@ -296,14 +296,12 @@ private:
     for (const auto &group :
          fes_->template independent_element_groups<ElementType>()) {
       const dim_t num_elements = group.shape(0);
-      std::cout << "Launching kernel for group of " << num_elements << " "
-                << ElementType::name << std::endl;
-      const unsigned shared_mem_per_thread =
+      const int shared_mem_per_thread =
           world_dim * num_nodes * sizeof(scalar_t) +
           element_vector.apply_work_size(world_dim);
       const unsigned max_threads_per_block = math::min(
-          device.max_threads_per_block(),
-          device.max_shared_memory_per_block() / shared_mem_per_thread);
+          kernel.max_threads_per_block(),
+          kernel.max_dynamic_shared_size_bytes() / shared_mem_per_thread);
       const unsigned num_blocks =
           math::div_up(num_elements, max_threads_per_block);
       const unsigned num_threads = math::div_up(num_elements, num_blocks);

@@ -28,19 +28,27 @@ static const char kernel_src[] = R"(
     const numeric::dim_t num_elements = group.shape(0);
     const numeric::dim_t world_dim = vertices.shape(0);
 
-    const numeric::dim_t element = group(hipBlockDim_x * hipBlockIdx_x + hipThreadIdx_x);
+    const numeric::dim_t tid = hipBlockDim_x * hipBlockIdx_x + hipThreadIdx_x;
+    if (tid >= num_elements) {
+      return;
+    }
 
     extern __shared__ Scalar work[];
     Scalar *local_work =
 	work + hipThreadIdx_x * (world_dim * num_nodes + ElementMatrix::apply_work_size(world_dim) / sizeof(Scalar));
-    Scalar (*nodes)[num_nodes] = reinterpret_cast<Scalar(*)[3]>(local_work);
+    Scalar (*nodes)[num_nodes] = reinterpret_cast<Scalar(*)[num_nodes]>(local_work);
     Scalar *apply_work = local_work + world_dim * num_nodes;
 
     Scalar elem_vec_in[num_basis_functions];  // Local u vector
     Scalar elem_vec_out[num_basis_functions]; // Output of local mat-vec
 
-    if (element >= num_elements) {
-      return;
+    const numeric::dim_t element = group(tid);
+    
+    // Extract physical coordinates of the current element's nodes
+    for (numeric::dim_t node = 0 ; node < num_nodes ; ++node) {
+      for (numeric::dim_t dim = 0 ; dim < world_dim ; ++dim) {
+	nodes[dim][node] = vertices(dim, elements(node, element));
+      }
     }
 
     // Gather the local dofs

@@ -318,12 +318,12 @@ private:
     for (const auto &group :
          fes_->template independent_element_groups<Element>()) {
       const dim_t num_elements = group.shape(0);
-      const unsigned shared_mem_per_thread =
+      const int shared_mem_per_thread =
           world_dim * num_nodes * sizeof(scalar_t) +
           elem_mat.apply_work_size(world_dim);
       const unsigned max_threads_per_block = math::min(
-          device.max_threads_per_block(),
-          device.max_shared_memory_per_block() / shared_mem_per_thread);
+          kernel.max_threads_per_block(),
+          kernel.max_dynamic_shared_size_bytes() / shared_mem_per_thread);
       const unsigned num_blocks =
           math::div_up(num_elements, max_threads_per_block);
       const unsigned num_threads = math::div_up(num_elements, num_blocks);
@@ -335,9 +335,10 @@ private:
       lp.block_dim_y = 1;
       lp.block_dim_z = 1;
       lp.shared_mem_bytes = num_threads * shared_mem_per_thread;
-      kernel(lp, hip::Stream(device), elem_mat, group, vertices, elements, dofs,
-             u, out);
+      kernel.async(lp, hip::Stream(device), elem_mat, group, vertices, elements,
+                   dofs, u, out);
     }
+    device.sync();
   }
 };
 

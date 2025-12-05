@@ -89,6 +89,17 @@ unsigned Device::max_shared_memory_per_block() const {
   return pi;
 }
 
+unsigned Device::reserved_shared_memory_per_block() const {
+  int pi;
+  NUMERIC_CHECK_HIP(hipDeviceGetAttribute(
+      &pi, hipDeviceAttributeReservedSharedMemPerBlock, id_));
+  return pi;
+}
+
+unsigned Device::available_shared_memory_per_block() const {
+  return max_shared_memory_per_block() - reserved_shared_memory_per_block();
+}
+
 int Device::warp_size() const {
   hipDeviceProp_t props;
   NUMERIC_CHECK_HIP(hipGetDeviceProperties(&props, id_));

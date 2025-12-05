@@ -63,10 +63,8 @@ void compute_independent_element_groups(
     }
     conflicts.clear();
     // Color the conflict graph
-    std::cout << "Coloring Conflict Graph" << std::endl;
     memory::Array<dim_t, 1> colors = dsatur(graph);
     // Extract the differently colored groups
-    std::cout << "Grouping colors" << std::endl;
     std::map<dim_t, dim_t> num_elements_per_color;
     for (dim_t element = 0; element < num_elements; ++element) {
       const dim_t col = colors(element);
