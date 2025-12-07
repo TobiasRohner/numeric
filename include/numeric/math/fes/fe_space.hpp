@@ -3,6 +3,7 @@
 
 #include <numeric/mesh/elements.hpp>
 #include <numeric/mesh/subelement_relation.hpp>
+#include <numeric/meta/type_tag.hpp>
 #include <vector>
 
 namespace numeric::math::fes {
@@ -13,7 +14,11 @@ void compute_independent_element_groups(
     const memory::ArrayConstView<dim_t, 2> &external_dofs,
     std::vector<memory::Array<dim_t, 1>> &groups);
 
-}
+void optimize_memory_layout_elements(
+    memory::ArrayView<dim_t, 2> elements, memory::ArrayView<dim_t, 2> dofs,
+    const std::vector<memory::Array<dim_t, 1>> &groups);
+
+} // namespace internal
 
 /**
  * @brief Ordering of the degrees of freedom on shared boundaries of elements
@@ -101,6 +106,13 @@ public:
    *
    * @return Shared pointer to the constant mesh.
    */
+  std::shared_ptr<mesh_t> mesh() { return mesh_; }
+
+  /**
+   * @brief Get the associated mesh.
+   *
+   * @return Shared pointer to the constant mesh.
+   */
   std::shared_ptr<const mesh_t> mesh() const { return mesh_; }
 
   /**
@@ -141,6 +153,18 @@ public:
       }
     }
     return groups;
+  }
+
+  void optimize_memory_layout() {
+    mesh_->for_all_element_types(
+        [&]<typename ElementType>(meta::type_tag<ElementType>) {
+          internal::optimize_memory_layout_elements(
+              mesh_->template get_elements<ElementType>(),
+              dof_maps_.template get<ElementType>(),
+              independent_element_groups<ElementType>());
+        });
+    std::cerr << "WARNING: Also need to optimize vertex and dof memory layout!"
+              << std::endl;
   }
 
 private:

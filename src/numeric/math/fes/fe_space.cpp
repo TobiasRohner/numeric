@@ -3,7 +3,12 @@
 #include <numeric/math/graph/coloring.hpp>
 #include <numeric/math/graph/sparse_graph.hpp>
 #include <numeric/math/reduce.hpp>
+#include <numeric/memory/linspace.hpp>
 #include <set>
+#if NUMERIC_ENABLE_HIP
+#include <numeric/hip/device.hpp>
+#include <numeric/hip/program.hpp>
+#endif
 
 namespace numeric::math::fes {
 
@@ -87,6 +92,96 @@ void compute_independent_element_groups(
       groups[col](added_elements[col]) = element;
       ++added_elements[col];
     }
+  }
+}
+
+void optimize_memory_layout_elements_host(
+    memory::ArrayView<dim_t, 2> elements, memory::ArrayView<dim_t, 2> dofs,
+    const std::vector<memory::Array<dim_t, 1>> &groups) {
+  // TODO: Do something here
+  std::cout
+      << "WARNING: Optimizing memory layout for the host currently does nothing"
+      << std::endl;
+}
+
+static const char kernel_optimize_memory_layout_elements_src[] = R"(
+  #include <numeric/memory/array_const_view.hpp>
+  #include <numeric/memory/array_view.hpp>
+
+  __global__ void optimize_memory_layout_elements(
+      numeric::memory::ArrayConstView<numeric::dim_t, 1> group,
+      numeric::memory::ArrayConstView<numeric::dim_t, 2> elements_in,
+      numeric::memory::ArrayView<numeric::dim_t, 2> elements_out,
+      numeric::memory::ArrayConstView<numeric::dim_t, 2> dofs_in,
+      numeric::memory::ArrayView<numeric::dim_t, 2> dofs_out) {
+    const numeric::dim_t tid = hipBlockDim_x * hipBlockIdx_x + hipThreadIdx_x;
+    
+    const numeric::dim_t num_nodes = elements_out.shape(0);
+    const numeric::dim_t num_elements = elements_out.shape(1);
+    const numeric::dim_t num_dofs = dofs_out.shape(0);
+
+    if (tid >= num_elements) {
+      return;
+    }
+
+    for (numeric::dim_t i = 0 ; i < num_nodes ; ++i) {
+      elements_out(i, tid) = elements_in(i, group(tid));
+    }
+    for (numeric::dim_t i = 0 ; i < num_dofs ; ++i) {
+      dofs_out(i, tid) = dofs_in(i, group(tid));
+    }
+  }
+)";
+
+static hip::Kernel build_optimize_memory_layout_elements_kernel() {
+  const char kernel_name[] = "optimize_memory_layout_elements";
+  hip::Program program(kernel_optimize_memory_layout_elements_src);
+  program.instantiate_kernel(kernel_name);
+  return program.get_kernel(kernel_name);
+}
+
+void optimize_memory_layout_elements_device(
+    memory::ArrayView<dim_t, 2> elements, memory::ArrayView<dim_t, 2> dofs,
+    const std::vector<memory::Array<dim_t, 1>> &groups) {
+  static const hip::Kernel kernel =
+      build_optimize_memory_layout_elements_kernel();
+  hip::Device device;
+  memory::Array<dim_t, 2> elements_new(elements.shape(),
+                                       elements.memory_type());
+  memory::Array<dim_t, 2> dofs_new(dofs.shape(), dofs.memory_type());
+  dim_t offset = 0;
+  for (dim_t i = 0; i < groups.size(); ++i) {
+    memory::ArrayView<dim_t, 1> group = groups[i];
+    memory::ArrayView<dim_t, 2> elements_out = elements_new(
+        memory::Slice(), memory::Slice(offset, offset + group.shape(0)));
+    memory::ArrayView<dim_t, 2> dofs_out = dofs_new(
+        memory::Slice(), memory::Slice(offset, offset + group.shape(0)));
+    const hip::LaunchParams lp =
+        device.launch_params_for_grid(group.shape(0), 1, 1);
+    kernel(lp, hip::Stream(device), group, elements, elements_out, dofs,
+           dofs_out);
+    group = memory::linspace(offset, offset + group.shape(0), group.shape(0),
+                             false, group.memory_type());
+    offset += group.shape(0);
+  }
+  elements = elements_new;
+  dofs = dofs_new;
+}
+
+void optimize_memory_layout_elements(
+    memory::ArrayView<dim_t, 2> elements, memory::ArrayView<dim_t, 2> dofs,
+    const std::vector<memory::Array<dim_t, 1>> &groups) {
+  if (is_host_accessible(elements.memory_type())) {
+    optimize_memory_layout_elements_host(elements, dofs, groups);
+  }
+#if NUMERIC_ENABLE_HIP
+  else if (is_device_accessible(elements.memory_type())) {
+    optimize_memory_layout_elements_device(elements, dofs, groups);
+  }
+#endif
+  else {
+    NUMERIC_ERROR("Unsupported memory type \"{}\"",
+                  to_string(elements.memory_type()));
   }
 }
 

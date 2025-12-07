@@ -60,6 +60,7 @@ int main(int argc, char *argv[]) {
 
   math::LinearSystem<scalar_t> system(lapl);
   system.to(memory_type);
+  fes->optimize_memory_layout();
   system.set_fixed_dofs(dirichlet_dofs);
   auto cg = std::make_shared<math::ConjugateGradient<scalar_t>>();
   cg->set_tolerance(1e-8);
