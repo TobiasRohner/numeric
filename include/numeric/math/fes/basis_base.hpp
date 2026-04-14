@@ -140,13 +140,16 @@ template <typename Derived> struct BasisBase {
 
   template <typename Element>
   static constexpr NUMERIC_HOST_DEVICE dim_t
-  interior_dof_idx_under_permutation(dim_t dof, dim_t *perm) {
+  interior_dof_idx_under_group_action(
+      dim_t dof,
+      const DihedralGroupElement<Element::ref_el_t::num_nodes> &action) {
     using element_basis_t =
-        typename Derived::element_basis_t<typename Element::ref_el_t>;
+        typename Derived::template element_basis_t<typename Element::ref_el_t>;
     const dim_t nb = num_basis_functions<typename Element::ref_el_t>();
     const dim_t nib =
         num_interior_basis_functions<typename Element::ref_el_t>();
-    return element_basis_t::node_idx_under_permutation(dof + nb - nib, perm) +
+    return element_basis_t::node_idx_under_group_action(dof + nb - nib,
+                                                        action) +
            nib - nb;
   }
 };

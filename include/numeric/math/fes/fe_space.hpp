@@ -1,6 +1,7 @@
 #ifndef NUMERIC_MATH_FES_FE_SPACE_HPP_
 #define NUMERIC_MATH_FES_FE_SPACE_HPP_
 
+#include <numeric/math/dihedral_group.hpp>
 #include <numeric/mesh/elements.hpp>
 #include <numeric/mesh/subelement_relation.hpp>
 #include <numeric/meta/type_tag.hpp>
@@ -303,10 +304,18 @@ private:
               }
             }
           }
+          dim_t rot = 0;
+          for (; perm[rot] != 0; ++rot) {
+          }
+          DihedralGroupElement<num_corners> permutation =
+              DihedralGroupElement<num_corners>::rotation(-rot);
+          if (num_corners > 1 && perm[(rot + 1) % num_corners] != 1) {
+            permutation /= DihedralGroupElement<num_corners>::reflection(0);
+          }
           const dim_t local_dof_idx = current_highest_dof_idx + dof;
           const dim_t dof_on_subelement =
-              basis_t::template interior_dof_idx_under_permutation<Subelement>(
-                  dof, perm);
+              basis_t::template interior_dof_idx_under_group_action<Subelement>(
+                  dof, permutation);
           const dim_t global_dof_idx =
               num_dofs_ +
               relations(subelement, element) * num_dofs_on_subelement +

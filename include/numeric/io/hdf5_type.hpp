@@ -36,13 +36,13 @@ public:
 
   std::vector<hsize_t> get_array_dims() const;
 
+  static hid_t datatype_to_hdf5_type(utils::Datatype type);
+
 private:
   std::shared_ptr<hid_t> id_;
 
   H5T_class_t get_class() const;
   int get_array_ndims() const;
-
-  static hid_t datatype_to_hdf5_type(utils::Datatype type);
 };
 
 template <typename T> HDF5Type to_hdf5_type() {

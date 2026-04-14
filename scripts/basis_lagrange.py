@@ -127,7 +127,7 @@ class Element:
         code += '}'
         return code
 
-    def node_idx_under_permutation_code(self):
+    def node_idx_under_group_action_code(self):
         return 'NUMERIC_ERROR("Not yet implemented");'
 
     def lagrange(self, point):
@@ -327,8 +327,8 @@ class Element:
         code += f'\n'
         code += f'  }}\n'
         code += f'\n'
-        code += f'  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i, dim_t *perm) {{\n'
-        code += f'    ' + self.node_idx_under_permutation_code().replace('\n', '\n    ')
+        code += f'  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {{\n'
+        code += f'    ' + self.node_idx_under_group_action_code().replace('\n', '\n    ')
         code += f'  }}\n'
         code += f'\n'
         code += f'  template <typename Element>\n'
@@ -353,10 +353,10 @@ class Segment(Element):
         Y[point[0]] = sympy.Integer(1)
         return sympy.interpolating_poly(self.order+1, self.coords[0], points, Y)
 
-    def node_idx_under_permutation_code(self):
-        code = 'if (perm[0] == 0 && perm[1] == 1) {\n'
+    def node_idx_under_group_action_code(self):
+        code = 'if (action.is_identity()) {\n'
         code += '  return i;\n'
-        code += '} else if (perm[0] == 1 && perm[1] == 0) {\n'
+        code += '} else {\n'
         code += '  switch (i) {\n'
         code += '  case 0:\n'
         code += '    return 1;\n'
@@ -365,8 +365,6 @@ class Segment(Element):
         code += '  default:\n'
         code += '    return order + 2 - i;\n'
         code += '  }\n'
-        code += '} else {\n'
-        code += '  NUMERIC_ERROR("What a weird permutation you have");\n'
         code += '}\n'
         return code
 

@@ -91,7 +91,7 @@ template <dim_t Order> struct BasisL2 : public BasisBase<BasisL2<Order>> {
 
   using super::eval;
   using super::gradient;
-  using super::interior_dof_idx_under_permutation;
+  using super::interior_dof_idx_under_group_action;
   using super::num_basis_functions;
   using super::num_interior_basis_functions;
   using super::total_num_basis_functions;

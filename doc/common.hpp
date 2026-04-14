@@ -61,9 +61,10 @@ std::string reference_element_edges_tikz_src(bool indicate_direction = true) {
   Element::get_nodes(ref_nodes);
   std::vector<std::string> points;
   for (int i = 0; i < Element::num_nodes; ++i) {
-    const std::string point = "(" + std::to_string(ref_nodes[i][0]) + "," +
-                              std::to_string(ref_nodes[i][1]) + "," +
-                              std::to_string(ref_nodes[i][2]) + ")";
+    const std::string point =
+        "(" + std::to_string(ref_nodes[i][0]) + "," +
+        std::to_string(Element::dim > 1 ? ref_nodes[i][1] : 0) + "," +
+        std::to_string(Element::dim > 2 ? ref_nodes[i][2] : 0) + ")";
     points.emplace_back(point);
   }
   if constexpr (numeric::meta::is_same_v<Element,

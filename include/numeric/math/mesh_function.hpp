@@ -63,7 +63,8 @@ public:
     mesh_t::for_all_element_types([&]<typename ElementType>(
                                       meta::type_tag<ElementType>) {
       using ref_el_t = typename ElementType::ref_el_t;
-      using element_basis_t = typename basis_t::element_basis_t<ref_el_t>;
+      using element_basis_t =
+          typename basis_t::template element_basis_t<ref_el_t>;
       auto dofmap = fes_->template get_dofs<ElementType>();
       ScalarOther interpolation_nodes[element_basis_t::num_interpolation_nodes]
                                      [ElementType::dim];

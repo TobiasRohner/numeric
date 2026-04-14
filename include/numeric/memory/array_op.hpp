@@ -652,8 +652,6 @@ cos(const ArrayBase<Arg> &arg) noexcept {
   return {OpUnaryCos{}, arg.derived()};
 }
 
-} // namespace numeric::memory
-
 #define NUMERIC_DECLARE_UNARY_OP(op, obj)                                      \
   template <typename Arg, typename = numeric::meta::enable_if_t<               \
                               numeric::memory::ArrayTraits<Arg>::is_array>>    \
@@ -725,5 +723,7 @@ NUMERIC_DECLARE_BINARY_OP(<=, OpBinaryLeq);
 NUMERIC_DECLARE_BINARY_OP(>=, OpBinaryGeq);
 
 #undef NUMERIC_DECLARE_BINARY_OP
+
+} // namespace numeric::memory
 
 #endif

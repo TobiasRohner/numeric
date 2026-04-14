@@ -40,7 +40,7 @@ public:
   }
 
   template <typename Func> static void for_all_element_types(Func &&f) {
-    ((f(meta::type_tag<ElementTypes>{}), false) || ...);
+    (void)((f(meta::type_tag<ElementTypes>{}), false) || ...);
   }
 
   using super::memory_type;

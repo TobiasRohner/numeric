@@ -42,7 +42,7 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
   static constexpr NUMERIC_HOST_DEVICE dim_t
   num_interior_basis_functions(meta::type_tag<mesh::RefElSegment>) {
     return element_basis_t<mesh::RefElSegment>::num_basis_functions -
-           2 * num_interior_basis_functions<mesh::RefElPoint>();
+           2 * super::template num_interior_basis_functions<mesh::RefElPoint>();
   }
 
   /**
@@ -52,8 +52,10 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
   static constexpr NUMERIC_HOST_DEVICE dim_t
   num_interior_basis_functions(meta::type_tag<mesh::RefElTria>) {
     return element_basis_t<mesh::RefElTria>::num_basis_functions -
-           3 * num_interior_basis_functions<mesh::RefElPoint>() -
-           3 * num_interior_basis_functions<mesh::RefElSegment>();
+           3 * super::template num_interior_basis_functions<
+                   mesh::RefElPoint>() -
+           3 * super::template num_interior_basis_functions<
+                   mesh::RefElSegment>();
   }
 
   /**
@@ -63,8 +65,10 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
   static constexpr NUMERIC_HOST_DEVICE dim_t
   num_interior_basis_functions(meta::type_tag<mesh::RefElQuad>) {
     return element_basis_t<mesh::RefElQuad>::num_basis_functions -
-           4 * num_interior_basis_functions<mesh::RefElPoint>() -
-           4 * num_interior_basis_functions<mesh::RefElSegment>();
+           4 * super::template num_interior_basis_functions<
+                   mesh::RefElPoint>() -
+           4 * super::template num_interior_basis_functions<
+                   mesh::RefElSegment>();
   }
 
   /**
@@ -74,9 +78,11 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
   static constexpr NUMERIC_HOST_DEVICE dim_t
   num_interior_basis_functions(meta::type_tag<mesh::RefElTetra>) {
     return element_basis_t<mesh::RefElTetra>::num_basis_functions -
-           4 * num_interior_basis_functions<mesh::RefElPoint>() -
-           6 * num_interior_basis_functions<mesh::RefElSegment>() -
-           4 * num_interior_basis_functions<mesh::RefElTria>();
+           4 * super::template num_interior_basis_functions<
+                   mesh::RefElPoint>() -
+           6 * super::template num_interior_basis_functions<
+                   mesh::RefElSegment>() -
+           4 * super::template num_interior_basis_functions<mesh::RefElTria>();
   }
 
   /**
@@ -86,9 +92,11 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
   static constexpr NUMERIC_HOST_DEVICE dim_t
   num_interior_basis_functions(meta::type_tag<mesh::RefElCube>) {
     return element_basis_t<mesh::RefElCube>::num_basis_functions -
-           8 * num_interior_basis_functions<mesh::RefElPoint>() -
-           12 * num_interior_basis_functions<mesh::RefElSegment>() -
-           6 * num_interior_basis_functions<mesh::RefElQuad>();
+           8 * super::template num_interior_basis_functions<
+                   mesh::RefElPoint>() -
+           12 * super::template num_interior_basis_functions<
+                    mesh::RefElSegment>() -
+           6 * super::template num_interior_basis_functions<mesh::RefElQuad>();
   }
 
   /**
@@ -156,7 +164,7 @@ template <dim_t Order> struct BasisH1 : public BasisBase<BasisH1<Order>> {
 
   using super::eval;
   using super::gradient;
-  using super::interior_dof_idx_under_permutation;
+  using super::interior_dof_idx_under_group_action;
   using super::num_basis_functions;
   using super::num_interior_basis_functions;
   using super::total_num_basis_functions;

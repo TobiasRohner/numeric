@@ -1,6 +1,7 @@
 #ifndef NUMERIC_MATH_BASIS_LAGRANGE_SEGMENT_HPP_
 #define NUMERIC_MATH_BASIS_LAGRANGE_SEGMENT_HPP_
 
+#include <numeric/math/dihedral_group.hpp>
 #include <numeric/math/polynomial.hpp>
 #include <numeric/mesh/ref_el_cube.hpp>
 #include <numeric/mesh/ref_el_point.hpp>
@@ -115,11 +116,11 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElSegment, Order> {
     }
   }
 
-  static constexpr NUMERIC_HOST_DEVICE dim_t
-  node_idx_under_permutation(dim_t i, dim_t *perm) {
-    if (perm[0] == 0 && perm[1] == 1) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
+    if (action.is_identity()) {
       return i;
-    } else if (perm[0] == 1 && perm[1] == 0) {
+    } else {
       switch (i) {
       case 0:
         return 1;
@@ -128,8 +129,6 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElSegment, Order> {
       default:
         return order + 2 - i;
       }
-    } else {
-      NUMERIC_ERROR("What a weird permutation you have");
     }
   }
 

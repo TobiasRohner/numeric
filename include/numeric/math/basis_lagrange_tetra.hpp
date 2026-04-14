@@ -2,6 +2,7 @@
 #define NUMERIC_MATH_BASIS_LAGRANGE_TETRA_HPP_
 
 #include <numeric/math/basis_lagrange_tria.hpp>
+#include <numeric/math/dihedral_group.hpp>
 #include <numeric/mesh/ref_el_cube.hpp>
 #include <numeric/mesh/ref_el_point.hpp>
 #include <numeric/mesh/ref_el_quad.hpp>
@@ -56,7 +57,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
     const Scalar l3 = x[2];
     const Scalar l4 = 1 - l1 - l2 - l3;
     for (dim_t b = 0; b < num_basis_functions; ++b) {
-      dim_t ijkl[4];
+      dim_t ijkl[4] = {0};
       node_idxs(b, ijkl);
       ijkl[3] = order - ijkl[0] - ijkl[1] - ijkl[2];
       y += coeffs[b] * P(ijkl[0], l1) * P(ijkl[1], l2) * P(ijkl[2], l3) *
@@ -254,9 +255,10 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
     }
   }
 
-  static constexpr NUMERIC_HOST_DEVICE dim_t
-  node_idx_under_permutation(dim_t i, dim_t *perm) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
+    return -1;
   }
 
   template <typename Element>

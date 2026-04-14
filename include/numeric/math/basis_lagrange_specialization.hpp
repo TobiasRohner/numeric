@@ -67,11 +67,11 @@ template <> struct BasisLagrange<mesh::RefElSegment, 1> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
-    if (perm[0] == 0 && perm[1] == 1) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
+    if (action.is_identity()) {
       return i;
-    } else if (perm[0] == 1 && perm[1] == 0) {
+    } else {
       switch (i) {
       case 0:
         return 1;
@@ -80,8 +80,6 @@ template <> struct BasisLagrange<mesh::RefElSegment, 1> {
       default:
         return order + 2 - i;
       }
-    } else {
-      NUMERIC_ERROR("What a weird permutation you have");
     }
   }
 
@@ -231,11 +229,11 @@ template <> struct BasisLagrange<mesh::RefElSegment, 2> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
-    if (perm[0] == 0 && perm[1] == 1) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
+    if (action.is_identity()) {
       return i;
-    } else if (perm[0] == 1 && perm[1] == 0) {
+    } else {
       switch (i) {
       case 0:
         return 1;
@@ -244,8 +242,6 @@ template <> struct BasisLagrange<mesh::RefElSegment, 2> {
       default:
         return order + 2 - i;
       }
-    } else {
-      NUMERIC_ERROR("What a weird permutation you have");
     }
   }
 
@@ -426,11 +422,11 @@ template <> struct BasisLagrange<mesh::RefElSegment, 3> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
-    if (perm[0] == 0 && perm[1] == 1) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
+    if (action.is_identity()) {
       return i;
-    } else if (perm[0] == 1 && perm[1] == 0) {
+    } else {
       switch (i) {
       case 0:
         return 1;
@@ -439,8 +435,6 @@ template <> struct BasisLagrange<mesh::RefElSegment, 3> {
       default:
         return order + 2 - i;
       }
-    } else {
-      NUMERIC_ERROR("What a weird permutation you have");
     }
   }
 
@@ -592,8 +586,8 @@ template <> struct BasisLagrange<mesh::RefElTria, 1> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
   }
 
@@ -805,8 +799,8 @@ template <> struct BasisLagrange<mesh::RefElTria, 2> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
   }
 
@@ -1129,8 +1123,8 @@ template <> struct BasisLagrange<mesh::RefElTria, 3> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
   }
 
@@ -1323,8 +1317,8 @@ template <> struct BasisLagrange<mesh::RefElQuad, 1> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
   }
 
@@ -1622,8 +1616,8 @@ template <> struct BasisLagrange<mesh::RefElQuad, 2> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
   }
 
@@ -2112,8 +2106,8 @@ template <> struct BasisLagrange<mesh::RefElQuad, 3> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
   }
 
@@ -2319,8 +2313,8 @@ template <> struct BasisLagrange<mesh::RefElTetra, 1> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
   }
 
@@ -2652,8 +2646,8 @@ template <> struct BasisLagrange<mesh::RefElTetra, 2> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
   }
 
@@ -3261,8 +3255,8 @@ template <> struct BasisLagrange<mesh::RefElTetra, 3> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
   }
 
@@ -3615,8 +3609,8 @@ template <> struct BasisLagrange<mesh::RefElCube, 1> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
   }
 
@@ -4444,8 +4438,8 @@ template <> struct BasisLagrange<mesh::RefElCube, 2> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
   }
 
@@ -6208,8 +6202,8 @@ template <> struct BasisLagrange<mesh::RefElCube, 3> {
     }
   }
 
-  static NUMERIC_HOST_DEVICE dim_t node_idx_under_permutation(dim_t i,
-                                                              dim_t *perm) {
+  static NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
   }
 

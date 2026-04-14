@@ -1,6 +1,7 @@
 #ifndef NUMERIC_MATH_BASIS_LAGRANGE_TRIA_HPP_
 #define NUMERIC_MATH_BASIS_LAGRANGE_TRIA_HPP_
 
+#include <numeric/math/dihedral_group.hpp>
 #include <numeric/mesh/ref_el_cube.hpp>
 #include <numeric/mesh/ref_el_point.hpp>
 #include <numeric/mesh/ref_el_quad.hpp>
@@ -175,9 +176,10 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
     }
   }
 
-  static constexpr NUMERIC_HOST_DEVICE dim_t
-  node_idx_under_permutation(dim_t i, dim_t *perm) {
+  static constexpr NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
+      dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
     NUMERIC_ERROR("Not yet implemented");
+    return -1;
   }
 
   template <typename Element>

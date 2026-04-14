@@ -66,4 +66,6 @@ ArrayBase<Derived>::broadcasted_layout(const Layout<N> &from,
 
 } // namespace numeric::memory
 
+#include <numeric/memory/array_op.hpp>
+
 #endif

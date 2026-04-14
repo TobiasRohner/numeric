@@ -15,6 +15,7 @@ std::vector<std::string_view> Program::numeric_headers_ = {
     "numeric/math/constants.hpp",
     "numeric/math/functions.hpp",
     "numeric/math/polynomial.hpp",
+    "numeric/math/dihedral_group.hpp",
     "numeric/memory/array_traits.hpp",
     "numeric/memory/array_base_decl.hpp",
     "numeric/memory/array_base.hpp",
