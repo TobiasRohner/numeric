@@ -6,6 +6,7 @@ namespace numeric::math {
 namespace internal {
 
 static const char kernel_includes[] = R"(
+  #include <numeric/config.hpp>
   #include <numeric/memory/array_base.hpp>
   #include <numeric/memory/array_const_view.hpp>
   #include <numeric/memory/array_view.hpp>
@@ -17,9 +18,55 @@ static const char kernel_includes[] = R"(
 )";
 
 static const char kernel_src[] = R"(
-  template<typename Src>
-  __global__ void reduce(typename numeric::memory::ArrayTraits<Src>::scalar_t *out, Src src) {
-    // TODO: Implement
+  template <typename Src, typename... Idxs>
+  static __device__ typename numeric::memory::ArrayTraits<Src>::scalar_t
+  linear_access(const Src &src, numeric::dim_t i, Idxs... idxs) {
+    if constexpr (sizeof...(Idxs) == Src::dim) {
+      return src(idxs...);
+    } else {
+      static constexpr numeric::dim_t current_dim = Src::dim - sizeof...(Idxs) - 1;
+      const numeric::dim_t current_size = src.shape(current_dim);
+      const numeric::dim_t new_idx = i % current_size;
+      return linear_access(src, i / current_size, new_idx, idxs...);
+    }
+  }
+
+  template<bool f_is_atomic, typename Src>
+  __global__ void reduce(
+      typename numeric::memory::ArrayTraits<Src>::scalar_t *out,
+      Src src,
+      typename numeric::memory::ArrayTraits<Src>::scalar_t identity) {
+    using Scalar = typename numeric::memory::ArrayTraits<Src>::scalar_t;
+
+    extern __shared__ Scalar sdata[];
+
+    const numeric::dim_t tid = hipThreadIdx_x;
+    const numeric::dim_t i = hipBlockIdx_x * hipBlockDim_x * 2 + hipThreadIdx_x;
+    const numeric::dim_t N = src.size();
+    if (i >= N) {
+      sdata[tid] = identity;
+    } else {
+      sdata[tid] = linear_access(src, i);
+    }
+    if (i + hipBlockDim_x < N) {
+      f(&sdata[tid], linear_access(src, i + hipBlockDim_x));
+    }
+    __syncthreads();
+
+    for (numeric::dim_t s = hipBlockDim_x / 2 ; s > 0 ; s >>= 1) {
+      if (tid < s) {
+	f(&sdata[tid], sdata[tid + s]);
+      }
+      __syncthreads();
+    }
+
+    if (tid == 0) {
+      if (f_is_atomic) {
+	f(&out[0], sdata[0]);
+      } else {
+	out[hipBlockIdx_x] = sdata[0];
+      }
+    }
   }
 )";
 
@@ -29,18 +76,7 @@ static const char kernel_1d_includes[] = R"(
 )";
 
 static const char kernel_1d_src[] = R"(
-  template<typename Scalar>
-  static __device__ void warpReduce(volatile Scalar *sdata, numeric::dim_t tid) {
-    if (warpSize > 32) { sdata[tid] = f(sdata[tid], sdata[tid + 64]);}
-    sdata[tid] = f(sdata[tid], sdata[tid + 32]);
-    sdata[tid] = f(sdata[tid], sdata[tid + 16]);
-    sdata[tid] = f(sdata[tid], sdata[tid + 8]);
-    sdata[tid] = f(sdata[tid], sdata[tid + 4]);
-    sdata[tid] = f(sdata[tid], sdata[tid + 2]);
-    sdata[tid] = f(sdata[tid], sdata[tid + 1]);
-  }
-
-  template<typename Scalar>
+  template<bool f_is_atomic, typename Scalar>
   __global__ void reduce(Scalar *out, const Scalar *in, size_t N, Scalar identity) {
     extern __shared__ Scalar sdata[];
 
@@ -52,32 +88,35 @@ static const char kernel_1d_src[] = R"(
       sdata[tid] = in[i];
     }
     if (i + hipBlockDim_x < N) {
-      sdata[tid] = f(sdata[tid], in[i + hipBlockDim_x]);
+      f(&sdata[tid], in[i + hipBlockDim_x]);
     }
     __syncthreads();
 
-    //for (numeric::dim_t s = hipBlockDim_x / 2 ; s > warpSize ; s >>= 1) {
     for (numeric::dim_t s = hipBlockDim_x / 2 ; s > 0 ; s >>= 1) {
       if (tid < s) {
-	sdata[tid] = f(sdata[tid], sdata[tid + s]);
+	f(&sdata[tid], sdata[tid + s]);
       }
       __syncthreads();
     }
-    //if (tid < warpSize) {
-    //  warpReduce(sdata, tid);
-    //}
 
     if (tid == 0) {
-      out[hipBlockIdx_x] = sdata[0];
+      if (f_is_atomic) {
+	f(&out[0], sdata[0]);
+      } else {
+	out[hipBlockIdx_x] = sdata[0];
+      }
     }
   }
 )";
 
-hip::Kernel reduce_device_build_kernel(std::string_view src,
-                                       std::string_view f) {
-  const std::string kernel_name = "reduce<" + std::string(src) + ">";
-  const std::string src_f = "\ntemplate <typename Scalar> __device__ Scalar "
-                            "f(Scalar a, Scalar b) { return " +
+hip::Kernel reduce_device_build_kernel_impl(std::string_view src,
+                                            std::string_view f,
+                                            bool f_is_atomic) {
+  const std::string atomic_str = f_is_atomic ? "true" : "false";
+  const std::string kernel_name =
+      "reduce<" + atomic_str + ", " + std::string(src) + ">";
+  const std::string src_f = "\ntemplate <typename Scalar> __device__ void "
+                            "f(Scalar *a, Scalar b) { " +
                             std::string(f) + "(a, b); }\n";
   hip::Program program(kernel_includes + src_f + kernel_src);
   program.add_compile_option("--device-as-default-execution-space");
@@ -85,12 +124,13 @@ hip::Kernel reduce_device_build_kernel(std::string_view src,
   return program.get_kernel(kernel_name);
 }
 
-hip::Kernel
-reduce_device_build_kernel_1d_contiguous_impl(std::string_view scalar,
-                                              std::string_view f) {
-  const std::string kernel_name = "reduce<" + std::string(scalar) + ">";
-  const std::string src_f = "\ntemplate <typename Scalar> __device__ Scalar "
-                            "f(Scalar a, Scalar b) { return " +
+hip::Kernel reduce_device_build_kernel_1d_contiguous_impl(
+    std::string_view scalar, std::string_view f, bool f_is_atomic) {
+  const std::string atomic_str = f_is_atomic ? "true" : "false";
+  const std::string kernel_name =
+      "reduce<" + atomic_str + ", " + std::string(scalar) + ">";
+  const std::string src_f = "\ntemplate <typename Scalar> __device__ void "
+                            "f(Scalar *a, Scalar b) { " +
                             std::string(f) + "(a, b); }\n";
   hip::Program program(kernel_1d_includes + src_f + kernel_1d_src);
   program.add_compile_option("--device-as-default-execution-space");

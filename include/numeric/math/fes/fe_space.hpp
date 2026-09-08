@@ -310,7 +310,9 @@ private:
           DihedralGroupElement<num_corners> permutation =
               DihedralGroupElement<num_corners>::rotation(-rot);
           if (num_corners > 1 && perm[(rot + 1) % num_corners] != 1) {
-            permutation /= DihedralGroupElement<num_corners>::reflection(0);
+            // permutation /= DihedralGroupElement<num_corners>::reflection(0);
+            permutation =
+                DihedralGroupElement<num_corners>::reflection(0) * permutation;
           }
           const dim_t local_dof_idx = current_highest_dof_idx + dof;
           const dim_t dof_on_subelement =

@@ -1,4 +1,5 @@
 target_sources(test PUBLIC reduce.cpp)
+target_sources(test PUBLIC basis_lagrange.cpp)
 target_sources(test PUBLIC fes_basis.cpp)
 target_sources(test PUBLIC quad.cpp)
 target_sources(test PUBLIC polynomial.cpp)

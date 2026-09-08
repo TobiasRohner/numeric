@@ -62,6 +62,7 @@ public:
   int max_grid_dim_y() const;
   int max_grid_dim_z() const;
   int max_threads_per_block() const;
+  int max_threads_per_sm() const;
   size_t max_shared_memory_per_block() const;
   size_t reserved_shared_memory_per_block() const;
   size_t available_shared_memory_per_block() const;

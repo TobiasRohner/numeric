@@ -62,6 +62,8 @@ template <dim_t Ord> struct BasisLagrange<mesh::RefElPoint, Ord> {
 #include <numeric/math/basis_lagrange_tetra.hpp>
 #include <numeric/math/basis_lagrange_tria.hpp>
 
-#include <numeric/math/basis_lagrange_specialization.hpp>
+#ifndef NUMERIC_DO_NOT_SPECIALIZE_BASIS_LAGRANGE
+// #include <numeric/math/basis_lagrange_specialization.hpp>
+#endif
 
 #endif

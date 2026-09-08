@@ -1,3 +1,4 @@
+target_sources(numeric PRIVATE runtime.cpp)
 target_sources(numeric PRIVATE safe_call.cpp)
 target_sources(numeric PRIVATE device.cpp)
 target_sources(numeric PRIVATE stream.cpp)

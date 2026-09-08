@@ -64,6 +64,10 @@ int Device::max_threads_per_block() const {
   return props_[id_].maxThreadsPerBlock;
 }
 
+int Device::max_threads_per_sm() const {
+  return props_[id_].maxThreadsPerMultiProcessor;
+}
+
 size_t Device::max_shared_memory_per_block() const {
   return props_[id_].sharedMemPerBlock;
 }

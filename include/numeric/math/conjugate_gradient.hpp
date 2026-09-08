@@ -99,6 +99,10 @@ public:
     // Initialize search direction
     memory::Array<Scalar, 1> p = r;
 
+    // auto pAp = p * Ap;
+    // auto sum_pAp = make_reduction_sum(pAp);
+    // auto rsq = math::pow<2>(r);
+    // auto norm2r = make_reduction_sum(rsq);
     for (dim_t i = 0; i < max_iters_; ++i) {
       (*A_)(p, Ap);                          // Compute A*p
       const Scalar alpha = r2 / sum(p * Ap); // Step size

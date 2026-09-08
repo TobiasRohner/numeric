@@ -118,7 +118,8 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElSegment, Order> {
 
   static constexpr NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
       dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
-    if (action.is_identity()) {
+    using DH = DihedralGroupElement<ref_el_t::num_nodes>;
+    if (action.is_identity() || action == DH::reflection(1)) {
       return i;
     } else {
       switch (i) {

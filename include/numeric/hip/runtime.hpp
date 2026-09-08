@@ -19,6 +19,24 @@
 #ifndef __HIP_DEVICE_COMPILE__
 #include <hip/hip_runtime_api.h>
 #include <hip/hiprtc.h>
+
+#ifdef __HIP_PLATFORM_NVIDIA__
+// These things were forgotten by the AMD people to wrap in HIP
+
+hipError_t hipOccupancyMaxPotentialBlockSize(int *gridSize, int *blockSize,
+                                             hipFunction_t f,
+                                             size_t dynSharedMemPerBlk,
+                                             int blockSizeLimit);
+
+template <typename UnaryFunction, class T>
+hipError_t hipOccupancyMaxPotentialBlockSizeVariableSMem(
+    int *min_grid_size, int *block_size, T func,
+    UnaryFunction block_size_to_dynamic_smem_size, int block_size_limit = 0) {
+  return hipCUDAErrorTohipError(cudaOccupancyMaxPotentialBlockSizeVariableSMem(
+      min_grid_size, block_size, func, block_size_to_dynamic_smem_size,
+      block_size_limit));
+}
+#endif
 #endif
 // HACK TO FIX HIP BUG
 #ifndef HIP_INCLUDE_HIP_HIP_RUNTIME_API_H

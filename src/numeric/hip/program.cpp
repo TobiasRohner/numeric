@@ -151,6 +151,8 @@ void Program::compile() {
   add_compile_option("-D__HIPCC_RTC__");
   add_compile_option("-D__HIP_DEVICE_COMPILE__");
   add_compile_option("-DNUMERIC_ENABLE_HIP=1");
+  // TODO: Figure this out on the fly!
+  add_compile_option("--gpu-architecture=sm_75");
 
   std::vector<const char *> header_sources;
   std::vector<const char *> header_names;

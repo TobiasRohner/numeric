@@ -178,8 +178,46 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTria, Order> {
 
   static constexpr NUMERIC_HOST_DEVICE dim_t node_idx_under_group_action(
       dim_t i, const DihedralGroupElement<ref_el_t::num_nodes> &action) {
-    NUMERIC_ERROR("Not yet implemented");
-    return -1;
+    if (order == 0) {
+      return i;
+    }
+    if (i < 3 * order) {
+      if (action.type ==
+          DihedralGroupElement<ref_el_t::num_nodes>::REFLECTION) {
+        dim_t i_refl;
+        if (i == 0) {
+          i_refl = 0;
+        } else if (i == 1) {
+          i_refl = 2;
+        } else if (i == 2) {
+          i_refl = 1;
+        } else if (i < 3 + 1 * (order - 1)) {
+          i_refl = 3 + 3 * (order - 1) - (i - 2);
+        } else if (i < 3 + 2 * (order - 1)) {
+          i_refl = 3 + 2 * (order - 1) - (i - 2 - (order - 1));
+        } else {
+          i_refl = 3 + 1 * (order - 1) - (i - 2 - 2 * (order - 1));
+        }
+        return node_idx_under_group_action(
+            i_refl,
+            action / DihedralGroupElement<ref_el_t::num_nodes>::reflection(0));
+      } else {
+        if (i < 3) {
+          return (i + action.n) % 3;
+        } else {
+          return 3 + (i - 3 + action.n * (order - 1)) % (3 * (order - 1));
+        }
+      }
+    } else {
+      if constexpr (order >= 3) {
+        using tria_low_t = BasisLagrange<mesh::RefElTria, order - 3>;
+        return 3 * order +
+               tria_low_t::node_idx_under_group_action(i - 3 * order, action);
+      }
+    }
+    NUMERIC_ERROR(
+        "How did you manage to reach here? That's honestly impressive");
+    return -1; // This should never be reached
   }
 
   template <typename Element>

@@ -70,12 +70,13 @@ public:
     const auto src_derived = src.derived().broadcast(dst.shape());
     hip::LaunchParams lp;
     if (N == 1) {
-      lp = device_.launch_params_for_grid(dst.shape(0), 1, 1);
+      lp = kernel_.launch_params_for_grid(device_, dst.shape(0), 1, 1, 0);
     } else if (N == 2) {
-      lp = device_.launch_params_for_grid(dst.shape(1), dst.shape(0), 1);
+      lp = kernel_.launch_params_for_grid(device_, dst.shape(1), dst.shape(0),
+                                          1, 0);
     } else {
-      lp = device_.launch_params_for_grid(dst.shape(2), dst.shape(1),
-                                          dst.shape(0));
+      lp = kernel_.launch_params_for_grid(device_, dst.shape(2), dst.shape(1),
+                                          dst.shape(0), 0);
     }
     kernel_(lp, hip::Stream(device_), dst, src_derived);
   }

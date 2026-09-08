@@ -31,7 +31,7 @@ endif()
 
 
 add_library(numeric)
-set_target_properties(numeric PROPERTIES CXX_STANDARD 20)
+set_target_properties(numeric PROPERTIES CXX_STANDARD 23)
 set(NUMERIC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(NUMERIC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_subdirectory(${NUMERIC_SOURCE_DIR})

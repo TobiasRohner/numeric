@@ -98,7 +98,7 @@ int main() {
 
   //! [setup]
   // Define the memory type (using host memory in this example)
-  const memory::MemoryType memory_type = memory::MemoryType::HOST;
+  const memory::MemoryType memory_type = memory::MemoryType::DEVICE;
 
   // Set the grid dimension and solver tolerance
   static constexpr dim_t N = 1024;

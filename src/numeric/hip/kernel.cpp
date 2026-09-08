@@ -71,4 +71,26 @@ int Kernel::preferred_shared_memory_carveout() const {
   return attributes_.preferredShmemCarveout;
 }
 
+int Kernel::suggested_block_size(size_t shared_mem_bytes) const {
+  int grid_size, block_size;
+  NUMERIC_CHECK_HIP(hipOccupancyMaxPotentialBlockSize(
+      &grid_size, &block_size, kernel_, shared_mem_bytes, 0));
+  return block_size;
+}
+
+int Kernel::max_active_blocks_per_sm(int block_size,
+                                     size_t shared_mem_bytes) const {
+  int blocks;
+  NUMERIC_CHECK_HIP(hipModuleOccupancyMaxActiveBlocksPerMultiprocessor(
+      &blocks, kernel_, block_size, shared_mem_bytes));
+  return blocks;
+}
+
+LaunchParams Kernel::launch_params_for_grid(const Device &device, int dim_x,
+                                            int dim_y, int dim_z,
+                                            size_t shared_mem_bytes) const {
+  return launch_params_for_grid(device, dim_x, dim_y, dim_z,
+                                [&](int) { return shared_mem_bytes; });
+}
+
 } // namespace numeric::hip

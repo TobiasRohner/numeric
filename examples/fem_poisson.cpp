@@ -21,10 +21,10 @@ using namespace numeric;
 
 int main(int argc, char *argv[]) {
   using scalar_t = double;
-  static constexpr dim_t world_dim = 2;
+  static constexpr dim_t world_dim = 3;
   const memory::MemoryType memory_type = memory::MemoryType::DEVICE;
 
-  using mesh_t = mesh::UnstructuredMesh<scalar_t, mesh::Tria<1>>;
+  using mesh_t = mesh::UnstructuredMesh<scalar_t, mesh::Tetra<1>>;
   using basis_t = math::fes::BasisH1<4>;
   using fes_t = math::fes::FESpace<basis_t, mesh_t>;
   using element_matrix_factory_t =
@@ -40,9 +40,10 @@ int main(int argc, char *argv[]) {
 
   std::cout << "Reading mesh " << mesh_file << std::endl;
   std::shared_ptr<mesh_t> mesh =
-      io::GmshReader<scalar_t, mesh::Tria<1>>::load(mesh_file, world_dim);
+      io::GmshReader<scalar_t, mesh::Tetra<1>>::load(mesh_file, world_dim);
   std::cout << "Done reading " << mesh->num_vertices() << " vertices, "
-            << mesh->num_elements<mesh::Tria<1>>() << " triangles" << std::endl;
+            << mesh->num_elements<mesh::Tetra<1>>() << " tetrahedrons"
+            << std::endl;
 
   std::cout << "Constructing H1 FE space of order " << fes_t::basis_t::order
             << std::endl;
@@ -84,8 +85,9 @@ int main(int argc, char *argv[]) {
         using scalar_t = ::numeric::meta::remove_cvref_t<decltype(*x)>;
         const scalar_t x1 = x[0];
         const scalar_t x2 = x[1];
-        const scalar_t r2 = x1 * x1 + x2 * x2;
-        return (r2 < 0.01 ? 1 : 0) - 0.01;
+        const scalar_t x3 = x[2];
+        const scalar_t r2 = x1 * x1 + x2 * x2 + x3 * x3;
+        return (r2 < 0.01 ? 1 : 0) - 0.001;
       });
   load.assemble(f, system.rhs());
 

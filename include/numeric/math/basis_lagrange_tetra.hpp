@@ -221,7 +221,7 @@ template <dim_t Order> struct BasisLagrange<mesh::RefElTetra, Order> {
             i - (4 + 6 * (order - 1) + 1 * tria_low_t::num_basis_functions);
         dim_t idxs_tria[2];
         tria_low_t::node_idxs(iloc, idxs_tria);
-        out[0] = order - 2 - idxs_tria[0] - idxs_tria[1];
+        out[0] = 1 + idxs_tria[1]; // order - 2 - idxs_tria[0] - idxs_tria[1];
         out[1] = 1 + (order - 3) - idxs_tria[0] - idxs_tria[1];
         out[2] = 1 + idxs_tria[0];
       } else if (i <

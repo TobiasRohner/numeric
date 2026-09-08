@@ -3,8 +3,10 @@
 
 #include <numeric/config.hpp>
 #ifndef __HIP_DEVICE_COMPILE__
+#include <boost/stacktrace.hpp>
 #include <cstdlib>
 #include <fmt/core.h>
+#include <sstream>
 #endif
 
 namespace numeric::utils {
@@ -20,9 +22,12 @@ error_impl(const char *file, int line, const char *func, const char *msg,
   asm volatile("trap;");
   __builtin_unreachable();
 #else
+  std::stringstream ss;
+  ss << boost::stacktrace::stacktrace();
   const std::string fmtmsg =
       fmt::format(fmt::runtime(msg), std::forward<Ts>(args)...);
-  fmt::print(stderr, "file: {}({}) `{}`: {}\n", file, line, func, fmtmsg);
+  fmt::print(stderr, "Stacktrace:\n{}\nfile: {}({}) `{}`: {}\n", ss.str(), file,
+             line, func, fmtmsg);
   exit(EXIT_FAILURE);
 #endif
 }
