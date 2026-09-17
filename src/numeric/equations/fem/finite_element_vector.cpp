@@ -18,18 +18,17 @@ static const char kernel_src[] = R"(
   template <typename Scalar, typename ScalarMesh, typename ElementVector>
   __global__ void build_vector(
       ElementVector element_vector,
-      numeric::memory::ArrayConstView<numeric::dim_t, 1> group,
       numeric::memory::ArrayConstView<ScalarMesh, 2> vertices,
       numeric::memory::ArrayConstView<numeric::dim_t, 2> elements,
       numeric::memory::ArrayConstView<numeric::dim_t, 2> dofs,
       numeric::memory::ArrayView<Scalar, 1> out) {
     static constexpr numeric::dim_t num_nodes = ElementVector::element_t::num_nodes;
     static constexpr numeric::dim_t num_basis_functions = ElementVector::num_basis_functions;
-    const numeric::dim_t num_elements = group.shape(0);
+    const numeric::dim_t num_elements = elements.shape(1);
     const numeric::dim_t world_dim = vertices.shape(0);
 
-    const numeric::dim_t tid = hipBlockDim_x * hipBlockIdx_x + hipThreadIdx_x;
-    if (tid >= num_elements) {
+    const numeric::dim_t element = hipBlockDim_x * hipBlockIdx_x + hipThreadIdx_x;
+    if (element >= num_elements) {
       return;
     }
 
@@ -39,8 +38,6 @@ static const char kernel_src[] = R"(
     Scalar (*nodes)[num_nodes] = reinterpret_cast<Scalar(*)[num_nodes]>(local_work);
     Scalar *apply_work = local_work + world_dim * num_nodes;
     Scalar local_vector[num_basis_functions];
-
-    const numeric::dim_t element = group(tid);
 
     // Extract physical coordinates of the current element's nodes
     for (numeric::dim_t node = 0 ; node < num_nodes ; ++node) {
@@ -54,7 +51,7 @@ static const char kernel_src[] = R"(
 
     // Store the local vector to global memory for the gather operation
     for (numeric::dim_t bf = 0 ; bf < num_basis_functions ; ++bf) {
-      out(dofs(bf, element)) += local_vector[bf];
+      atomicAdd(&out(dofs(bf, element)), local_vector[bf]);
     }
   }
 )";

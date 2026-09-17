@@ -342,3 +342,59 @@ TEST(array, stride) {
     }
   }
 }
+
+TEST(array, copy_assign_to_uninitialized) {
+  numeric::memory::Shape<2> shape(2, 3);
+  numeric::memory::Array<double, 2> src(shape);
+  src(0, 0) = 1;
+  src(0, 1) = 2;
+  src(0, 2) = 3;
+  src(1, 0) = 4;
+  src(1, 1) = 5;
+  src(1, 2) = 6;
+
+  numeric::memory::Array<double, 2> dst;
+  dst = src;
+
+  ASSERT_EQ(dst.shape(0), 2);
+  ASSERT_EQ(dst.shape(1), 3);
+  ASSERT_EQ(dst.memory_type(), src.memory_type());
+  for (size_t i = 0; i < 2; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      ASSERT_EQ(dst(i, j), src(i, j));
+    }
+  }
+}
+
+TEST(array, arraybase_assign_to_uninitialized) {
+  numeric::memory::Shape<2> shape(2, 3);
+  numeric::memory::Array<double, 2> src(shape);
+  src(0, 0) = 1;
+  src(0, 1) = 2;
+  src(0, 2) = 3;
+  src(1, 0) = 4;
+  src(1, 1) = 5;
+  src(1, 2) = 6;
+
+  numeric::memory::Array<double, 2> dst;
+  dst = src.const_view();
+
+  ASSERT_EQ(dst.shape(0), 2);
+  ASSERT_EQ(dst.shape(1), 3);
+  ASSERT_EQ(dst.memory_type(), src.memory_type());
+  for (size_t i = 0; i < 2; ++i) {
+    for (size_t j = 0; j < 3; ++j) {
+      ASSERT_EQ(dst(i, j), src(i, j));
+    }
+  }
+}
+
+TEST(array, scalar_assign_to_uninitialized) {
+  numeric::memory::Array<double, 2> dst;
+  dst = 5.0;
+
+  ASSERT_EQ(dst.shape(0), 1);
+  ASSERT_EQ(dst.shape(1), 1);
+  ASSERT_EQ(dst.memory_type(), numeric::memory::MemoryType::HOST);
+  ASSERT_EQ(dst(0, 0), 5.0);
+}

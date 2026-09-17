@@ -20,7 +20,7 @@
 using namespace numeric;
 
 int main(int argc, char *argv[]) {
-  using scalar_t = double;
+  using scalar_t = float;
   static constexpr dim_t world_dim = 3;
   const memory::MemoryType memory_type = memory::MemoryType::DEVICE;
 

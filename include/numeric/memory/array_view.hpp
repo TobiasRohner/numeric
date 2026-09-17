@@ -4,6 +4,7 @@
 #include <numeric/memory/array_const_view.hpp>
 #include <numeric/memory/array_op.hpp>
 #include <numeric/memory/array_view_decl.hpp>
+#include <numeric/memory/constant.hpp>
 #include <numeric/memory/slice.hpp>
 #include <numeric/meta/meta.hpp>
 #ifdef __HIP_DEVICE_COMPILE__
@@ -46,12 +47,7 @@ ArrayView<Scalar, N>::operator=(const ArrayBase<Src> &src) {
 template <typename Scalar, dim_t N>
 NUMERIC_HOST_DEVICE ArrayView<Scalar, N> &
 ArrayView<Scalar, N>::operator=(Scalar val) {
-#ifdef __HIP_DEVICE_COMPILE__
-  static constexpr MemoryType mt = MemoryType::DEVICE;
-#else
-  static constexpr MemoryType mt = MemoryType::HOST;
-#endif
-  const ArrayConstView<Scalar, 1> view(&val, Layout<1>(1), mt);
+  const Constant<Scalar, 1> view(Shape<1>(1), val, memory_type());
   *this = view;
   return *this;
 }

@@ -99,18 +99,18 @@ public:
     // Initialize search direction
     memory::Array<Scalar, 1> p = r;
 
-    // auto pAp = p * Ap;
-    // auto sum_pAp = make_reduction_sum(pAp);
-    // auto rsq = math::pow<2>(r);
-    // auto norm2r = make_reduction_sum(rsq);
+    auto pAp = p * Ap;
+    auto sum_pAp = make_reduction_sum(pAp);
+    auto rsq = r * r;
+    auto norm2r = make_reduction_sum(rsq);
     for (dim_t i = 0; i < max_iters_; ++i) {
-      (*A_)(p, Ap);                          // Compute A*p
-      const Scalar alpha = r2 / sum(p * Ap); // Step size
-      x += alpha * p;                        // Update solution
-      r -= alpha * Ap;                       // Update residual
+      (*A_)(p, Ap);                               // Compute A*p
+      const Scalar alpha = r2 / sum_pAp.reduce(); // Step size
+      x += alpha * p;                             // Update solution
+      r -= alpha * Ap;                            // Update residual
 
       // Compute new residual norm
-      const Scalar rp12 = norm::l2_squared(r);
+      const Scalar rp12 = norm2r.reduce();
       if (callback_) {
         callback_(i, math::sqrt(rp12), x, r);
       }

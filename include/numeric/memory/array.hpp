@@ -6,10 +6,42 @@
 #include <numeric/memory/allocator.hpp>
 #include <numeric/memory/array_traits.hpp>
 #include <numeric/memory/array_view.hpp>
+#include <numeric/utils/error.hpp>
 #include <random>
 #include <type_traits>
 
 namespace numeric::memory {
+
+namespace detail {
+
+template <dim_t N, dim_t M>
+NUMERIC_HOST_DEVICE Shape<N> assign_shape_impl(const Shape<M> &src_shape) {
+  if constexpr (N == M) {
+    return src_shape;
+  } else if constexpr (N < M) {
+    Shape<N> result;
+    for (dim_t i = 0; i < M - N; ++i) {
+      NUMERIC_ERROR_IF(src_shape[i] != 1,
+                       "Cannot assign to Array with fewer dimensions: leading "
+                       "dimensions of source must be 1");
+    }
+    for (dim_t i = 0; i < N; ++i) {
+      result[i] = src_shape[M - N + i];
+    }
+    return result;
+  } else {
+    Shape<N> result;
+    for (dim_t i = 0; i < N - M; ++i) {
+      result[i] = 1;
+    }
+    for (dim_t i = 0; i < M; ++i) {
+      result[N - M + i] = src_shape[i];
+    }
+    return result;
+  }
+}
+
+} // namespace detail
 
 /**
  * @brief Class for representing a dynamically allocated array.
@@ -124,23 +156,44 @@ public:
     return *this;
   }
   Array &operator=(const Array &other) {
+    if (!raw()) {
+      *this = Array(other.shape(), other.memory_type());
+    }
     super::operator=(other);
     return *this;
   }
   template <typename Src> Array &operator=(const ArrayBase<Src> &src) {
+    if (!raw()) {
+      using SrcTraits = ArrayTraits<Src>;
+      constexpr dim_t SrcDim = SrcTraits::dim;
+      const Shape<N> new_shape =
+          detail::assign_shape_impl<N, SrcDim>(src.shape());
+      *this = Array(new_shape, src.memory_type());
+    }
     super::operator=(src);
     return *this;
   }
   Array &operator=(Scalar val) {
+    if (!raw()) {
+      Shape<dim> shape;
+      for (dim_t i = 0; i < N; ++i) {
+        shape[i] = 1;
+      }
+      *this = Array(shape, MemoryType::HOST);
+    }
     super::operator=(val);
     return *this;
   }
 #define NUMERIC_ARRAY_DEFINE_ASSIGNMENT(op)                                    \
   template <typename Src> Array &operator op(const ArrayBase<Src> &src) {      \
+    NUMERIC_ERROR_IF(!raw(),                                                   \
+                     "Cannot use compound assignment on uninitialized Array"); \
     super::operator op(src);                                                   \
     return *this;                                                              \
   }                                                                            \
   Array &operator op(Scalar val) {                                             \
+    NUMERIC_ERROR_IF(!raw(),                                                   \
+                     "Cannot use compound assignment on uninitialized Array"); \
     super::operator op(val);                                                   \
     return *this;                                                              \
   }

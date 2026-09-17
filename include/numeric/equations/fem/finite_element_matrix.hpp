@@ -319,30 +319,14 @@ private:
     hip::Device device;
     static constexpr dim_t num_nodes = Element::num_nodes;
     const dim_t world_dim = vertices.shape(0);
-    for (const auto &group :
-         fes_->template independent_element_groups<Element>()) {
-      const dim_t num_elements = group.shape(0);
-      const int shared_mem_per_thread =
-          world_dim * num_nodes * sizeof(scalar_t) +
-          elem_mat.apply_work_size(world_dim);
-      const unsigned max_threads_per_block =
-          math::min(kernel_max_threads_per_block,
-                    kernel_max_dynamic_memory / shared_mem_per_thread);
-      const unsigned num_blocks =
-          math::div_up(num_elements, max_threads_per_block);
-      const unsigned num_threads = math::div_up(num_elements, num_blocks);
-      hip::LaunchParams lp;
-      lp.grid_dim_x = num_blocks;
-      lp.grid_dim_y = 1;
-      lp.grid_dim_z = 1;
-      lp.block_dim_x = num_threads;
-      lp.block_dim_y = 1;
-      lp.block_dim_z = 1;
-      lp.shared_mem_bytes = num_threads * shared_mem_per_thread;
-      kernel.async(lp, hip::Stream(device), elem_mat, group, vertices, elements,
-                   dofs, u, out);
-    }
-    device.sync();
+    const dim_t num_elements = elements.shape(1);
+    const int shared_mem_per_thread = world_dim * num_nodes * sizeof(scalar_t) +
+                                      elem_mat.apply_work_size(world_dim);
+    const hip::LaunchParams lp =
+        kernel.launch_params_for_grid(device, num_elements, 1, 1, [&](int bs) {
+          return bs * shared_mem_per_thread;
+        });
+    kernel(lp, hip::Stream(device), elem_mat, vertices, elements, dofs, u, out);
   }
 };
 

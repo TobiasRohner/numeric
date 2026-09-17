@@ -164,10 +164,19 @@ public:
         f_is_atomic_(f_is_atomic) {}
 
   scalar_t reduce() {
-    NUMERIC_ERROR_IF(
-        !is_host_accessible(src_.memory_type()),
-        "Reduction without a device provided requires a host-accessible array");
-    return internal::reduce_host(src_, f_.f, identity_);
+    if (is_host_accessible(src_.memory_type())) {
+      return internal::reduce_host(src_, f_.f, identity_);
+    }
+#if NUMERIC_ENABLE_HIP
+    else if (is_device_accessible(src_.memory_type())) {
+      hip::Device device;
+      return reduce(device);
+    }
+#endif
+    else {
+      NUMERIC_ERROR("Unsupported memory type: {}",
+                    to_string(src_.memory_type()));
+    }
   }
 
 #if NUMERIC_ENABLE_HIP

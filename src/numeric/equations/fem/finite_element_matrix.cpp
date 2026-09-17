@@ -17,7 +17,6 @@ static const char kernel_src[] = R"(
   template <typename Scalar, typename ScalarMesh, typename ElementMatrix>
   __global__ void apply_matrix(
       ElementMatrix elem_mat,
-      numeric::memory::ArrayConstView<numeric::dim_t, 1> group,
       numeric::memory::ArrayConstView<ScalarMesh, 2> vertices,
       numeric::memory::ArrayConstView<numeric::dim_t, 2> elements,
       numeric::memory::ArrayConstView<numeric::dim_t, 2> dofs,
@@ -25,11 +24,11 @@ static const char kernel_src[] = R"(
       numeric::memory::ArrayView<Scalar, 1> out) {
     static constexpr numeric::dim_t num_nodes = ElementMatrix::element_t::num_nodes;
     static constexpr numeric::dim_t num_basis_functions = ElementMatrix::num_basis_functions;
-    const numeric::dim_t num_elements = group.shape(0);
+    const numeric::dim_t num_elements = elements.shape(1);
     const numeric::dim_t world_dim = vertices.shape(0);
 
-    const numeric::dim_t tid = hipBlockDim_x * hipBlockIdx_x + hipThreadIdx_x;
-    if (tid >= num_elements) {
+    const numeric::dim_t element = hipBlockDim_x * hipBlockIdx_x + hipThreadIdx_x;
+    if (element >= num_elements) {
       return;
     }
 
@@ -42,8 +41,6 @@ static const char kernel_src[] = R"(
     Scalar elem_vec_in[num_basis_functions];  // Local u vector
     Scalar elem_vec_out[num_basis_functions]; // Output of local mat-vec
 
-    const numeric::dim_t element = group(tid);
-    
     // Extract physical coordinates of the current element's nodes
     for (numeric::dim_t node = 0 ; node < num_nodes ; ++node) {
       for (numeric::dim_t dim = 0 ; dim < world_dim ; ++dim) {
@@ -64,7 +61,7 @@ static const char kernel_src[] = R"(
     // Scatter onto the global coefficient vector
     for (numeric::dim_t bf = 0; bf < num_basis_functions; ++bf) {
       const numeric::dim_t dof_idx = dofs(bf, element);
-      out(dof_idx) += elem_vec_out[bf];
+      atomicAdd(&out(dof_idx), elem_vec_out[bf]);
     }
   }
 )";
